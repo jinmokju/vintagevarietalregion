@@ -16,6 +16,7 @@
 
 ## Auto Lookup Function
 - `/functions/wine-lookup.js` is the Cloudflare Pages Function for wine image / average price lookup.
+- By default it can fetch a first image candidate from Openverse's public image search API.
 - Optional environment variables:
   - `OPENVERSE_API_ENDPOINT`
   - `WINE_SEARCHER_API_ENDPOINT`

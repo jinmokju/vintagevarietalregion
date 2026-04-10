@@ -101,6 +101,10 @@ const el = {
   wineRegion: document.getElementById("wineRegion"),
   winePrice: document.getElementById("winePrice"),
   wineImage: document.getElementById("wineImage"),
+  wineImagePreview: document.getElementById("wineImagePreview"),
+  imagePreviewCard: document.getElementById("imagePreviewCard"),
+  imagePreviewCaption: document.getElementById("imagePreviewCaption"),
+  clearImageButton: document.getElementById("clearImageButton"),
   wineReview: document.getElementById("wineReview"),
   fetchWineData: document.getElementById("fetchWineData"),
   fetchStatus: document.getElementById("fetchStatus"),
@@ -302,6 +306,8 @@ function bindEvents() {
   el.reviewForm.addEventListener("submit", handleReviewSave);
   el.tasteForm.addEventListener("submit", handleTasteSave);
   el.fetchWineData.addEventListener("click", handleWineLookup);
+  el.wineImage.addEventListener("input", syncImagePreview);
+  el.clearImageButton.addEventListener("click", clearImageField);
   el.authForm.addEventListener("submit", handleLogin);
   el.signupButton.addEventListener("click", handleSignup);
   el.logoutButton.addEventListener("click", handleLogout);
@@ -328,6 +334,7 @@ function renderAll() {
   renderRecentReviews();
   updateMetrics();
   updateAdminAccess();
+  syncImagePreview();
 }
 
 function renderFilters() {
@@ -658,6 +665,7 @@ function startReviewEdit(wineId, reviewId) {
   el.wineReview.value = review.note || "";
   el.reviewSubmitLabel.textContent = "리뷰 수정 저장";
   el.cancelEditButton.hidden = false;
+  syncImagePreview();
   el.reviewForm.scrollIntoView({ behavior: "smooth", block: "start" });
 }
 
@@ -671,6 +679,7 @@ function resetReviewForm() {
   el.reviewSubmitLabel.textContent = "리뷰 저장하기";
   el.cancelEditButton.hidden = true;
   el.fetchStatus.textContent = "Cloudflare Function을 통해 자동 조회를 시도합니다.";
+  syncImagePreview();
 }
 
 async function handleReviewSave(event) {
@@ -831,16 +840,38 @@ async function handleWineLookup() {
   try {
     const response = await fetch(`/functions/wine-lookup?q=${encodeURIComponent(query)}`);
     const data = await response.json();
-    if (data.image_url && !el.wineImage.value) {
+    if (data.image_url) {
       el.wineImage.value = data.image_url;
     }
     if (data.average_price && !el.winePrice.value) {
       el.winePrice.value = data.average_price;
     }
+    syncImagePreview(data.image_source || "");
     el.fetchStatus.textContent = data.note || "조회 결과를 입력 폼에 반영했습니다.";
   } catch (error) {
     el.fetchStatus.textContent = "자동 조회에 실패했습니다. Cloudflare Function 또는 API 설정을 확인해주세요.";
   }
+}
+
+function clearImageField() {
+  el.wineImage.value = "";
+  syncImagePreview();
+}
+
+function syncImagePreview(sourceLabel = "") {
+  const imageUrl = el.wineImage.value.trim();
+  if (!imageUrl) {
+    el.imagePreviewCard.hidden = true;
+    el.wineImagePreview.removeAttribute("src");
+    el.imagePreviewCaption.textContent = "입력된 이미지 URL이나 자동 조회 결과를 여기서 바로 확인할 수 있습니다.";
+    return;
+  }
+
+  el.imagePreviewCard.hidden = false;
+  el.wineImagePreview.src = imageUrl;
+  el.imagePreviewCaption.textContent = sourceLabel
+    ? `자동 조회 출처: ${sourceLabel}`
+    : "직접 입력한 이미지 URL 미리보기입니다.";
 }
 
 async function persistPersona(persona) {
