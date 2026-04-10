@@ -1,7 +1,8 @@
-﻿const STORAGE_KEYS = {
+const STORAGE_KEYS = {
   theme: "vvr-theme",
   personas: "vvr-personas",
-  wines: "vvr-wines"
+  wines: "vvr-wines",
+  customAromas: "vvr-custom-aromas"
 };
 
 const ADMIN_EMAILS = ["jinmokju@gmail.com"];
@@ -211,7 +212,8 @@ const state = {
   editingWineId: null,
   editingReviewId: null,
   tasteDraft: { fruitDriven: 4, oak: 4, acidity: 4, body: 4, fruitProfile: 4 },
-  reviewDraft: createEmptyReviewDraft("Red")
+  reviewDraft: createEmptyReviewDraft("Red"),
+  customAromas: createEmptyCustomAromas()
 };
 
 const el = {
@@ -327,6 +329,7 @@ function isAdminEmail(email) {
 async function hydrateData() {
   state.personas = loadLocal(STORAGE_KEYS.personas, seedPersonas);
   state.wines = loadLocal(STORAGE_KEYS.wines, seedWines).map(normalizeLocalWine);
+  state.customAromas = normalizeCustomAromas(loadLocal(STORAGE_KEYS.customAromas, createEmptyCustomAromas()));
 
   if (!state.supabase) {
     return;
@@ -494,8 +497,37 @@ function createEmptyReviewDraft(type) {
   };
 }
 
+function createEmptyCustomAromas() {
+  const types = ["red", "white", "rose", "sparkling", "orange"];
+  const categories = ["primary", "secondary", "tertiary"];
+  return categories.reduce((categoryAcc, category) => {
+    categoryAcc[category] = types.reduce((typeAcc, type) => {
+      typeAcc[type] = {};
+      return typeAcc;
+    }, {});
+    return categoryAcc;
+  }, {});
+}
+
+function normalizeCustomAromas(value) {
+  const base = createEmptyCustomAromas();
+  for (const category of Object.keys(base)) {
+    for (const type of Object.keys(base[category])) {
+      const groups = value?.[category]?.[type];
+      if (!groups || typeof groups !== "object") {
+        continue;
+      }
+      base[category][type] = Object.fromEntries(
+        Object.entries(groups).map(([groupName, notes]) => [groupName, Array.isArray(notes) ? notes.filter(Boolean) : []])
+      );
+    }
+  }
+  return base;
+}
+
 function normalizeReviewStructure(structure, typeKey) {
-  return getStructureFields(typeKey === "white" ? "White" : "Red").reduce((accumulator, field) => {
+  const typeLabel = typeKey === "sparkling" ? "Sparkling" : (typeKey === "red" ? "Red" : "White");
+  return getStructureFields(typeLabel).reduce((accumulator, field) => {
     accumulator[field.key] = structure?.[field.key] || 4;
     return accumulator;
   }, {});
@@ -505,12 +537,54 @@ function normalizeAromaList(values) {
   return Array.isArray(values) ? values.filter(Boolean) : [];
 }
 
+function normalizeAromaLabel(value) {
+  return value
+    .toLowerCase()
+    .normalize("NFKD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-z0-9]+/g, "");
+}
+
 function getAromaOptions(category, type) {
-  return Object.values(AROMA_OPTIONS[category][getAromaTypeKey(type)]).flat();
+  return Object.values(getAromaGroups(category, type)).flat();
 }
 
 function getAromaGroups(category, type) {
-  return AROMA_OPTIONS[category][getAromaTypeKey(type)];
+  const typeKey = getAromaTypeKey(type);
+  return {
+    ...AROMA_OPTIONS[category][typeKey],
+    ...state.customAromas[category][typeKey]
+  };
+}
+
+function findMatchingAroma(category, type, candidate) {
+  const normalized = normalizeAromaLabel(candidate);
+  const options = getAromaOptions(category, type);
+  return options.find((item) => normalizeAromaLabel(item) === normalized)
+    || options.find((item) => normalizeAromaLabel(item).includes(normalized) || normalized.includes(normalizeAromaLabel(item)));
+}
+
+function addCustomAroma(category, type, groupName, rawValue) {
+  const value = rawValue.trim();
+  if (!value) {
+    return { ok: false, message: "향미 이름을 입력해주세요." };
+  }
+
+  const match = findMatchingAroma(category, type, value);
+  if (match) {
+    toggleAromaSelection(category, match, true);
+    return { ok: false, message: `이미 비슷한 향미 '${match}' 가 있어 그 항목을 선택했습니다.` };
+  }
+
+  const typeKey = getAromaTypeKey(type);
+  if (!state.customAromas[category][typeKey][groupName]) {
+    state.customAromas[category][typeKey][groupName] = [];
+  }
+  state.customAromas[category][typeKey][groupName].push(value);
+  state.customAromas[category][typeKey][groupName].sort((a, b) => a.localeCompare(b));
+  saveLocal();
+  toggleAromaSelection(category, value, true);
+  return { ok: true, message: `'${value}' 향미를 추가했습니다.` };
 }
 
 function loadLocal(key, fallback) {
@@ -525,6 +599,7 @@ function loadLocal(key, fallback) {
 function saveLocal() {
   localStorage.setItem(STORAGE_KEYS.personas, JSON.stringify(state.personas));
   localStorage.setItem(STORAGE_KEYS.wines, JSON.stringify(state.wines));
+  localStorage.setItem(STORAGE_KEYS.customAromas, JSON.stringify(state.customAromas));
 }
 
 function hydrateTheme() {
@@ -977,12 +1052,22 @@ function renderAromaSelector(category, type) {
   const selectedHost = el[`${category}AromaSelected`];
   const values = state.reviewDraft[`${category}Aromas`];
   const groups = getAromaGroups(category, type);
+  const groupNames = Object.keys(groups);
 
   selectedHost.innerHTML = values.length
     ? values.map((value) => `<span class="pill">${value}</span>`).join("")
     : '<span class="muted">아직 선택 전</span>';
 
-  selector.innerHTML = Object.entries(groups).map(([groupName, options]) => `
+  selector.innerHTML = `
+    <div class="aroma-add-row">
+      <select data-aroma-group="${category}">
+        ${groupNames.map((groupName) => `<option value="${groupName}">${groupName}</option>`).join("")}
+      </select>
+      <input type="text" data-aroma-input="${category}" placeholder="없는 향미를 직접 추가">
+      <button type="button" class="ghost-button" data-aroma-add="${category}" style="color:var(--text); border-color:var(--line); background:var(--surface-strong)">추가</button>
+    </div>
+    <div class="aroma-add-status" data-aroma-status="${category}">비슷한 표현이 있으면 기존 향미를 자동으로 선택합니다.</div>
+  ` + Object.entries(groups).map(([groupName, options]) => `
     <div class="aroma-category">
       <div class="aroma-category-head">
         <strong>${groupName}</strong>
@@ -996,13 +1081,35 @@ function renderAromaSelector(category, type) {
   selector.querySelectorAll("[data-aroma-category]").forEach((button) => {
     button.addEventListener("click", () => toggleAromaSelection(category, button.dataset.aromaValue));
   });
+  const addButton = selector.querySelector(`[data-aroma-add="${category}"]`);
+  const input = selector.querySelector(`[data-aroma-input="${category}"]`);
+  const groupSelect = selector.querySelector(`[data-aroma-group="${category}"]`);
+  const status = selector.querySelector(`[data-aroma-status="${category}"]`);
+  const submitCustom = () => {
+    const result = addCustomAroma(category, type, groupSelect.value, input.value);
+    renderAromaSelector(category, type);
+    const refreshedStatus = selector.querySelector(`[data-aroma-status="${category}"]`);
+    if (refreshedStatus) {
+      refreshedStatus.textContent = result.message;
+    }
+    if (input) {
+      input.value = "";
+    }
+  };
+  addButton.addEventListener("click", submitCustom);
+  input.addEventListener("keydown", (event) => {
+    if (event.key === "Enter") {
+      event.preventDefault();
+      submitCustom();
+    }
+  });
 }
 
-function toggleAromaSelection(category, value) {
+function toggleAromaSelection(category, value, forceOn = false) {
   const key = `${category}Aromas`;
   const current = state.reviewDraft[key];
   state.reviewDraft[key] = current.includes(value)
-    ? current.filter((item) => item !== value)
+    ? (forceOn ? current : current.filter((item) => item !== value))
     : [...current, value];
   renderAromaSelector(category, el.wineType.value || "Red");
 }

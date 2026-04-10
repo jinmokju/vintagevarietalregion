@@ -21,6 +21,8 @@
     .aroma-category-head strong{font-size:.88rem}
     .aroma-category-head span{font-size:.78rem;color:var(--muted)}
     .aroma-chip-row{display:flex;flex-wrap:wrap;gap:8px}
+    .aroma-add-row{display:grid;grid-template-columns:minmax(140px,.9fr) minmax(180px,1.4fr) auto;gap:8px;align-items:center}
+    .aroma-add-status{font-size:.8rem;color:var(--muted);margin-top:2px}
     .aroma-chip{padding:8px 12px;border-radius:999px;border:1px solid var(--line);background:rgba(255,255,255,.46);color:var(--muted);cursor:pointer;transition:transform .18s ease,background-color .18s ease,border-color .18s ease}
     .aroma-chip:hover{transform:translateY(-1px)}
     .aroma-chip.active{background:linear-gradient(135deg,var(--accent),var(--accent-soft));color:var(--white);border-color:transparent}
@@ -48,6 +50,7 @@
     .type-badge.type-sparkling{background:linear-gradient(135deg,#bea05a,#eed89b);color:#4e3a10}
     .type-badge.type-orange{background:linear-gradient(135deg,#bd6b1f,#efab5c)}
     @media (min-width:721px){.review-detail-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+    @media (max-width:720px){.aroma-add-row{grid-template-columns:1fr}}
   </style>
 </head>
 <body>
