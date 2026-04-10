@@ -169,13 +169,16 @@
               <div class="form-grid">
                 <label>리뷰어 Persona<select id="reviewPersona"></select></label>
                 <label>와인 타입<select id="wineType"><option>Red</option><option>White</option><option>Sparkling</option><option>Rose</option><option>Orange</option></select></label>
-                <label>와인명<input id="wineName" required></label>
-                <label>Vintage<input id="wineVintage"></label>
-                <label>Varietal<input id="wineVarietal"></label>
+                <label>와인명<input id="wineName" list="wineNameOptions" required placeholder="기존 와인 선택 또는 새 와인 입력"></label>
+                <label>Vintage<input id="wineVintage" list="wineVintageOptions" placeholder="기존 빈티지 선택 또는 직접 입력"></label>
+                <label>Varietal<input id="wineVarietal" list="wineVarietalOptions" placeholder="타입별 품종 선택 또는 직접 입력"></label>
                 <label>Region<input id="wineRegion"></label>
                 <label>평균가 (Wine-Searcher / Manual)<input id="winePrice" placeholder="예: KRW 62,000"></label>
                 <label>이미지 URL<input id="wineImage" type="url" placeholder="자동 조회 후 마음에 들면 그대로 저장"></label>
               </div>
+              <datalist id="wineNameOptions"></datalist>
+              <datalist id="wineVintageOptions"></datalist>
+              <datalist id="wineVarietalOptions"></datalist>
               <div class="row" style="margin:10px 0 14px"><button class="ghost-button" id="fetchWineData" type="button" style="color:var(--text); border-color:var(--line); background:var(--surface-strong)">이미지/가격 자동 조회</button><span class="muted" id="fetchStatus">Cloudflare Function을 통해 자동 조회를 시도합니다.</span></div>
               <div class="image-preview" id="imagePreviewCard" hidden>
                 <div class="image-preview-head">

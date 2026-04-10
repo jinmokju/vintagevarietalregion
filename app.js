@@ -2,7 +2,8 @@ const STORAGE_KEYS = {
   theme: "vvr-theme",
   personas: "vvr-personas",
   wines: "vvr-wines",
-  customAromas: "vvr-custom-aromas"
+  customAromas: "vvr-custom-aromas",
+  customVarietals: "vvr-custom-varietals"
 };
 
 const ADMIN_EMAILS = ["jinmokju@gmail.com"];
@@ -14,6 +15,14 @@ const TASTE_FIELDS = [
   { key: "body", label: "Body", left: "Rich", right: "Lean" },
   { key: "fruitProfile", label: "Fruit Profile", left: "Dark Fruit", right: "Red Fruit" }
 ];
+
+const VARIETAL_OPTIONS = {
+  Red: ["Pinot Noir", "Cabernet Sauvignon", "Merlot", "Syrah", "Shiraz", "Grenache", "Tempranillo", "Sangiovese", "Nebbiolo", "Barbera", "Malbec", "Zinfandel", "Primitivo", "Cabernet Franc", "Petit Verdot", "Carmenere", "Mourvedre", "Gamay", "Dolcetto", "Aglianico", "Montepulciano", "Corvina", "Nerello Mascalese", "Touriga Nacional", "Mencia", "Trousseau", "Blaufrankisch", "Bobal", "Carignan", "Cinsault", "Counoise", "Petit Sirah", "Saperavi"],
+  White: ["Chardonnay", "Sauvignon Blanc", "Riesling", "Chenin Blanc", "Semillon", "Pinot Gris", "Pinot Grigio", "Gewurztraminer", "Viognier", "Albarino", "Vermentino", "Marsanne", "Roussanne", "Grenache Blanc", "Clairette", "Ugni Blanc", "Trebbiano", "Arneis", "Cortese", "Verdicchio", "Fiano", "Greco", "Garganega", "Assyrtiko", "Silvaner", "Muscadet", "Melon de Bourgogne", "Torrontes", "Savagnin", "Gruner Veltliner", "Godello", "Timorasso", "Palomino", "Welschriesling"],
+  Sparkling: ["Chardonnay", "Pinot Noir", "Pinot Meunier", "Pinot Blanc", "Pinot Gris", "Riesling", "Chenin Blanc", "Xarel-lo", "Macabeo", "Parellada", "Glera", "Lambrusco", "Sémillon", "Aligoté", "Arneis"],
+  Rose: ["Grenache", "Cinsault", "Syrah", "Mourvedre", "Pinot Noir", "Sangiovese", "Tempranillo", "Nebbiolo", "Merlot", "Cabernet Sauvignon", "Cabernet Franc", "Gamay", "Corvina", "Aglianico", "Primitivo"],
+  Orange: ["Ribolla Gialla", "Pinot Grigio", "Malvasia", "Sauvignon Blanc", "Chardonnay", "Rkatsiteli", "Gewurztraminer", "Muscat", "Vitovska", "Friulano", "Fiano", "Greco", "Vermentino", "Trebbiano", "Semillon"]
+};
 
 const REVIEW_STRUCTURE_FIELDS = {
   red: [
@@ -213,7 +222,8 @@ const state = {
   editingReviewId: null,
   tasteDraft: { fruitDriven: 4, oak: 4, acidity: 4, body: 4, fruitProfile: 4 },
   reviewDraft: createEmptyReviewDraft("Red"),
-  customAromas: createEmptyCustomAromas()
+  customAromas: createEmptyCustomAromas(),
+  customVarietals: loadLocal(STORAGE_KEYS.customVarietals || "vvr-custom-varietals", {})
 };
 
 const el = {
@@ -233,6 +243,9 @@ const el = {
   wineName: document.getElementById("wineName"),
   wineVintage: document.getElementById("wineVintage"),
   wineVarietal: document.getElementById("wineVarietal"),
+  wineNameOptions: document.getElementById("wineNameOptions"),
+  wineVintageOptions: document.getElementById("wineVintageOptions"),
+  wineVarietalOptions: document.getElementById("wineVarietalOptions"),
   wineRegion: document.getElementById("wineRegion"),
   winePrice: document.getElementById("winePrice"),
   wineImage: document.getElementById("wineImage"),
@@ -600,6 +613,7 @@ function saveLocal() {
   localStorage.setItem(STORAGE_KEYS.personas, JSON.stringify(state.personas));
   localStorage.setItem(STORAGE_KEYS.wines, JSON.stringify(state.wines));
   localStorage.setItem(STORAGE_KEYS.customAromas, JSON.stringify(state.customAromas));
+  localStorage.setItem(STORAGE_KEYS.customVarietals, JSON.stringify(state.customVarietals));
 }
 
 function hydrateTheme() {
@@ -628,6 +642,11 @@ function bindEvents() {
   });
 
   el.wineType.addEventListener("change", syncReviewEditor);
+  el.wineType.addEventListener("change", populateReviewInputs);
+  el.wineName.addEventListener("change", handleWineNameSelection);
+  el.wineName.addEventListener("blur", handleWineNameSelection);
+  el.wineVarietal.addEventListener("change", persistCustomVarietalFromInput);
+  el.wineVarietal.addEventListener("blur", persistCustomVarietalFromInput);
   el.tastePersona.addEventListener("change", syncTasteEditor);
   el.tasteMode.addEventListener("change", syncTasteEditor);
   el.reviewForm.addEventListener("submit", handleReviewSave);
@@ -659,6 +678,81 @@ function populatePersonaOptions() {
   if (!el.tastePersona.value) {
     el.tastePersona.value = state.personas[0]?.id || "__new__";
   }
+  populateReviewInputs();
+}
+
+function populateReviewInputs() {
+  const wineOptions = state.wines
+    .map((wine) => `<option value="${escapeHtml(wine.name)}">${[wine.vintage, wine.varietal, wine.region].filter(Boolean).join(" · ")}</option>`)
+    .join("");
+  el.wineNameOptions.innerHTML = wineOptions;
+
+  const years = [];
+  const currentYear = new Date().getFullYear();
+  for (let year = currentYear; year >= 1980; year -= 1) {
+    years.push(String(year));
+  }
+  const existingVintages = [...new Set(state.wines.map((wine) => wine.vintage).filter(Boolean))];
+  const vintageOptions = [...new Set([...existingVintages, ...years])];
+  el.wineVintageOptions.innerHTML = vintageOptions.map((value) => `<option value="${escapeHtml(value)}"></option>`).join("");
+
+  const type = el.wineType.value || "Red";
+  const varietalOptions = getVarietalOptions(type);
+  el.wineVarietalOptions.innerHTML = varietalOptions.map((value) => `<option value="${escapeHtml(value)}"></option>`).join("");
+}
+
+function getVarietalOptions(type) {
+  const builtin = VARIETAL_OPTIONS[type] || [];
+  const custom = Array.isArray(state.customVarietals[type]) ? state.customVarietals[type] : [];
+  return [...new Set([...builtin, ...custom])].sort((a, b) => a.localeCompare(b));
+}
+
+function handleWineNameSelection() {
+  const name = el.wineName.value.trim();
+  if (!name) {
+    return;
+  }
+
+  const wine = state.wines.find((item) => item.name.toLowerCase() === name.toLowerCase());
+  if (!wine) {
+    return;
+  }
+
+  el.wineType.value = wine.type || el.wineType.value || "Red";
+  el.wineVintage.value = wine.vintage || "";
+  el.wineVarietal.value = wine.varietal || "";
+  el.wineRegion.value = wine.region || "";
+  el.winePrice.value = wine.averagePrice || "";
+  el.wineImage.value = wine.image?.startsWith("data:image") ? "" : (wine.image || "");
+  syncImagePreview();
+  syncReviewEditor();
+  populateReviewInputs();
+}
+
+function persistCustomVarietalFromInput() {
+  const type = el.wineType.value || "Red";
+  const value = el.wineVarietal.value.trim();
+  if (!value) {
+    return;
+  }
+
+  const existing = getVarietalOptions(type);
+  const normalized = normalizeAromaLabel(value);
+  const matched = existing.find((item) => normalizeAromaLabel(item) === normalized)
+    || existing.find((item) => normalizeAromaLabel(item).includes(normalized) || normalized.includes(normalizeAromaLabel(item)));
+
+  if (matched) {
+    el.wineVarietal.value = matched;
+    return;
+  }
+
+  if (!Array.isArray(state.customVarietals[type])) {
+    state.customVarietals[type] = [];
+  }
+  state.customVarietals[type].push(value);
+  state.customVarietals[type] = [...new Set(state.customVarietals[type])].sort((a, b) => a.localeCompare(b));
+  saveLocal();
+  populateReviewInputs();
 }
 
 function renderAll() {
@@ -1194,6 +1288,7 @@ function startReviewEdit(wineId, reviewId) {
   el.cancelEditButton.hidden = false;
   syncImagePreview();
   syncReviewEditor();
+  populateReviewInputs();
   el.reviewForm.scrollIntoView({ behavior: "smooth", block: "start" });
 }
 
@@ -1210,6 +1305,7 @@ function resetReviewForm() {
   el.fetchStatus.textContent = "Cloudflare Function을 통해 자동 조회를 시도합니다.";
   syncImagePreview();
   syncReviewEditor();
+  populateReviewInputs();
 }
 
 async function handleReviewSave(event) {
@@ -1604,6 +1700,15 @@ async function persistReviewDelete(wineId, reviewId, deleteWineToo) {
   if (deleteWineToo) {
     await state.supabase.from("wines").delete().eq("id", wineId);
   }
+}
+
+function escapeHtml(value) {
+  return String(value).replace(/[&<>"]/g, (char) => ({
+    "&": "&amp;",
+    "<": "&lt;",
+    ">": "&gt;",
+    "\"": "&quot;"
+  }[char]));
 }
 
 function makePlaceholderImage(title, start, end) {
