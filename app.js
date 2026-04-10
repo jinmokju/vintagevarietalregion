@@ -34,16 +34,58 @@ const REVIEW_STRUCTURE_FIELDS = {
 
 const AROMA_OPTIONS = {
   primary: {
-    red: ["Red Cherry", "Black Cherry", "Raspberry", "Wild Strawberry", "Cranberry", "Pomegranate", "Plum", "Black Plum", "Blackberry", "Blackcurrant", "Blueberry", "Mulberry", "Fig", "Dried Fig", "Sour Cherry", "Red Currant", "Boysenberry", "Violet", "Rose", "Fresh Herbs"],
-    white: ["Lemon", "Lime", "Grapefruit", "Orange Zest", "Green Apple", "Yellow Apple", "Pear", "Quince", "White Peach", "Apricot", "Nectarine", "Pineapple", "Mango", "Papaya", "Passion Fruit", "Lychee", "Guava", "Melon", "White Flowers", "Jasmine"]
+    red: {
+      Fruit: ["Red Cherry", "Black Cherry", "Morello Cherry", "Sour Cherry", "Red Plum", "Black Plum", "Raspberry", "Wild Strawberry", "Strawberry Jam", "Cranberry", "Pomegranate", "Red Currant", "Blackcurrant", "Blackberry", "Blueberry", "Boysenberry", "Mulberry", "Fig", "Dried Fig", "Date"],
+      Floral: ["Rose", "Violet", "Peony", "Lavender", "Hibiscus", "Potpourri"],
+      Herbaceous: ["Fresh Herbs", "Thyme", "Rosemary", "Sage", "Mint", "Eucalyptus", "Bay Leaf", "Dill", "Tomato Leaf"],
+      Spice: ["Black Pepper", "White Pepper", "Juniper", "Anise", "Licorice"],
+      Earthy: ["Wet Earth", "Graphite", "Iron", "Crushed Rock"]
+    },
+    white: {
+      Citrus: ["Lemon", "Lemon Zest", "Lime", "Grapefruit", "Pink Grapefruit", "Orange Zest", "Mandarin", "Yuzu"],
+      Orchard: ["Green Apple", "Yellow Apple", "Pear", "Nashi Pear", "Quince", "Yellow Plum"],
+      "Stone Fruit": ["White Peach", "Yellow Peach", "Apricot", "Nectarine"],
+      Tropical: ["Pineapple", "Mango", "Papaya", "Passion Fruit", "Guava", "Lychee", "Melon", "Cantaloupe"],
+      Floral: ["White Flowers", "Jasmine", "Acacia", "Orange Blossom", "Honeysuckle", "Elderflower", "Linden Blossom"],
+      Herbaceous: ["Fresh Cut Grass", "Lemongrass", "Fennel", "Mint", "Thai Basil"],
+      Mineral: ["Wet Stone", "Chalk", "Sea Spray", "Saline"]
+    }
   },
   secondary: {
-    red: ["Vanilla", "Toast", "Cedar", "Smoke", "Clove", "Nutmeg", "Cinnamon", "Coffee", "Mocha", "Caramel", "Butterscotch", "Coconut", "Baking Spice", "Toasted Almond", "Hazelnut", "Chocolate", "Butter", "Cream"],
-    white: ["Vanilla", "Toast", "Smoke", "Brioche", "Butter", "Cream", "Hazelnut", "Toasted Almond", "Coconut", "Caramel", "Butterscotch", "Nutmeg", "Clove", "Cinnamon", "Baking Spice", "Sweet Spice", "Oak Toast", "Roasted Grain"]
+    red: {
+      Oak: ["Vanilla", "Oak Toast", "Toast", "Cedar", "Sandalwood", "Coconut"],
+      "Baking Spice": ["Clove", "Nutmeg", "Cinnamon", "Allspice", "Star Anise", "Sweet Spice"],
+      Roasted: ["Coffee", "Espresso", "Mocha", "Cacao", "Dark Chocolate", "Smoke", "Char", "Toasted Oak"],
+      "Malo / Lees": ["Butter", "Cream", "Yogurt", "Sour Cream"],
+      Nutty: ["Toasted Almond", "Hazelnut", "Walnut"],
+      "Sweet Oak": ["Caramel", "Butterscotch", "Toffee"]
+    },
+    white: {
+      Oak: ["Vanilla", "Oak Toast", "Toast", "Cedar", "Coconut", "Smoke"],
+      "Baking Spice": ["Clove", "Nutmeg", "Cinnamon", "Sweet Spice", "Ginger Spice"],
+      "Lees / Autolysis": ["Brioche", "Bread Dough", "Toast", "Cream", "Butter", "Yogurt"],
+      Nutty: ["Hazelnut", "Toasted Almond", "Marzipan", "Walnut"],
+      "Sweet Oak": ["Caramel", "Butterscotch", "Toffee", "Crème Brulee"],
+      "Grainy / Roasted": ["Roasted Grain", "Oatmeal", "Shortbread"]
+    }
   },
   tertiary: {
-    red: ["Leather", "Forest Floor", "Mushroom", "Truffle", "Tobacco", "Cigar Box", "Dried Rose", "Dried Herbs", "Earth", "Game", "Tea Leaf", "Soy", "Balsamic", "Dried Cherry", "Dried Plum", "Underbrush"],
-    white: ["Honey", "Beeswax", "Chamomile", "Dried Apricot", "Marzipan", "Hazelnut", "Almond Cream", "Toast", "Brioche", "Petrol", "Mushroom", "Ginger", "Hay", "Lanolin", "Dried Citrus Peel", "Walnut"]
+    red: {
+      "Earth / Forest": ["Forest Floor", "Underbrush", "Mushroom", "Truffle", "Wet Leaves", "Autumn Leaves", "Humus"],
+      Savory: ["Leather", "Game", "Dried Meat", "Bouillon", "Soy", "Umami"],
+      "Tobacco / Wood": ["Tobacco", "Cigar Box", "Pipe Tobacco", "Old Cedar", "Sawdust"],
+      "Dried Fruit / Floral": ["Dried Cherry", "Dried Plum", "Raisin", "Prune", "Dried Rose", "Potpourri"],
+      "Oxidative / Balsamic": ["Balsamic", "Soy Glaze", "Maderized Note", "Volatile Lift", "Tea Leaf"],
+      "Mineral / Tertiary": ["Earth", "Dust", "Graphite", "Iron Rust"]
+    },
+    white: {
+      Honeyed: ["Honey", "Acacia Honey", "Beeswax", "Lanolin"],
+      "Nutty / Oxidative": ["Hazelnut", "Walnut", "Almond Cream", "Sherry-like Note", "Marzipan"],
+      "Mushroom / Earth": ["Mushroom", "Truffle", "Hay", "Dried Hay", "Chamomile"],
+      "Petrol / Resinous": ["Petrol", "Kerosene", "Paraffin", "Resin"],
+      "Dried Fruit / Citrus": ["Dried Apricot", "Candied Citrus Peel", "Dried Lemon Peel", "Quince Paste"],
+      "Bakery / Mature Lees": ["Brioche", "Toast", "Croissant", "Mushroom Butter"]
+    }
   }
 };
 
@@ -381,6 +423,10 @@ function normalizeAromaList(values) {
 }
 
 function getAromaOptions(category, type) {
+  return Object.values(AROMA_OPTIONS[category][getReviewTypeKey(type)]).flat();
+}
+
+function getAromaGroups(category, type) {
   return AROMA_OPTIONS[category][getReviewTypeKey(type)];
 }
 
@@ -846,13 +892,23 @@ function renderAromaSelector(category, type) {
   const selector = el[`${category}AromaSelector`];
   const selectedHost = el[`${category}AromaSelected`];
   const values = state.reviewDraft[`${category}Aromas`];
-  const options = getAromaOptions(category, type);
+  const groups = getAromaGroups(category, type);
 
   selectedHost.innerHTML = values.length
     ? values.map((value) => `<span class="pill">${value}</span>`).join("")
     : '<span class="muted">아직 선택 전</span>';
 
-  selector.innerHTML = options.map((option) => `<button type="button" class="aroma-chip${values.includes(option) ? " active" : ""}" data-aroma-category="${category}" data-aroma-value="${option}">${option}</button>`).join("");
+  selector.innerHTML = Object.entries(groups).map(([groupName, options]) => `
+    <div class="aroma-category">
+      <div class="aroma-category-head">
+        <strong>${groupName}</strong>
+        <span>${options.length} notes</span>
+      </div>
+      <div class="aroma-chip-row">
+        ${options.map((option) => `<button type="button" class="aroma-chip${values.includes(option) ? " active" : ""}" data-aroma-category="${category}" data-aroma-value="${option}">${option}</button>`).join("")}
+      </div>
+    </div>
+  `).join("");
   selector.querySelectorAll("[data-aroma-category]").forEach((button) => {
     button.addEventListener("click", () => toggleAromaSelection(category, button.dataset.aromaValue));
   });

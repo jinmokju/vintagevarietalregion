@@ -15,7 +15,12 @@
     .review-track{display:grid;gap:8px}
     .review-track .taste-axis-head strong{font-size:.88rem}
     .aroma-group{display:grid;gap:10px}
-    .aroma-selector{display:flex;flex-wrap:wrap;gap:8px}
+    .aroma-selector{display:grid;gap:12px}
+    .aroma-category{display:grid;gap:8px;padding:12px;border-radius:16px;border:1px solid var(--line);background:rgba(255,255,255,.18)}
+    .aroma-category-head{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
+    .aroma-category-head strong{font-size:.88rem}
+    .aroma-category-head span{font-size:.78rem;color:var(--muted)}
+    .aroma-chip-row{display:flex;flex-wrap:wrap;gap:8px}
     .aroma-chip{padding:8px 12px;border-radius:999px;border:1px solid var(--line);background:rgba(255,255,255,.46);color:var(--muted);cursor:pointer;transition:transform .18s ease,background-color .18s ease,border-color .18s ease}
     .aroma-chip:hover{transform:translateY(-1px)}
     .aroma-chip.active{background:linear-gradient(135deg,var(--accent),var(--accent-soft));color:var(--white);border-color:transparent}
