@@ -14,9 +14,8 @@ const TASTE_FIELDS = [
   { key: "fruitProfile", label: "Fruit Profile", left: "Red Fruit", right: "Dark Fruit" }
 ];
 
-const createTaste = (favorites, region, fruitDriven, oak, acidity, body, fruitProfile) => ({
-  favorites,
-  region,
+const createTaste = (favoritePairs, fruitDriven, oak, acidity, body, fruitProfile) => ({
+  favoritePairs,
   fruitDriven,
   oak,
   acidity,
@@ -105,9 +104,10 @@ const el = {
   personaNameInput: document.getElementById("personaNameInput"),
   personaRoleInput: document.getElementById("personaRoleInput"),
   personaFocusInput: document.getElementById("personaFocusInput"),
-  favOne: document.getElementById("favOne"),
-  favTwo: document.getElementById("favTwo"),
-  favRegion: document.getElementById("favRegion"),
+  favVarietyOne: document.getElementById("favVarietyOne"),
+  favRegionOne: document.getElementById("favRegionOne"),
+  favVarietyTwo: document.getElementById("favVarietyTwo"),
+  favRegionTwo: document.getElementById("favRegionTwo"),
   tasteEditor: document.getElementById("tasteEditor"),
   storageStatus: document.getElementById("storageStatus"),
   storageNote: document.getElementById("storageNote"),
@@ -259,13 +259,30 @@ function normalizeLocalWine(wine) {
 }
 
 function normalizeTaste(taste) {
-  const favorites = Array.isArray(taste?.favorites)
-    ? taste.favorites
-    : [taste?.varietal || "", ""];
+  const favoritePairs = Array.isArray(taste?.favoritePairs)
+    ? taste.favoritePairs
+    : [
+        {
+          varietal: Array.isArray(taste?.favorites) ? (taste.favorites[0] || "") : (taste?.varietal || ""),
+          region: taste?.region || ""
+        },
+        {
+          varietal: Array.isArray(taste?.favorites) ? (taste.favorites[1] || "") : "",
+          region: ""
+        }
+      ];
 
   return {
-    favorites: [favorites[0] || "", favorites[1] || ""],
-    region: taste?.region || "",
+    favoritePairs: [
+      {
+        varietal: favoritePairs[0]?.varietal || "",
+        region: favoritePairs[0]?.region || ""
+      },
+      {
+        varietal: favoritePairs[1]?.varietal || "",
+        region: favoritePairs[1]?.region || ""
+      }
+    ],
     fruitDriven: taste?.fruitDriven || 4,
     oak: taste?.oak || 4,
     acidity: taste?.acidity || 4,
@@ -417,7 +434,9 @@ function renderPersonaCard(persona) {
 }
 
 function renderFavoritePills(taste) {
-  const items = [...(taste.favorites || []), taste.region].filter(Boolean);
+  const items = (taste.favoritePairs || [])
+    .map((pair) => [pair?.varietal, pair?.region].filter(Boolean).join(" - "))
+    .filter(Boolean);
   return items.length ? items.map((item) => `<span class="pill">${item}</span>`).join("") : '<span class="pill">아직 입력 전</span>';
 }
 
@@ -593,9 +612,10 @@ function syncTasteEditor() {
   el.personaNameInput.value = persona.name || "";
   el.personaRoleInput.value = persona.role || "";
   el.personaFocusInput.value = persona.focus || "";
-  el.favOne.value = taste.favorites?.[0] || "";
-  el.favTwo.value = taste.favorites?.[1] || "";
-  el.favRegion.value = taste.region;
+  el.favVarietyOne.value = taste.favoritePairs?.[0]?.varietal || "";
+  el.favRegionOne.value = taste.favoritePairs?.[0]?.region || "";
+  el.favVarietyTwo.value = taste.favoritePairs?.[1]?.varietal || "";
+  el.favRegionTwo.value = taste.favoritePairs?.[1]?.region || "";
   state.tasteDraft = {
     fruitDriven: taste.fruitDriven,
     oak: taste.oak,
@@ -900,8 +920,16 @@ async function handleTasteSave(event) {
   persona.focus = el.personaFocusInput.value.trim();
   const mode = el.tasteMode.value;
   persona.tastes[mode] = {
-    favorites: [el.favOne.value.trim(), el.favTwo.value.trim()],
-    region: el.favRegion.value.trim(),
+    favoritePairs: [
+      {
+        varietal: el.favVarietyOne.value.trim(),
+        region: el.favRegionOne.value.trim()
+      },
+      {
+        varietal: el.favVarietyTwo.value.trim(),
+        region: el.favRegionTwo.value.trim()
+      }
+    ],
     fruitDriven: state.tasteDraft.fruitDriven,
     oak: state.tasteDraft.oak,
     acidity: state.tasteDraft.acidity,
