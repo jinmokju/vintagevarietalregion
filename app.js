@@ -7,11 +7,11 @@
 const ADMIN_EMAILS = ["jinmokju@gmail.com"];
 
 const TASTE_FIELDS = [
-  { key: "fruitDriven", label: "Fruit Driven", left: "Savory / Earthy", right: "Fruit Driven" },
-  { key: "oak", label: "New Oak", left: "Neutral Oak", right: "New Oak" },
-  { key: "acidity", label: "High Acidity", left: "Low Acidity", right: "High Acidity" },
-  { key: "body", label: "Rich", left: "Lean", right: "Rich" },
-  { key: "fruitProfile", label: "Fruit Profile", left: "Red Fruit", right: "Dark Fruit" }
+  { key: "fruitDriven", label: "Fruit Expression", axis: "Savory / Earthy <> Fruit Driven" },
+  { key: "oak", label: "Oak", axis: "Neutral Oak <> New Oak" },
+  { key: "acidity", label: "Acidity", axis: "Low Acidity <> High Acidity" },
+  { key: "body", label: "Body", axis: "Lean <> Rich" },
+  { key: "fruitProfile", label: "Fruit Tone", axis: "Red Fruit <> Dark Fruit" }
 ];
 
 const createTaste = (favoritePairs, fruitDriven, oak, acidity, body, fruitProfile) => ({
@@ -125,7 +125,8 @@ const el = {
   authBadge: document.getElementById("authBadge"),
   authHelp: document.getElementById("authHelp"),
   reviewSubmitLabel: document.getElementById("reviewSubmitLabel"),
-  cancelEditButton: document.getElementById("cancelEditButton")
+  cancelEditButton: document.getElementById("cancelEditButton"),
+  deletePersonaButton: document.getElementById("deletePersonaButton")
 };
 
 init();
@@ -345,6 +346,7 @@ function bindEvents() {
   el.signupButton.addEventListener("click", handleSignup);
   el.logoutButton.addEventListener("click", handleLogout);
   el.cancelEditButton.addEventListener("click", resetReviewForm);
+  el.deletePersonaButton.addEventListener("click", handlePersonaDelete);
 }
 
 function populatePersonaOptions() {
@@ -441,7 +443,7 @@ function renderFavoritePills(taste) {
 }
 
 function renderTasteTracks(taste, mode) {
-  return getFieldLabels(mode).map((field) => `<div class="taste-track"><div class="taste-label"><span>${field.label}</span><span>${field.left} / ${field.right}</span></div><div class="taste-scale">${renderSegments(taste[field.key])}</div></div>`).join("");
+  return getFieldLabels(mode).map((field) => `<div class="taste-axis-card"><div class="taste-axis-head"><strong>${field.label}</strong><span class="taste-axis-copy">${field.axis}</span></div><div class="taste-scale">${renderSegments(taste[field.key])}</div></div>`).join("");
 }
 
 function renderSegments(activeCount) {
@@ -464,11 +466,11 @@ function attachTasteTabs() {
 function getFieldLabels(mode) {
   if (mode === "white") {
     return [
-      { key: "fruitDriven", label: "Fruit Driven", left: "Mineral / Linear", right: "Fruit Driven" },
-      { key: "oak", label: "New Oak", left: "Unoaked", right: "New Oak" },
-      { key: "acidity", label: "High Acidity", left: "Low Acidity", right: "High Acidity" },
-      { key: "body", label: "Rich", left: "Lean", right: "Rich" },
-      { key: "fruitProfile", label: "Fruit Profile", left: "Citrus", right: "Tropical Fruit" }
+      { key: "fruitDriven", label: "Fruit Expression", axis: "Mineral / Linear <> Fruit Driven" },
+      { key: "oak", label: "Oak", axis: "Unoaked <> New Oak" },
+      { key: "acidity", label: "Acidity", axis: "Low Acidity <> High Acidity" },
+      { key: "body", label: "Body", axis: "Lean <> Rich" },
+      { key: "fruitProfile", label: "Fruit Tone", axis: "Citrus <> Tropical Fruit" }
     ];
   }
   return TASTE_FIELDS;
@@ -602,6 +604,7 @@ function updateAdminAccess() {
 
   el.fetchWineData.disabled = disabled;
   el.cancelEditButton.disabled = disabled;
+  el.deletePersonaButton.disabled = disabled || el.tastePersona.value === "__new__" || !state.personas.length;
 }
 
 function syncTasteEditor() {
@@ -625,7 +628,7 @@ function syncTasteEditor() {
   };
 
   const labels = getFieldLabels(mode);
-  el.tasteEditor.innerHTML = labels.map((field) => `<div class="dot-field"><div class="dot-guide"><strong>${field.label}</strong></div><div class="segment-picker" data-field="${field.key}"></div><div class="dot-guide"><span>${field.left}</span><span>${field.right}</span></div></div>`).join("");
+  el.tasteEditor.innerHTML = labels.map((field) => `<div class="taste-axis-card editor"><div class="taste-axis-head"><strong>${field.label}</strong><span class="taste-axis-copy">${field.axis}</span></div><div class="segment-picker" data-field="${field.key}"></div></div>`).join("");
   labels.forEach((field) => renderSegmentPicker(field.key));
 }
 
@@ -946,6 +949,43 @@ async function handleTasteSave(event) {
   renderAll();
 }
 
+async function handlePersonaDelete() {
+  if (!state.isAdmin) {
+    return;
+  }
+
+  const personaId = el.tastePersona.value;
+  if (!personaId || personaId === "__new__") {
+    return;
+  }
+
+  const persona = state.personas.find((item) => item.id === personaId);
+  if (!persona) {
+    return;
+  }
+
+  const ok = window.confirm(`${persona.name} persona를 삭제할까요? 관련 리뷰도 함께 제거됩니다.`);
+  if (!ok) {
+    return;
+  }
+
+  state.personas = state.personas.filter((item) => item.id !== personaId);
+  state.wines = state.wines
+    .map((wine) => ({
+      ...wine,
+      reviews: wine.reviews.filter((review) => review.personaId !== personaId)
+    }))
+    .filter((wine) => wine.reviews.length);
+
+  await persistPersonaDelete(personaId);
+  saveLocal();
+  populatePersonaOptions();
+  el.tastePersona.value = state.personas[0]?.id || "__new__";
+  el.reviewPersona.value = state.personas[0]?.id || "";
+  syncTasteEditor();
+  renderAll();
+}
+
 async function handleWineLookup() {
   const query = [el.wineName.value, el.wineVintage.value, el.wineVarietal.value].filter(Boolean).join(" ").trim();
   if (!query) {
@@ -1005,6 +1045,14 @@ async function persistPersona(persona) {
     white_taste: persona.tastes.white,
     display_order: state.personas.findIndex((item) => item.id === persona.id)
   });
+}
+
+async function persistPersonaDelete(personaId) {
+  if (!state.supabase) {
+    return;
+  }
+
+  await state.supabase.from("personas").delete().eq("id", personaId);
 }
 
 async function persistReviewCreate(wine, review) {
