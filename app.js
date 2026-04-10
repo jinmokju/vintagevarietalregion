@@ -14,6 +14,39 @@ const TASTE_FIELDS = [
   { key: "fruitProfile", label: "Fruit Profile", left: "Dark Fruit", right: "Red Fruit" }
 ];
 
+const REVIEW_STRUCTURE_FIELDS = {
+  red: [
+    { key: "acidityLevel", label: "Acidity Level", left: "High", right: "Low" },
+    { key: "acidityShape", label: "Acidity Shape", left: "Racy", right: "Soft" },
+    { key: "body", label: "Body", left: "High", right: "Low" },
+    { key: "tanninLevel", label: "Tannin Level", left: "High", right: "Low" },
+    { key: "tanninTexture", label: "Tannin Texture", left: "Sticky", right: "Smooth" },
+    { key: "finish", label: "Finish", left: "Long", right: "Short" }
+  ],
+  white: [
+    { key: "acidityLevel", label: "Acidity Level", left: "High", right: "Low" },
+    { key: "acidityShape", label: "Acidity Shape", left: "Racy", right: "Soft" },
+    { key: "body", label: "Body", left: "High", right: "Low" },
+    { key: "texture", label: "Texture", left: "Waxy / Oily", right: "Clean" },
+    { key: "finish", label: "Finish", left: "Long", right: "Short" }
+  ]
+};
+
+const AROMA_OPTIONS = {
+  primary: {
+    red: ["Red Cherry", "Black Cherry", "Raspberry", "Wild Strawberry", "Cranberry", "Pomegranate", "Plum", "Black Plum", "Blackberry", "Blackcurrant", "Blueberry", "Mulberry", "Fig", "Dried Fig", "Sour Cherry", "Red Currant", "Boysenberry", "Violet", "Rose", "Fresh Herbs"],
+    white: ["Lemon", "Lime", "Grapefruit", "Orange Zest", "Green Apple", "Yellow Apple", "Pear", "Quince", "White Peach", "Apricot", "Nectarine", "Pineapple", "Mango", "Papaya", "Passion Fruit", "Lychee", "Guava", "Melon", "White Flowers", "Jasmine"]
+  },
+  secondary: {
+    red: ["Vanilla", "Toast", "Cedar", "Smoke", "Clove", "Nutmeg", "Cinnamon", "Coffee", "Mocha", "Caramel", "Butterscotch", "Coconut", "Baking Spice", "Toasted Almond", "Hazelnut", "Chocolate", "Butter", "Cream"],
+    white: ["Vanilla", "Toast", "Smoke", "Brioche", "Butter", "Cream", "Hazelnut", "Toasted Almond", "Coconut", "Caramel", "Butterscotch", "Nutmeg", "Clove", "Cinnamon", "Baking Spice", "Sweet Spice", "Oak Toast", "Roasted Grain"]
+  },
+  tertiary: {
+    red: ["Leather", "Forest Floor", "Mushroom", "Truffle", "Tobacco", "Cigar Box", "Dried Rose", "Dried Herbs", "Earth", "Game", "Tea Leaf", "Soy", "Balsamic", "Dried Cherry", "Dried Plum", "Underbrush"],
+    white: ["Honey", "Beeswax", "Chamomile", "Dried Apricot", "Marzipan", "Hazelnut", "Almond Cream", "Toast", "Brioche", "Petrol", "Mushroom", "Ginger", "Hay", "Lanolin", "Dried Citrus Peel", "Walnut"]
+  }
+};
+
 const createTaste = (favoritePairs, fruitDriven, oak, acidity, body, fruitProfile) => ({
   favoritePairs,
   fruitDriven,
@@ -68,7 +101,8 @@ const state = {
   reviewFormMode: "create",
   editingWineId: null,
   editingReviewId: null,
-  tasteDraft: { fruitDriven: 4, oak: 4, acidity: 4, body: 4, fruitProfile: 4 }
+  tasteDraft: { fruitDriven: 4, oak: 4, acidity: 4, body: 4, fruitProfile: 4 },
+  reviewDraft: createEmptyReviewDraft("Red")
 };
 
 const el = {
@@ -95,6 +129,14 @@ const el = {
   imagePreviewCard: document.getElementById("imagePreviewCard"),
   imagePreviewCaption: document.getElementById("imagePreviewCaption"),
   clearImageButton: document.getElementById("clearImageButton"),
+  reviewStructureEditor: document.getElementById("reviewStructureEditor"),
+  primaryAromaSelector: document.getElementById("primaryAromaSelector"),
+  secondaryAromaSelector: document.getElementById("secondaryAromaSelector"),
+  tertiaryAromaSelector: document.getElementById("tertiaryAromaSelector"),
+  primaryAromaSelected: document.getElementById("primaryAromaSelected"),
+  secondaryAromaSelected: document.getElementById("secondaryAromaSelected"),
+  tertiaryAromaSelected: document.getElementById("tertiaryAromaSelected"),
+  overallScore: document.getElementById("overallScore"),
   wineReview: document.getElementById("wineReview"),
   fetchWineData: document.getElementById("fetchWineData"),
   fetchStatus: document.getElementById("fetchStatus"),
@@ -138,6 +180,7 @@ async function init() {
   await hydrateData();
   populatePersonaOptions();
   syncTasteEditor();
+  resetReviewForm();
   await refreshSession();
   updateStorageStatus();
   renderAll();
@@ -184,7 +227,7 @@ async function hydrateData() {
     const [personasResult, winesResult, reviewsResult] = await Promise.all([
       state.supabase.from("personas").select("*").order("display_order"),
       state.supabase.from("wines").select("*").order("created_at", { ascending: false }),
-      state.supabase.from("reviews").select("id, wine_id, persona_id, note, created_at").order("created_at", { ascending: false })
+      state.supabase.from("reviews").select("*").order("created_at", { ascending: false })
     ]);
 
     if (!personasResult.error && personasResult.data?.length) {
@@ -209,6 +252,12 @@ function groupReviewsByWine(rows) {
       id: row.id,
       personaId: row.persona_id,
       note: row.note,
+      summary: row.summary,
+      overallScore: row.overall_score,
+      structure: row.structure,
+      primaryAromas: row.primary_aromas,
+      secondaryAromas: row.secondary_aromas,
+      tertiaryAromas: row.tertiary_aromas,
       createdAt: (row.created_at || new Date().toISOString()).slice(0, 10)
     });
     return accumulator;
@@ -238,24 +287,30 @@ function normalizeWineRow(row, reviews) {
     region: row.region,
     averagePrice: row.average_price,
     image: row.image_url || makePlaceholderImage(row.name, "#8a3650", "#f5d2c6"),
-    reviews: (reviews || []).map((review) => ({
-      id: review.id || `local-${cryptoRandomId()}`,
-      personaId: review.personaId,
-      note: review.note,
-      createdAt: review.createdAt
-    }))
+    reviews: (reviews || []).map((review) => normalizeReview(review, row.type))
   };
 }
 
 function normalizeLocalWine(wine) {
   return {
     ...wine,
-    reviews: (wine.reviews || []).map((review) => ({
-      id: review.id || `local-${cryptoRandomId()}`,
-      personaId: review.personaId,
-      note: review.note,
-      createdAt: review.createdAt || new Date().toISOString().slice(0, 10)
-    }))
+    reviews: (wine.reviews || []).map((review) => normalizeReview(review, wine.type))
+  };
+}
+
+function normalizeReview(review, wineType) {
+  const typeKey = getReviewTypeKey(wineType);
+  return {
+    id: review.id || `local-${cryptoRandomId()}`,
+    personaId: review.personaId,
+    note: review.summary || review.note || "",
+    summary: review.summary || review.note || "",
+    overallScore: typeof review.overallScore === "number" ? review.overallScore : (review.overall_score ?? ""),
+    structure: normalizeReviewStructure(review.structure, typeKey),
+    primaryAromas: normalizeAromaList(review.primaryAromas || review.primary_aromas),
+    secondaryAromas: normalizeAromaList(review.secondaryAromas || review.secondary_aromas),
+    tertiaryAromas: normalizeAromaList(review.tertiaryAromas || review.tertiary_aromas),
+    createdAt: review.createdAt || (review.created_at ? String(review.created_at).slice(0, 10) : new Date().toISOString().slice(0, 10))
   };
 }
 
@@ -294,6 +349,39 @@ function normalizeTaste(taste) {
 
 function createEmptyTaste() {
   return normalizeTaste({});
+}
+
+function getReviewTypeKey(type) {
+  return type === "Red" ? "red" : "white";
+}
+
+function getStructureFields(type) {
+  return REVIEW_STRUCTURE_FIELDS[getReviewTypeKey(type)];
+}
+
+function createEmptyReviewDraft(type) {
+  const typeKey = getReviewTypeKey(type);
+  return {
+    structure: normalizeReviewStructure({}, typeKey),
+    primaryAromas: [],
+    secondaryAromas: [],
+    tertiaryAromas: []
+  };
+}
+
+function normalizeReviewStructure(structure, typeKey) {
+  return getStructureFields(typeKey === "white" ? "White" : "Red").reduce((accumulator, field) => {
+    accumulator[field.key] = structure?.[field.key] || 4;
+    return accumulator;
+  }, {});
+}
+
+function normalizeAromaList(values) {
+  return Array.isArray(values) ? values.filter(Boolean) : [];
+}
+
+function getAromaOptions(category, type) {
+  return AROMA_OPTIONS[category][getReviewTypeKey(type)];
 }
 
 function loadLocal(key, fallback) {
@@ -335,6 +423,7 @@ function bindEvents() {
     renderWines();
   });
 
+  el.wineType.addEventListener("change", syncReviewEditor);
   el.tastePersona.addEventListener("change", syncTasteEditor);
   el.tasteMode.addEventListener("change", syncTasteEditor);
   el.reviewForm.addEventListener("submit", handleReviewSave);
@@ -480,7 +569,18 @@ function filteredWines() {
   return state.wines.filter((wine) => {
     const matchesType = state.selectedType === "All" || wine.type === state.selectedType;
     const matchesPersona = state.selectedPersona === "all" || wine.reviews.some((review) => review.personaId === state.selectedPersona);
-    const haystack = [wine.name, wine.varietal, wine.region, ...wine.reviews.map((review) => `${review.personaId} ${review.note}`)].join(" ").toLowerCase();
+    const haystack = [
+      wine.name,
+      wine.varietal,
+      wine.region,
+      ...wine.reviews.map((review) => [
+        review.personaId,
+        review.summary,
+        ...review.primaryAromas,
+        ...review.secondaryAromas,
+        ...review.tertiaryAromas
+      ].join(" "))
+    ].join(" ").toLowerCase();
     const matchesQuery = !state.query || haystack.includes(state.query);
     return matchesType && matchesPersona && matchesQuery;
   });
@@ -510,7 +610,13 @@ function renderReviewSnippet(wine, review) {
     ? `<div class="review-actions"><button type="button" class="review-action" data-action="edit-review" data-wine-id="${wine.id}" data-review-id="${review.id}">수정</button><button type="button" class="review-action danger" data-action="delete-review" data-wine-id="${wine.id}" data-review-id="${review.id}">삭제</button></div>`
     : "";
 
-  return `<div class="review-snippet"><div class="row" style="align-items:center"><div><strong>${persona ? persona.name : review.personaId}</strong><div class="review-meta">${review.createdAt}</div></div>${actionButtons}</div><div>${review.note}</div></div>`;
+  const structureMarkup = renderReviewStructureSnapshot(review, wine.type);
+  const aromaMarkup = renderAromaSummary(review);
+  const scoreMarkup = review.overallScore !== "" && review.overallScore !== null && review.overallScore !== undefined
+    ? `<span class="score-pill">${review.overallScore} pts</span>`
+    : "";
+
+  return `<div class="review-snippet"><div class="row" style="align-items:center"><div><strong>${persona ? persona.name : review.personaId}</strong><div class="review-meta">${review.createdAt}</div></div>${actionButtons}</div><div class="review-stack"><div class="review-score">${scoreMarkup}<div class="review-copy">${review.summary || review.note}</div></div>${structureMarkup}${aromaMarkup}</div></div>`;
 }
 
 function attachReviewActions() {
@@ -532,9 +638,28 @@ function renderRecentReviews() {
   el.recentGrid.innerHTML = reviews.length
     ? reviews.map((review) => {
       const persona = state.personas.find((item) => item.id === review.personaId);
-      return `<article class="review-card"><strong>${persona ? persona.name : review.personaId} on ${review.wineName}</strong><div class="review-meta">${review.createdAt} · ${review.wineType}</div><div>${review.note}</div></article>`;
+      return `<article class="review-card"><strong>${persona ? persona.name : review.personaId} on ${review.wineName}</strong><div class="review-meta">${review.createdAt} · ${review.wineType}${review.overallScore !== "" && review.overallScore !== null && review.overallScore !== undefined ? ` · ${review.overallScore} pts` : ""}</div><div>${review.summary || review.note}</div></article>`;
     }).join("")
     : '<div class="empty-state">아직 리뷰가 없습니다.</div>';
+}
+
+function renderReviewStructureSnapshot(review, type) {
+  const fields = getStructureFields(type);
+  return `<div class="review-detail-grid">${fields.map((field) => `<div class="review-detail-block"><h4>${field.label}</h4><div class="taste-scale">${renderSegments(review.structure?.[field.key] || 4)}</div><div class="taste-poles"><span>${field.left}</span><span>${field.right}</span></div></div>`).join("")}</div>`;
+}
+
+function renderAromaSummary(review) {
+  const groups = [
+    { label: "Primary", values: review.primaryAromas },
+    { label: "Secondary", values: review.secondaryAromas },
+    { label: "Tertiary", values: review.tertiaryAromas }
+  ].filter((group) => group.values?.length);
+
+  if (!groups.length) {
+    return "";
+  }
+
+  return `<div class="review-detail-grid">${groups.map((group) => `<div class="review-detail-block"><h4>${group.label} Aromas</h4><div class="selected-aromas">${group.values.map((value) => `<span class="pill">${value}</span>`).join("")}</div></div>`).join("")}</div>`;
 }
 
 function updateMetrics() {
@@ -679,6 +804,69 @@ function scalePosition(value) {
   return ((Math.max(1, Math.min(7, value)) - 1) / 6) * 100;
 }
 
+function syncReviewEditor() {
+  const type = el.wineType.value || "Red";
+  const typeKey = getReviewTypeKey(type);
+  state.reviewDraft.structure = normalizeReviewStructure(state.reviewDraft.structure, typeKey);
+  state.reviewDraft.primaryAromas = state.reviewDraft.primaryAromas.filter((item) => getAromaOptions("primary", type).includes(item));
+  state.reviewDraft.secondaryAromas = state.reviewDraft.secondaryAromas.filter((item) => getAromaOptions("secondary", type).includes(item));
+  state.reviewDraft.tertiaryAromas = state.reviewDraft.tertiaryAromas.filter((item) => getAromaOptions("tertiary", type).includes(item));
+  renderReviewStructureEditor(type);
+  renderAromaSelector("primary", type);
+  renderAromaSelector("secondary", type);
+  renderAromaSelector("tertiary", type);
+}
+
+function renderReviewStructureEditor(type) {
+  const fields = getStructureFields(type);
+  el.reviewStructureEditor.innerHTML = fields.map((field) => `<div class="review-track"><div class="taste-axis-head"><strong>${field.label}</strong></div><div class="segment-picker" data-review-field="${field.key}"></div><div class="taste-poles"><span>${field.left}</span><span>${field.right}</span></div></div>`).join("");
+  fields.forEach((field) => renderReviewSegmentPicker(field.key));
+}
+
+function renderReviewSegmentPicker(fieldKey) {
+  const host = el.reviewStructureEditor.querySelector(`[data-review-field="${fieldKey}"]`);
+  if (!host) {
+    return;
+  }
+
+  host.innerHTML = `<div class="taste-meter interactive"><div class="taste-line"></div><span class="taste-marker" style="left:${scalePosition(state.reviewDraft.structure[fieldKey])}%"></span></div>`;
+  for (let i = 1; i <= 7; i += 1) {
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = `segment-button${state.reviewDraft.structure[fieldKey] === i ? " active" : ""}`;
+    button.addEventListener("click", () => {
+      state.reviewDraft.structure[fieldKey] = i;
+      renderReviewSegmentPicker(fieldKey);
+    });
+    host.appendChild(button);
+  }
+}
+
+function renderAromaSelector(category, type) {
+  const selector = el[`${category}AromaSelector`];
+  const selectedHost = el[`${category}AromaSelected`];
+  const values = state.reviewDraft[`${category}Aromas`];
+  const options = getAromaOptions(category, type);
+
+  selectedHost.innerHTML = values.length
+    ? values.map((value) => `<span class="pill">${value}</span>`).join("")
+    : '<span class="muted">아직 선택 전</span>';
+
+  selector.innerHTML = options.map((option) => `<button type="button" class="aroma-chip${values.includes(option) ? " active" : ""}" data-aroma-category="${category}" data-aroma-value="${option}">${option}</button>`).join("");
+  selector.querySelectorAll("[data-aroma-category]").forEach((button) => {
+    button.addEventListener("click", () => toggleAromaSelection(category, button.dataset.aromaValue));
+  });
+}
+
+function toggleAromaSelection(category, value) {
+  const key = `${category}Aromas`;
+  const current = state.reviewDraft[key];
+  state.reviewDraft[key] = current.includes(value)
+    ? current.filter((item) => item !== value)
+    : [...current, value];
+  renderAromaSelector(category, el.wineType.value || "Red");
+}
+
 async function handleLogin(event) {
   event.preventDefault();
   if (!state.supabase) {
@@ -747,10 +935,18 @@ function startReviewEdit(wineId, reviewId) {
   el.wineRegion.value = wine.region || "";
   el.winePrice.value = wine.averagePrice || "";
   el.wineImage.value = wine.image?.startsWith("data:image") ? "" : (wine.image || "");
-  el.wineReview.value = review.note || "";
+  el.overallScore.value = review.overallScore ?? "";
+  el.wineReview.value = review.summary || review.note || "";
+  state.reviewDraft = {
+    structure: normalizeReviewStructure(review.structure, getReviewTypeKey(wine.type)),
+    primaryAromas: normalizeAromaList(review.primaryAromas),
+    secondaryAromas: normalizeAromaList(review.secondaryAromas),
+    tertiaryAromas: normalizeAromaList(review.tertiaryAromas)
+  };
   el.reviewSubmitLabel.textContent = "리뷰 수정 저장";
   el.cancelEditButton.hidden = false;
   syncImagePreview();
+  syncReviewEditor();
   el.reviewForm.scrollIntoView({ behavior: "smooth", block: "start" });
 }
 
@@ -761,10 +957,12 @@ function resetReviewForm() {
   el.reviewForm.reset();
   el.reviewPersona.value = state.personas[0]?.id || "";
   el.wineType.value = "Red";
+  state.reviewDraft = createEmptyReviewDraft("Red");
   el.reviewSubmitLabel.textContent = "리뷰 저장하기";
   el.cancelEditButton.hidden = true;
   el.fetchStatus.textContent = "Cloudflare Function을 통해 자동 조회를 시도합니다.";
   syncImagePreview();
+  syncReviewEditor();
 }
 
 async function handleReviewSave(event) {
@@ -783,13 +981,26 @@ async function handleReviewSave(event) {
     region: el.wineRegion.value.trim(),
     averagePrice: el.winePrice.value.trim(),
     image: el.wineImage.value.trim(),
-    note: el.wineReview.value.trim()
+    overallScore: el.overallScore.value.trim(),
+    summary: el.wineReview.value.trim(),
+    structure: { ...state.reviewDraft.structure },
+    primaryAromas: [...state.reviewDraft.primaryAromas],
+    secondaryAromas: [...state.reviewDraft.secondaryAromas],
+    tertiaryAromas: [...state.reviewDraft.tertiaryAromas]
   };
 
-  if (!payload.personaId || !payload.name || !payload.note) {
+  if (!payload.personaId || !payload.name || !payload.summary || !payload.overallScore) {
     if (!payload.personaId) {
       alert("리뷰를 남기기 전에 persona를 먼저 등록해주세요.");
+    } else if (!payload.overallScore) {
+      alert("Overall score를 입력해주세요.");
     }
+    return;
+  }
+
+  const numericScore = Number(payload.overallScore);
+  if (Number.isNaN(numericScore) || numericScore < 0 || numericScore > 100) {
+    alert("Overall score는 0~100 사이로 입력해주세요.");
     return;
   }
 
@@ -833,7 +1044,13 @@ async function createNewReview(payload) {
   const review = {
     id: `local-${cryptoRandomId()}`,
     personaId: payload.personaId,
-    note: payload.note,
+    note: payload.summary,
+    summary: payload.summary,
+    overallScore: Number(payload.overallScore),
+    structure: payload.structure,
+    primaryAromas: payload.primaryAromas,
+    secondaryAromas: payload.secondaryAromas,
+    tertiaryAromas: payload.tertiaryAromas,
     createdAt: new Date().toISOString().slice(0, 10)
   };
 
@@ -858,7 +1075,13 @@ async function updateExistingReview(payload) {
   wine.averagePrice = payload.averagePrice;
   wine.image = payload.image || wine.image || makePlaceholderImage(payload.name, "#7a1f35", "#f1ddd2");
   review.personaId = payload.personaId;
-  review.note = payload.note;
+  review.note = payload.summary;
+  review.summary = payload.summary;
+  review.overallScore = Number(payload.overallScore);
+  review.structure = payload.structure;
+  review.primaryAromas = payload.primaryAromas;
+  review.secondaryAromas = payload.secondaryAromas;
+  review.tertiaryAromas = payload.tertiaryAromas;
   review.createdAt = new Date().toISOString().slice(0, 10);
 
   await persistReviewUpdate(wine, review);
@@ -1079,6 +1302,12 @@ async function persistReviewCreate(wine, review) {
     wine_id: wine.id,
     persona_id: review.personaId,
     note: review.note,
+    summary: review.summary,
+    overall_score: review.overallScore,
+    structure: review.structure,
+    primary_aromas: review.primaryAromas,
+    secondary_aromas: review.secondaryAromas,
+    tertiary_aromas: review.tertiaryAromas,
     created_at: review.createdAt
   }).select("id").single();
 
@@ -1109,6 +1338,12 @@ async function persistReviewUpdate(wine, review) {
   await state.supabase.from("reviews").update({
     persona_id: review.personaId,
     note: review.note,
+    summary: review.summary,
+    overall_score: review.overallScore,
+    structure: review.structure,
+    primary_aromas: review.primaryAromas,
+    secondary_aromas: review.secondaryAromas,
+    tertiary_aromas: review.tertiaryAromas,
     created_at: review.createdAt
   }).eq("id", review.id);
 }

@@ -25,8 +25,21 @@ create table if not exists reviews (
   wine_id text references wines(id) on delete cascade,
   persona_id text references personas(id) on delete cascade,
   note text not null,
+  summary text,
+  overall_score integer,
+  structure jsonb default '{}'::jsonb,
+  primary_aromas text[] default '{}'::text[],
+  secondary_aromas text[] default '{}'::text[],
+  tertiary_aromas text[] default '{}'::text[],
   created_at date default current_date
 );
+
+alter table reviews add column if not exists summary text;
+alter table reviews add column if not exists overall_score integer;
+alter table reviews add column if not exists structure jsonb default '{}'::jsonb;
+alter table reviews add column if not exists primary_aromas text[] default '{}'::text[];
+alter table reviews add column if not exists secondary_aromas text[] default '{}'::text[];
+alter table reviews add column if not exists tertiary_aromas text[] default '{}'::text[];
 
 alter table personas enable row level security;
 alter table wines enable row level security;
