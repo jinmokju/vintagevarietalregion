@@ -29,6 +29,14 @@ const REVIEW_STRUCTURE_FIELDS = {
     { key: "body", label: "Body", left: "High", right: "Low" },
     { key: "texture", label: "Texture", left: "Waxy / Oily", right: "Clean" },
     { key: "finish", label: "Finish", left: "Long", right: "Short" }
+  ],
+  sparkling: [
+    { key: "acidityLevel", label: "Acidity Level", left: "High", right: "Low" },
+    { key: "acidityShape", label: "Acidity Shape", left: "Racy", right: "Soft" },
+    { key: "body", label: "Body", left: "High", right: "Low" },
+    { key: "effervescence", label: "Effervescence", left: "Highly Fizzy", right: "Gentle Fizz" },
+    { key: "mousseTexture", label: "Mousse Texture", left: "Creamy", right: "Sharp" },
+    { key: "finish", label: "Finish", left: "Long", right: "Short" }
   ]
 };
 
@@ -49,6 +57,29 @@ const AROMA_OPTIONS = {
       Floral: ["White Flowers", "Jasmine", "Acacia", "Orange Blossom", "Honeysuckle", "Elderflower", "Linden Blossom"],
       Herbaceous: ["Fresh Cut Grass", "Lemongrass", "Fennel", "Mint", "Thai Basil"],
       Mineral: ["Wet Stone", "Chalk", "Sea Spray", "Saline"]
+    },
+    rose: {
+      "Red Fruit": ["Wild Strawberry", "Strawberry", "Raspberry", "Red Cherry", "Cranberry", "Pomegranate", "Red Currant", "Watermelon"],
+      Citrus: ["Pink Grapefruit", "Blood Orange", "Orange Zest", "Lemon Peel", "Mandarin"],
+      Floral: ["Rose Petal", "Rosehip", "Peony", "Hibiscus", "Orange Blossom", "Jasmine"],
+      Herbal: ["Fresh Herbs", "Thyme", "Mint", "Fennel", "Dried Herbs"],
+      Mineral: ["Wet Stone", "Saline", "Chalk"]
+    },
+    sparkling: {
+      Citrus: ["Lemon", "Lemon Curd", "Lime", "Grapefruit", "Mandarin", "Orange Zest"],
+      Orchard: ["Green Apple", "Yellow Apple", "Pear", "Quince"],
+      "Stone Fruit": ["White Peach", "Apricot", "Nectarine"],
+      Floral: ["White Flowers", "Acacia", "Apple Blossom", "Linden Blossom"],
+      "Autolytic Freshness": ["Fresh Bread", "Biscuit", "Crushed Oyster Shell", "Chalk", "Saline"],
+      "Berry Accent": ["Wild Strawberry", "Red Currant", "Raspberry"]
+    },
+    orange: {
+      Citrus: ["Orange Peel", "Mandarin", "Dried Orange Peel", "Bergamot", "Candied Citrus"],
+      Orchard: ["Apricot", "Dried Apricot", "Quince", "Yellow Apple", "Pear"],
+      "Tea / Herbal": ["Black Tea", "Chamomile", "Earl Grey", "Dried Herbs", "Sage", "Thyme"],
+      Floral: ["Orange Blossom", "Jasmine", "Chamomile Flower", "Potpourri"],
+      "Resin / Spice": ["Ginger", "Coriander Seed", "Turmeric", "Resin", "Frankincense"],
+      Savory: ["Hay", "Walnut Skin", "Almond Skin", "Beeswax"]
     }
   },
   secondary: {
@@ -67,6 +98,25 @@ const AROMA_OPTIONS = {
       Nutty: ["Hazelnut", "Toasted Almond", "Marzipan", "Walnut"],
       "Sweet Oak": ["Caramel", "Butterscotch", "Toffee", "Crème Brulee"],
       "Grainy / Roasted": ["Roasted Grain", "Oatmeal", "Shortbread"]
+    },
+    rose: {
+      "Lees / Creamy": ["Cream", "Yogurt", "Lees Stirring", "Soft Brioche"],
+      Spice: ["Pink Peppercorn", "White Pepper", "Sweet Spice", "Ginger"],
+      Oak: ["Subtle Vanilla", "Light Toast", "Oak Spice"],
+      Savory: ["Dried Herbs", "Tomato Leaf", "Wild Fennel"]
+    },
+    sparkling: {
+      Autolysis: ["Brioche", "Bread Dough", "Toast", "Biscuit", "Croissant"],
+      Nutty: ["Hazelnut", "Almond Cream", "Marzipan"],
+      Creamy: ["Butter", "Cream", "Lemon Curd", "Custard"],
+      "Oak / Spice": ["Vanilla", "Toast", "Sweet Spice", "Cinnamon"],
+      Roasted: ["Roasted Almond", "Coffee Bean", "Smoked Bread"]
+    },
+    orange: {
+      "Skin Contact": ["Black Tea", "Orange Pith", "Tannin Grip", "Dry Herb", "Resin"],
+      Oxidative: ["Bruised Apple", "Walnut", "Almond", "Cider-like Note"],
+      Spice: ["Ginger", "Clove", "Nutmeg", "Turmeric", "Coriander"],
+      "Lees / Texture": ["Yeast", "Bread Dough", "Beeswax", "Lanolin"]
     }
   },
   tertiary: {
@@ -85,6 +135,23 @@ const AROMA_OPTIONS = {
       "Petrol / Resinous": ["Petrol", "Kerosene", "Paraffin", "Resin"],
       "Dried Fruit / Citrus": ["Dried Apricot", "Candied Citrus Peel", "Dried Lemon Peel", "Quince Paste"],
       "Bakery / Mature Lees": ["Brioche", "Toast", "Croissant", "Mushroom Butter"]
+    },
+    rose: {
+      "Dried Fruit / Floral": ["Dried Strawberry", "Rosehip", "Dried Rose", "Potpourri"],
+      "Savory / Earth": ["Dried Herbs", "Tea Leaf", "Dust", "Autumn Leaves"],
+      Oxidative: ["Blood Orange Marmalade", "Dried Citrus", "Nutty Oxidation"]
+    },
+    sparkling: {
+      "Mature Autolysis": ["Toasted Brioche", "Hazelnut", "Mushroom Butter", "Roasted Almond"],
+      "Honeyed / Oxidative": ["Honey", "Beeswax", "Baked Apple", "Tarte Tatin"],
+      "Mineral / Umami": ["Chalk Dust", "Truffle", "Umami", "Sea Salt"],
+      "Dried Citrus / Fruit": ["Candied Lemon Peel", "Dried Apricot", "Quince Paste"]
+    },
+    orange: {
+      "Oxidative / Nutty": ["Walnut", "Hazelnut", "Sherry-like Note", "Rancio", "Almond Skin"],
+      "Tea / Herbal": ["Black Tea", "Chamomile", "Dried Herbs", "Tobacco Leaf"],
+      "Resin / Honeyed": ["Beeswax", "Lanolin", "Resin", "Honeycomb"],
+      "Earthy / Dried Fruit": ["Hay", "Dried Apricot", "Orange Marmalade", "Mushroom"]
     }
   }
 };
@@ -394,7 +461,23 @@ function createEmptyTaste() {
 }
 
 function getReviewTypeKey(type) {
-  return type === "Red" ? "red" : "white";
+  return type === "Sparkling" ? "sparkling" : (type === "Red" ? "red" : "white");
+}
+
+function getAromaTypeKey(type) {
+  if (type === "Rose") {
+    return "rose";
+  }
+  if (type === "Sparkling") {
+    return "sparkling";
+  }
+  if (type === "Orange") {
+    return "orange";
+  }
+  if (type === "Red") {
+    return "red";
+  }
+  return "white";
 }
 
 function getStructureFields(type) {
@@ -423,11 +506,11 @@ function normalizeAromaList(values) {
 }
 
 function getAromaOptions(category, type) {
-  return Object.values(AROMA_OPTIONS[category][getReviewTypeKey(type)]).flat();
+  return Object.values(AROMA_OPTIONS[category][getAromaTypeKey(type)]).flat();
 }
 
 function getAromaGroups(category, type) {
-  return AROMA_OPTIONS[category][getReviewTypeKey(type)];
+  return AROMA_OPTIONS[category][getAromaTypeKey(type)];
 }
 
 function loadLocal(key, fallback) {
