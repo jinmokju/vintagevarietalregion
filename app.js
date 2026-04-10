@@ -7,11 +7,11 @@
 const ADMIN_EMAILS = ["jinmokju@gmail.com"];
 
 const TASTE_FIELDS = [
-  { key: "fruitDriven", label: "Fruit Expression", axis: "Savory / Earthy <> Fruit Driven" },
-  { key: "oak", label: "Oak", axis: "Neutral Oak <> New Oak" },
-  { key: "acidity", label: "Acidity", axis: "Low Acidity <> High Acidity" },
-  { key: "body", label: "Body", axis: "Lean <> Rich" },
-  { key: "fruitProfile", label: "Fruit Tone", axis: "Red Fruit <> Dark Fruit" }
+  { key: "fruitDriven", label: "Fruitiness", left: "Fruitdriven", right: "Savory / Earthy" },
+  { key: "oak", label: "Oak", left: "New Oak", right: "Neutral Oak" },
+  { key: "acidity", label: "Acidity", left: "High", right: "Low" },
+  { key: "body", label: "Body", left: "Rich", right: "Lean" },
+  { key: "fruitProfile", label: "Fruit Profile", left: "Dark Fruit", right: "Red Fruit" }
 ];
 
 const createTaste = (favoritePairs, fruitDriven, oak, acidity, body, fruitProfile) => ({
@@ -443,7 +443,7 @@ function renderFavoritePills(taste) {
 }
 
 function renderTasteTracks(taste, mode) {
-  return getFieldLabels(mode).map((field) => `<div class="taste-axis-card"><div class="taste-axis-head"><strong>${field.label}</strong><span class="taste-axis-copy">${field.axis}</span></div><div class="taste-scale">${renderSegments(taste[field.key])}</div></div>`).join("");
+  return getFieldLabels(mode).map((field) => `<div class="taste-track minimal"><div class="taste-axis-head"><strong>${field.label}</strong></div><div class="taste-scale">${renderSegments(taste[field.key])}</div><div class="taste-poles"><span>${field.left}</span><span>${field.right}</span></div></div>`).join("");
 }
 
 function renderSegments(activeCount) {
@@ -466,11 +466,11 @@ function attachTasteTabs() {
 function getFieldLabels(mode) {
   if (mode === "white") {
     return [
-      { key: "fruitDriven", label: "Fruit Expression", axis: "Mineral / Linear <> Fruit Driven" },
-      { key: "oak", label: "Oak", axis: "Unoaked <> New Oak" },
-      { key: "acidity", label: "Acidity", axis: "Low Acidity <> High Acidity" },
-      { key: "body", label: "Body", axis: "Lean <> Rich" },
-      { key: "fruitProfile", label: "Fruit Tone", axis: "Citrus <> Tropical Fruit" }
+      { key: "fruitDriven", label: "Fruitiness", left: "Fruitdriven", right: "Mineral / Linear" },
+      { key: "oak", label: "Oak", left: "New Oak", right: "Neutral Oak" },
+      { key: "acidity", label: "Acidity", left: "High", right: "Low" },
+      { key: "body", label: "Body", left: "Rich", right: "Lean" },
+      { key: "fruitProfile", label: "Fruit Profile", left: "Tropical Fruit", right: "Citrus" }
     ];
   }
   return TASTE_FIELDS;
@@ -628,7 +628,7 @@ function syncTasteEditor() {
   };
 
   const labels = getFieldLabels(mode);
-  el.tasteEditor.innerHTML = labels.map((field) => `<div class="taste-axis-card editor"><div class="taste-axis-head"><strong>${field.label}</strong><span class="taste-axis-copy">${field.axis}</span></div><div class="segment-picker" data-field="${field.key}"></div></div>`).join("");
+  el.tasteEditor.innerHTML = labels.map((field) => `<div class="taste-track minimal editor"><div class="taste-axis-head"><strong>${field.label}</strong></div><div class="segment-picker" data-field="${field.key}"></div><div class="taste-poles"><span>${field.left}</span><span>${field.right}</span></div></div>`).join("");
   labels.forEach((field) => renderSegmentPicker(field.key));
 }
 
