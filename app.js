@@ -729,8 +729,9 @@ function renderWines() {
 function renderWineCard(wine) {
   const visibleReviews = wine.reviews.filter((review) => state.selectedPersona === "all" || review.personaId === state.selectedPersona);
   const reviewMarkup = visibleReviews.map((review) => renderReviewSnippet(wine, review)).join("");
+  const typeClass = `type-${String(wine.type || "red").toLowerCase()}`;
 
-  return `<article class="wine-card"><img class="wine-image" src="${wine.image || makePlaceholderImage(wine.name, "#8a3650", "#f5d2c6")}" alt="${wine.name} 이미지"><div class="row"><div><h3>${wine.name}</h3><div class="muted">${[wine.vintage, wine.varietal, wine.region].filter(Boolean).join(" · ")}</div></div><span class="pill">${wine.type}</span></div><div class="chip-row" style="margin-top:10px"><span class="pill">${wine.varietal || "Varietal 미입력"}</span><span class="pill">${wine.region || "Region 미입력"}</span><span class="pill">${wine.reviews.length} reviews</span></div><div class="muted" style="margin-top:10px">${wine.averagePrice ? `Wine-Searcher / Manual 가격 메모: ${wine.averagePrice}` : "아직 평균가 메모가 없습니다."}</div>${reviewMarkup}</article>`;
+  return `<article class="wine-card ${typeClass}"><img class="wine-image" src="${wine.image || makePlaceholderImage(wine.name, "#8a3650", "#f5d2c6")}" alt="${wine.name} 이미지"><div class="row"><div><h3>${wine.name}</h3><div class="muted">${[wine.vintage, wine.varietal, wine.region].filter(Boolean).join(" · ")}</div></div><span class="type-badge ${typeClass}">${wine.type}</span></div><div class="chip-row" style="margin-top:10px"><span class="pill">${wine.varietal || "Varietal 미입력"}</span><span class="pill">${wine.region || "Region 미입력"}</span><span class="pill">${wine.reviews.length} reviews</span></div><div class="muted" style="margin-top:10px">${wine.averagePrice ? `Wine-Searcher / Manual 가격 메모: ${wine.averagePrice}` : "아직 평균가 메모가 없습니다."}</div>${reviewMarkup}</article>`;
 }
 
 function renderReviewSnippet(wine, review) {
