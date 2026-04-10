@@ -1,4 +1,4 @@
-﻿create table if not exists personas (
+create table if not exists personas (
   id text primary key,
   name text not null,
   role text,
@@ -27,3 +27,40 @@ create table if not exists reviews (
   note text not null,
   created_at date default current_date
 );
+
+alter table personas enable row level security;
+alter table wines enable row level security;
+alter table reviews enable row level security;
+
+drop policy if exists personas_public_read on personas;
+create policy personas_public_read on personas
+for select
+using (true);
+
+drop policy if exists wines_public_read on wines;
+create policy wines_public_read on wines
+for select
+using (true);
+
+drop policy if exists reviews_public_read on reviews;
+create policy reviews_public_read on reviews
+for select
+using (true);
+
+drop policy if exists personas_admin_write on personas;
+create policy personas_admin_write on personas
+for all
+using ((auth.jwt() ->> 'email') = 'jinmokju@gmail.com')
+with check ((auth.jwt() ->> 'email') = 'jinmokju@gmail.com');
+
+drop policy if exists wines_admin_write on wines;
+create policy wines_admin_write on wines
+for all
+using ((auth.jwt() ->> 'email') = 'jinmokju@gmail.com')
+with check ((auth.jwt() ->> 'email') = 'jinmokju@gmail.com');
+
+drop policy if exists reviews_admin_write on reviews;
+create policy reviews_admin_write on reviews
+for all
+using ((auth.jwt() ->> 'email') = 'jinmokju@gmail.com')
+with check ((auth.jwt() ->> 'email') = 'jinmokju@gmail.com');

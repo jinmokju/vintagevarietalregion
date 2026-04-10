@@ -1,57 +1,938 @@
-﻿const STORAGE_KEYS={theme:"vvr-theme",personas:"vvr-personas",wines:"vvr-wines"};
-const TASTE_FIELDS=[
-{key:"fruitDriven",label:"Fruit Driven",left:"Savory / Earthy",right:"Fruit Driven"},
-{key:"oak",label:"New Oak",left:"Neutral Oak",right:"New Oak"},
-{key:"acidity",label:"High Acidity",left:"Low Acidity",right:"High Acidity"},
-{key:"body",label:"Rich",left:"Lean",right:"Rich"},
-{key:"fruitProfile",label:"Fruit Profile",left:"Red Fruit",right:"Dark Fruit"}
+﻿const STORAGE_KEYS = {
+  theme: "vvr-theme",
+  personas: "vvr-personas",
+  wines: "vvr-wines"
+};
+
+const ADMIN_EMAILS = ["jinmokju@gmail.com"];
+
+const TASTE_FIELDS = [
+  { key: "fruitDriven", label: "Fruit Driven", left: "Savory / Earthy", right: "Fruit Driven" },
+  { key: "oak", label: "New Oak", left: "Neutral Oak", right: "New Oak" },
+  { key: "acidity", label: "High Acidity", left: "Low Acidity", right: "High Acidity" },
+  { key: "body", label: "Rich", left: "Lean", right: "Rich" },
+  { key: "fruitProfile", label: "Fruit Profile", left: "Red Fruit", right: "Dark Fruit" }
 ];
-const createTaste=(varietal,region,fruitDriven,oak,acidity,body,fruitProfile)=>({varietal,region,fruitDriven,oak,acidity,body,fruitProfile});
-const seedPersonas=[
-{id:"mina",name:"Mina",role:"트렌드 발견형 큐레이터",focus:"산도 중심 탐험가",tastes:{red:createTaste("Pinot Noir","Burgundy",5,2,6,2,3),white:createTaste("Riesling","Mosel",5,1,7,2,2)}},
-{id:"jun",name:"Jun",role:"레스토랑 페어링 메이커",focus:"오크와 구조감 선호",tastes:{red:createTaste("Cabernet Sauvignon","Napa Valley",4,6,3,6,6),white:createTaste("Chardonnay","Sonoma Coast",3,6,4,5,5)}},
-{id:"ara",name:"Ara",role:"감성 기록형 테이스터",focus:"과실미 중심 입문 친화",tastes:{red:createTaste("Gamay","Beaujolais",7,2,5,2,2),white:createTaste("Sauvignon Blanc","Marlborough",6,1,6,2,2)}},
-{id:"soyeon",name:"Soyeon",role:"빈티지 비교 덕후",focus:"지역 차이 분석가",tastes:{red:createTaste("Nebbiolo","Barolo",3,4,7,4,5),white:createTaste("Chenin Blanc","Loire Valley",3,2,6,3,3)}},
-{id:"dohyun",name:"Dohyun",role:"클래식 보르도 지향",focus:"다크프루트·세이보리",tastes:{red:createTaste("Bordeaux Blend","Left Bank Bordeaux",2,6,4,6,7),white:createTaste("Semillon Blend","Pessac-Leognan",3,4,4,4,4)}},
-{id:"hyejin",name:"Hyejin",role:"내추럴 와인 셀렉터",focus:"텍스처와 향의 자유도",tastes:{red:createTaste("Syrah","Northern Rhone",4,2,5,5,5),white:createTaste("Orange Blend","Georgia",5,2,5,5,6)}},
-{id:"taeho",name:"Taeho",role:"가격대비 만족도 추적자",focus:"실용적인 데일리 와인 헌터",tastes:{red:createTaste("Tempranillo","Rioja",5,5,4,4,6),white:createTaste("Albarino","Rias Baixas",6,1,6,2,1)}},
-{id:"eun",name:"Eun",role:"샴페인과 화이트 애호가",focus:"시트러스·미네랄 선호",tastes:{red:createTaste("Frappato","Sicily",6,1,5,2,2),white:createTaste("Champagne Blend","Champagne",3,1,7,1,1)}}
+
+const createTaste = (varietal, region, fruitDriven, oak, acidity, body, fruitProfile) => ({
+  varietal,
+  region,
+  fruitDriven,
+  oak,
+  acidity,
+  body,
+  fruitProfile
+});
+
+const seedPersonas = [
+  { id: "mina", name: "Mina", role: "트렌드 발견형 큐레이터", focus: "산도 중심 탐험가", tastes: { red: createTaste("Pinot Noir", "Burgundy", 5, 2, 6, 2, 3), white: createTaste("Riesling", "Mosel", 5, 1, 7, 2, 2) } },
+  { id: "jun", name: "Jun", role: "레스토랑 페어링 메이커", focus: "오크와 구조감 선호", tastes: { red: createTaste("Cabernet Sauvignon", "Napa Valley", 4, 6, 3, 6, 6), white: createTaste("Chardonnay", "Sonoma Coast", 3, 6, 4, 5, 5) } },
+  { id: "ara", name: "Ara", role: "감성 기록형 테이스터", focus: "과실미 중심 입문 친화", tastes: { red: createTaste("Gamay", "Beaujolais", 7, 2, 5, 2, 2), white: createTaste("Sauvignon Blanc", "Marlborough", 6, 1, 6, 2, 2) } },
+  { id: "soyeon", name: "Soyeon", role: "빈티지 비교 덕후", focus: "지역 차이 분석가", tastes: { red: createTaste("Nebbiolo", "Barolo", 3, 4, 7, 4, 5), white: createTaste("Chenin Blanc", "Loire Valley", 3, 2, 6, 3, 3) } },
+  { id: "dohyun", name: "Dohyun", role: "클래식 보르도 지향", focus: "다크프루트·세이보리", tastes: { red: createTaste("Bordeaux Blend", "Left Bank Bordeaux", 2, 6, 4, 6, 7), white: createTaste("Semillon Blend", "Pessac-Leognan", 3, 4, 4, 4, 4) } },
+  { id: "hyejin", name: "Hyejin", role: "내추럴 와인 셀렉터", focus: "텍스처와 향의 자유도", tastes: { red: createTaste("Syrah", "Northern Rhone", 4, 2, 5, 5, 5), white: createTaste("Orange Blend", "Georgia", 5, 2, 5, 5, 6) } },
+  { id: "taeho", name: "Taeho", role: "가격대비 만족도 추적자", focus: "실용적인 데일리 와인 헌터", tastes: { red: createTaste("Tempranillo", "Rioja", 5, 5, 4, 4, 6), white: createTaste("Albarino", "Rias Baixas", 6, 1, 6, 2, 1) } },
+  { id: "eun", name: "Eun", role: "샴페인과 화이트 애호가", focus: "시트러스·미네랄 선호", tastes: { red: createTaste("Frappato", "Sicily", 6, 1, 5, 2, 2), white: createTaste("Champagne Blend", "Champagne", 3, 1, 7, 1, 1) } }
 ];
-const seedWines=[{id:"w1",name:"Domaine de la Cote Bloom's Field",vintage:"2021",type:"Red",varietal:"Pinot Noir",region:"Santa Rita Hills, USA",averagePrice:"KRW 165,000",image:makePlaceholderImage("Bloom's Field","#b04158","#efd8c8"),reviews:[{personaId:"mina",note:"붉은 베리와 장미 향이 선명하고 산도가 끝까지 끌고 간다.",createdAt:"2026-04-08"},{personaId:"soyeon",note:"빈티지 비교 포인트가 또렷하고 과하지 않다.",createdAt:"2026-04-09"}]},{id:"w2",name:"Kumeu River Chardonnay",vintage:"2022",type:"White",varietal:"Chardonnay",region:"Auckland, New Zealand",averagePrice:"KRW 52,000",image:makePlaceholderImage("Kumeu River","#d2b04c","#fff0c5"),reviews:[{personaId:"jun",note:"오크는 절제되어 있고 질감이 크리미하다.",createdAt:"2026-04-07"},{personaId:"eun",note:"시트러스와 미네랄 균형이 좋아 입문자 추천용으로도 적합하다.",createdAt:"2026-04-10"}]}];
-const state={selectedPersona:"all",selectedType:"All",query:"",personas:[],wines:[],supabase:null,tasteDraft:{fruitDriven:4,oak:4,acidity:4,body:4,fruitProfile:4}};
-const el={body:document.body,themeToggle:document.getElementById("themeToggle"),personaFilters:document.getElementById("personaFilters"),reviewerFilters:document.getElementById("reviewerFilters"),typeFilters:document.getElementById("typeFilters"),personaGrid:document.getElementById("personaGrid"),wineGrid:document.getElementById("wineGrid"),recentGrid:document.getElementById("recentGrid"),searchInput:document.getElementById("searchInput"),reviewForm:document.getElementById("reviewForm"),tasteForm:document.getElementById("tasteForm"),reviewPersona:document.getElementById("reviewPersona"),wineType:document.getElementById("wineType"),wineName:document.getElementById("wineName"),wineVintage:document.getElementById("wineVintage"),wineVarietal:document.getElementById("wineVarietal"),wineRegion:document.getElementById("wineRegion"),winePrice:document.getElementById("winePrice"),wineImage:document.getElementById("wineImage"),wineReview:document.getElementById("wineReview"),fetchWineData:document.getElementById("fetchWineData"),fetchStatus:document.getElementById("fetchStatus"),adminToggle:document.getElementById("adminToggle"),tastePersona:document.getElementById("tastePersona"),tasteMode:document.getElementById("tasteMode"),favVarietal:document.getElementById("favVarietal"),favRegion:document.getElementById("favRegion"),tasteEditor:document.getElementById("tasteEditor"),storageStatus:document.getElementById("storageStatus"),storageNote:document.getElementById("storageNote"),personaCount:document.getElementById("personaCount"),wineCount:document.getElementById("wineCount"),reviewCount:document.getElementById("reviewCount"),regionCount:document.getElementById("regionCount")};
+
+const seedWines = [
+  {
+    id: "w1",
+    name: "Domaine de la Cote Bloom's Field",
+    vintage: "2021",
+    type: "Red",
+    varietal: "Pinot Noir",
+    region: "Santa Rita Hills, USA",
+    averagePrice: "KRW 165,000",
+    image: makePlaceholderImage("Bloom's Field", "#b04158", "#efd8c8"),
+    reviews: [
+      { id: "local-r1", personaId: "mina", note: "붉은 베리와 장미 향이 선명하고 산도가 끝까지 끌고 간다.", createdAt: "2026-04-08" },
+      { id: "local-r2", personaId: "soyeon", note: "빈티지 비교 포인트가 또렷하고 과하지 않다.", createdAt: "2026-04-09" }
+    ]
+  },
+  {
+    id: "w2",
+    name: "Kumeu River Chardonnay",
+    vintage: "2022",
+    type: "White",
+    varietal: "Chardonnay",
+    region: "Auckland, New Zealand",
+    averagePrice: "KRW 52,000",
+    image: makePlaceholderImage("Kumeu River", "#d2b04c", "#fff0c5"),
+    reviews: [
+      { id: "local-r3", personaId: "jun", note: "오크는 절제되어 있고 질감이 크리미하다.", createdAt: "2026-04-07" },
+      { id: "local-r4", personaId: "eun", note: "시트러스와 미네랄 균형이 좋아 입문자 추천용으로도 적합하다.", createdAt: "2026-04-10" }
+    ]
+  }
+];
+
+const state = {
+  selectedPersona: "all",
+  selectedType: "All",
+  query: "",
+  personas: [],
+  wines: [],
+  supabase: null,
+  session: null,
+  isAdmin: false,
+  reviewFormMode: "create",
+  editingWineId: null,
+  editingReviewId: null,
+  tasteDraft: { fruitDriven: 4, oak: 4, acidity: 4, body: 4, fruitProfile: 4 }
+};
+
+const el = {
+  body: document.body,
+  themeToggle: document.getElementById("themeToggle"),
+  personaFilters: document.getElementById("personaFilters"),
+  reviewerFilters: document.getElementById("reviewerFilters"),
+  typeFilters: document.getElementById("typeFilters"),
+  personaGrid: document.getElementById("personaGrid"),
+  wineGrid: document.getElementById("wineGrid"),
+  recentGrid: document.getElementById("recentGrid"),
+  searchInput: document.getElementById("searchInput"),
+  reviewForm: document.getElementById("reviewForm"),
+  tasteForm: document.getElementById("tasteForm"),
+  reviewPersona: document.getElementById("reviewPersona"),
+  wineType: document.getElementById("wineType"),
+  wineName: document.getElementById("wineName"),
+  wineVintage: document.getElementById("wineVintage"),
+  wineVarietal: document.getElementById("wineVarietal"),
+  wineRegion: document.getElementById("wineRegion"),
+  winePrice: document.getElementById("winePrice"),
+  wineImage: document.getElementById("wineImage"),
+  wineReview: document.getElementById("wineReview"),
+  fetchWineData: document.getElementById("fetchWineData"),
+  fetchStatus: document.getElementById("fetchStatus"),
+  tastePersona: document.getElementById("tastePersona"),
+  tasteMode: document.getElementById("tasteMode"),
+  favVarietal: document.getElementById("favVarietal"),
+  favRegion: document.getElementById("favRegion"),
+  tasteEditor: document.getElementById("tasteEditor"),
+  storageStatus: document.getElementById("storageStatus"),
+  storageNote: document.getElementById("storageNote"),
+  personaCount: document.getElementById("personaCount"),
+  wineCount: document.getElementById("wineCount"),
+  reviewCount: document.getElementById("reviewCount"),
+  regionCount: document.getElementById("regionCount"),
+  authForm: document.getElementById("authForm"),
+  adminEmail: document.getElementById("adminEmail"),
+  adminPassword: document.getElementById("adminPassword"),
+  authStatus: document.getElementById("authStatus"),
+  loginButton: document.getElementById("loginButton"),
+  signupButton: document.getElementById("signupButton"),
+  logoutButton: document.getElementById("logoutButton"),
+  authBadge: document.getElementById("authBadge"),
+  authHelp: document.getElementById("authHelp"),
+  reviewSubmitLabel: document.getElementById("reviewSubmitLabel"),
+  cancelEditButton: document.getElementById("cancelEditButton")
+};
+
 init();
-async function init(){hydrateTheme();initializeSupabase();bindEvents();await hydrateData();populatePersonaOptions();syncTasteEditor();updateStorageStatus();renderAll()}
-function initializeSupabase(){if(window.supabase&&window.VVR_SUPABASE_URL&&window.VVR_SUPABASE_ANON_KEY){state.supabase=window.supabase.createClient(window.VVR_SUPABASE_URL,window.VVR_SUPABASE_ANON_KEY)}}
-async function hydrateData(){state.personas=loadLocal(STORAGE_KEYS.personas,seedPersonas);state.wines=loadLocal(STORAGE_KEYS.wines,seedWines);if(!state.supabase)return;try{const [personasResult,winesResult]=await Promise.all([state.supabase.from("personas").select("*").order("display_order"),state.supabase.from("wines").select("*, reviews(*)").order("created_at",{ascending:false})]);if(!personasResult.error&&personasResult.data?.length){state.personas=personasResult.data.map(normalizePersonaRow)}if(!winesResult.error&&winesResult.data?.length){state.wines=winesResult.data.map(normalizeWineRow)}}catch(error){}};
-function normalizePersonaRow(row){return{id:row.id,name:row.name,role:row.role,focus:row.focus,tastes:{red:row.red_taste,white:row.white_taste}}}
-function normalizeWineRow(row){return{id:row.id,name:row.name,vintage:row.vintage,type:row.type,varietal:row.varietal,region:row.region,averagePrice:row.average_price,image:row.image_url||makePlaceholderImage(row.name,"#8a3650","#f5d2c6"),reviews:(row.reviews||[]).map(review=>({personaId:review.persona_id,note:review.note,createdAt:(review.created_at||new Date().toISOString()).slice(0,10)}))}}
-function loadLocal(key,fallback){try{const raw=localStorage.getItem(key);return raw?JSON.parse(raw):structuredClone(fallback)}catch(error){return structuredClone(fallback)}}
-function saveLocal(){localStorage.setItem(STORAGE_KEYS.personas,JSON.stringify(state.personas));localStorage.setItem(STORAGE_KEYS.wines,JSON.stringify(state.wines))}
-function hydrateTheme(){const savedTheme=localStorage.getItem(STORAGE_KEYS.theme);const prefersDark=window.matchMedia("(prefers-color-scheme: dark)").matches;if(savedTheme==="dark"||(!savedTheme&&prefersDark)){el.body.classList.add("dark-mode")}syncThemeButton()}
-function syncThemeButton(){el.themeToggle.textContent=el.body.classList.contains("dark-mode")?"Light Mode":"Dark Mode"}
-function bindEvents(){el.themeToggle.addEventListener("click",()=>{el.body.classList.toggle("dark-mode");localStorage.setItem(STORAGE_KEYS.theme,el.body.classList.contains("dark-mode")?"dark":"light");syncThemeButton()});el.searchInput.addEventListener("input",event=>{state.query=event.target.value.trim().toLowerCase();renderWines()});el.adminToggle.addEventListener("change",()=>{const enabled=el.adminToggle.checked;[...el.reviewForm.elements,...el.tasteForm.elements].forEach(field=>field.disabled=!enabled);el.fetchWineData.disabled=!enabled});el.tastePersona.addEventListener("change",syncTasteEditor);el.tasteMode.addEventListener("change",syncTasteEditor);el.reviewForm.addEventListener("submit",handleReviewSave);el.tasteForm.addEventListener("submit",handleTasteSave);el.fetchWineData.addEventListener("click",handleWineLookup)}
-function populatePersonaOptions(){const options=state.personas.map(persona=>`<option value="${persona.id}">${persona.name}</option>`).join("");el.reviewPersona.innerHTML=options;el.tastePersona.innerHTML=options;if(!el.reviewPersona.value)el.reviewPersona.value=state.personas[0]?.id||"";if(!el.tastePersona.value)el.tastePersona.value=state.personas[0]?.id||""}
-function renderAll(){renderFilters();renderPersonas();renderWines();renderRecentReviews();updateMetrics()}
-function renderFilters(){renderFilterGroup(el.personaFilters,"all","전체 Persona",state.selectedPersona,value=>{state.selectedPersona=value;renderAll()});renderFilterGroup(el.reviewerFilters,"all","모든 리뷰어",state.selectedPersona,value=>{state.selectedPersona=value;renderAll()});state.personas.forEach(persona=>{appendChip(el.personaFilters,persona.name,state.selectedPersona===persona.id,()=>{state.selectedPersona=persona.id;renderAll()});appendChip(el.reviewerFilters,persona.name,state.selectedPersona===persona.id,()=>{state.selectedPersona=persona.id;renderAll()})});el.typeFilters.innerHTML="";["All","Red","White","Sparkling","Rose","Orange"].forEach(type=>appendChip(el.typeFilters,type,state.selectedType===type,()=>{state.selectedType=type;renderWines()}))}
-function renderFilterGroup(container,value,label,activeValue,onClick){container.innerHTML="";appendChip(container,label,activeValue===value,()=>onClick(value))}
-function appendChip(container,label,active,onClick){const button=document.createElement("button");button.type="button";button.className=`chip${active?" active":""}`;button.textContent=label;button.addEventListener("click",onClick);container.appendChild(button)}
-function renderPersonas(){const personas=state.selectedPersona==="all"?state.personas:state.personas.filter(persona=>persona.id===state.selectedPersona);el.personaGrid.innerHTML=personas.map(renderPersonaCard).join("");attachTasteTabs()}
-function renderPersonaCard(persona){return `<article class="persona-card"><div class="persona-header"><div class="persona-top"><div class="avatar">${persona.name.slice(0,2).toUpperCase()}</div><div><strong>${persona.name}</strong><br><span class="muted">${persona.role}</span></div></div><span class="pill">${persona.focus}</span></div><div class="taste-tabs"><button type="button" class="tab-button active" data-tab="${persona.id}-red">Red</button><button type="button" class="tab-button" data-tab="${persona.id}-white">White</button></div><div class="taste-panel active" id="${persona.id}-red"><div class="taste-summary"><span class="pill">${persona.tastes.red.varietal}</span><span class="pill">${persona.tastes.red.region}</span></div>${renderTasteTracks(persona.tastes.red,"red")}</div><div class="taste-panel" id="${persona.id}-white"><div class="taste-summary"><span class="pill">${persona.tastes.white.varietal}</span><span class="pill">${persona.tastes.white.region}</span></div>${renderTasteTracks(persona.tastes.white,"white")}</div></article>`}
-function renderTasteTracks(taste,mode){return getFieldLabels(mode).map(field=>`<div class="taste-track"><div class="taste-label"><span>${field.label}</span><span>${field.left} / ${field.right}</span></div><div class="taste-scale">${renderSegments(taste[field.key])}</div></div>`).join("")}
-function renderSegments(activeCount){return Array.from({length:7},(_,index)=>`<span class="taste-segment${index+1<=activeCount?" active":""}"></span>`).join("")}
-function attachTasteTabs(){document.querySelectorAll(".tab-button").forEach(button=>{button.addEventListener("click",()=>{const panelId=button.dataset.tab;const card=button.closest(".persona-card");card.querySelectorAll(".tab-button").forEach(tab=>tab.classList.remove("active"));card.querySelectorAll(".taste-panel").forEach(panel=>panel.classList.remove("active"));button.classList.add("active");card.querySelector(`#${panelId}`).classList.add("active")})})}
-function getFieldLabels(mode){if(mode==="white"){return[{key:"fruitDriven",label:"Fruit Driven",left:"Mineral / Linear",right:"Fruit Driven"},{key:"oak",label:"New Oak",left:"Unoaked",right:"New Oak"},{key:"acidity",label:"High Acidity",left:"Low Acidity",right:"High Acidity"},{key:"body",label:"Rich",left:"Lean",right:"Rich"},{key:"fruitProfile",label:"Fruit Profile",left:"Citrus",right:"Tropical Fruit"}]}return TASTE_FIELDS}
-function filteredWines(){return state.wines.filter(wine=>{const matchesType=state.selectedType==="All"||wine.type===state.selectedType;const matchesPersona=state.selectedPersona==="all"||wine.reviews.some(review=>review.personaId===state.selectedPersona);const haystack=[wine.name,wine.varietal,wine.region,...wine.reviews.map(review=>`${review.personaId} ${review.note}`)].join(" ").toLowerCase();const matchesQuery=!state.query||haystack.includes(state.query);return matchesType&&matchesPersona&&matchesQuery})}
-function renderWines(){const wines=filteredWines();if(!wines.length){el.wineGrid.innerHTML='<div class="empty-state">조건에 맞는 와인이 아직 없습니다. 새 리뷰를 추가해보세요.</div>';return}el.wineGrid.innerHTML=wines.map(wine=>`<article class="wine-card"><img class="wine-image" src="${wine.image||makePlaceholderImage(wine.name,"#8a3650","#f5d2c6")}" alt="${wine.name} 이미지"><div class="row"><div><h3>${wine.name}</h3><div class="muted">${[wine.vintage,wine.varietal,wine.region].filter(Boolean).join(" · ")}</div></div><span class="pill">${wine.type}</span></div><div class="chip-row" style="margin-top:10px"><span class="pill">${wine.varietal||"Varietal 미입력"}</span><span class="pill">${wine.region||"Region 미입력"}</span><span class="pill">${wine.reviews.length} reviews</span></div><div class="muted" style="margin-top:10px">${wine.averagePrice?`Wine-Searcher / Manual 가격 메모: ${wine.averagePrice}`:"아직 평균가 메모가 없습니다."}</div>${wine.reviews.filter(review=>state.selectedPersona==="all"||review.personaId===state.selectedPersona).map(review=>{const persona=state.personas.find(item=>item.id===review.personaId);return `<div class="review-snippet"><strong>${persona?persona.name:review.personaId}</strong><div class="review-meta">${review.createdAt}</div><div>${review.note}</div></div>`}).join("")}</article>`).join("")}
-function renderRecentReviews(){const reviews=state.wines.flatMap(wine=>wine.reviews.map(review=>({...review,wineName:wine.name,wineType:wine.type}))).sort((a,b)=>new Date(b.createdAt)-new Date(a.createdAt)).slice(0,4);el.recentGrid.innerHTML=reviews.length?reviews.map(review=>{const persona=state.personas.find(item=>item.id===review.personaId);return `<article class="review-card"><strong>${persona?persona.name:review.personaId} on ${review.wineName}</strong><div class="review-meta">${review.createdAt} · ${review.wineType}</div><div>${review.note}</div></article>`}).join(""):'<div class="empty-state">아직 리뷰가 없습니다.</div>'}
-function updateMetrics(){const reviewCount=state.wines.reduce((sum,wine)=>sum+wine.reviews.length,0);const regionCount=new Set(state.wines.map(wine=>wine.region).filter(Boolean)).size;el.personaCount.textContent=String(state.personas.length);el.wineCount.textContent=String(state.wines.length);el.reviewCount.textContent=String(reviewCount);el.regionCount.textContent=String(regionCount)}
-function updateStorageStatus(){if(state.supabase){el.storageStatus.textContent="Supabase Connected";el.storageNote.textContent="설정된 경우 Supabase Database를 우선 사용합니다."}else{el.storageStatus.textContent="Local Mode";el.storageNote.textContent="Supabase 설정 전에는 localStorage fallback으로 동작합니다."}}
-function syncTasteEditor(){const persona=state.personas.find(item=>item.id===el.tastePersona.value)||state.personas[0];const mode=el.tasteMode.value;const taste=persona.tastes[mode];el.favVarietal.value=taste.varietal;el.favRegion.value=taste.region;state.tasteDraft={fruitDriven:taste.fruitDriven,oak:taste.oak,acidity:taste.acidity,body:taste.body,fruitProfile:taste.fruitProfile};const labels=getFieldLabels(mode);el.tasteEditor.innerHTML=labels.map(field=>`<div class="dot-field"><div class="dot-guide"><strong>${field.label}</strong></div><div class="segment-picker" data-field="${field.key}"></div><div class="dot-guide"><span>${field.left}</span><span>${field.right}</span></div></div>`).join("");labels.forEach(field=>renderSegmentPicker(field.key))}
-function renderSegmentPicker(fieldKey){const host=el.tasteEditor.querySelector(`[data-field="${fieldKey}"]`);if(!host)return;host.innerHTML="";for(let i=1;i<=7;i+=1){const button=document.createElement("button");button.type="button";button.className=`segment-button${state.tasteDraft[fieldKey]>=i?" active":""}`;button.addEventListener("click",()=>{state.tasteDraft[fieldKey]=i;renderSegmentPicker(fieldKey)});host.appendChild(button)}}
-async function handleReviewSave(event){event.preventDefault();if(!el.adminToggle.checked){alert("관리자 모드를 먼저 열어주세요.");return}const payload={personaId:el.reviewPersona.value,type:el.wineType.value,name:el.wineName.value.trim(),vintage:el.wineVintage.value.trim(),varietal:el.wineVarietal.value.trim(),region:el.wineRegion.value.trim(),averagePrice:el.winePrice.value.trim(),image:el.wineImage.value.trim(),note:el.wineReview.value.trim()};if(!payload.name||!payload.note)return;let wine=state.wines.find(item=>item.name.toLowerCase()===payload.name.toLowerCase());if(!wine){wine={id:`wine-${Date.now()}`,name:payload.name,vintage:payload.vintage,type:payload.type,varietal:payload.varietal,region:payload.region,averagePrice:payload.averagePrice,image:payload.image||makePlaceholderImage(payload.name,"#7a1f35","#f1ddd2"),reviews:[]};state.wines.unshift(wine)}else{wine.vintage=payload.vintage||wine.vintage;wine.type=payload.type||wine.type;wine.varietal=payload.varietal||wine.varietal;wine.region=payload.region||wine.region;wine.averagePrice=payload.averagePrice||wine.averagePrice;if(payload.image)wine.image=payload.image}wine.reviews.unshift({personaId:payload.personaId,note:payload.note,createdAt:new Date().toISOString().slice(0,10)});await persistWine(wine);saveLocal();el.reviewForm.reset();el.reviewPersona.value=state.personas[0]?.id||"";renderAll()}
-async function handleTasteSave(event){event.preventDefault();if(!el.adminToggle.checked){alert("관리자 모드를 먼저 열어주세요.");return}const persona=state.personas.find(item=>item.id===el.tastePersona.value);const mode=el.tasteMode.value;persona.tastes[mode]={varietal:el.favVarietal.value.trim(),region:el.favRegion.value.trim(),fruitDriven:state.tasteDraft.fruitDriven,oak:state.tasteDraft.oak,acidity:state.tasteDraft.acidity,body:state.tasteDraft.body,fruitProfile:state.tasteDraft.fruitProfile};await persistPersona(persona);saveLocal();renderAll()}
-async function handleWineLookup(){const query=[el.wineName.value,el.wineVintage.value,el.wineVarietal.value].filter(Boolean).join(" ").trim();if(!query){el.fetchStatus.textContent="와인명 또는 검색 키워드를 먼저 입력해주세요.";return}el.fetchStatus.textContent="이미지와 가격 후보를 조회 중...";try{const response=await fetch(`/functions/wine-lookup?q=${encodeURIComponent(query)}`);const data=await response.json();if(data.image_url&&!el.wineImage.value)el.wineImage.value=data.image_url;if(data.average_price&&!el.winePrice.value)el.winePrice.value=data.average_price;el.fetchStatus.textContent=data.note||"조회 결과를 입력 폼에 반영했습니다."}catch(error){el.fetchStatus.textContent="자동 조회에 실패했습니다. Cloudflare Function 또는 API 설정을 확인해주세요."}}
-async function persistPersona(persona){if(!state.supabase)return;await state.supabase.from("personas").upsert({id:persona.id,name:persona.name,role:persona.role,focus:persona.focus,red_taste:persona.tastes.red,white_taste:persona.tastes.white,display_order:state.personas.findIndex(item=>item.id===persona.id)})}
-async function persistWine(wine){if(!state.supabase)return;await state.supabase.from("wines").upsert({id:wine.id,name:wine.name,vintage:wine.vintage,type:wine.type,varietal:wine.varietal,region:wine.region,average_price:wine.averagePrice,image_url:wine.image});const latestReview=wine.reviews[0];if(latestReview){await state.supabase.from("reviews").insert({wine_id:wine.id,persona_id:latestReview.personaId,note:latestReview.note,created_at:latestReview.createdAt})}}
-function makePlaceholderImage(title,start,end){const safe=title.replace(/[&<>]/g,char=>({"&":"&amp;","<":"&lt;",">":"&gt;"}[char]));const svg=`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 600"><defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="${start}"/><stop offset="100%" stop-color="${end}"/></linearGradient></defs><rect width="800" height="600" rx="42" fill="url(#g)"/><circle cx="650" cy="120" r="110" fill="rgba(255,255,255,0.16)"/><circle cx="130" cy="520" r="160" fill="rgba(255,255,255,0.10)"/><text x="60" y="285" font-size="44" font-family="Georgia,serif" fill="white">${safe}</text><text x="60" y="340" font-size="24" font-family="sans-serif" fill="rgba(255,255,255,0.86)">VVR · Vintage Varietal Region</text></svg>`;return `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(svg)}`}
+
+async function init() {
+  hydrateTheme();
+  initializeSupabase();
+  bindEvents();
+  await hydrateData();
+  populatePersonaOptions();
+  syncTasteEditor();
+  await refreshSession();
+  updateStorageStatus();
+  renderAll();
+}
+
+function initializeSupabase() {
+  if (window.supabase && window.VVR_SUPABASE_URL && window.VVR_SUPABASE_ANON_KEY) {
+    state.supabase = window.supabase.createClient(window.VVR_SUPABASE_URL, window.VVR_SUPABASE_ANON_KEY);
+  }
+}
+
+async function refreshSession() {
+  if (!state.supabase) {
+    updateAuthUi();
+    return;
+  }
+
+  const { data } = await state.supabase.auth.getSession();
+  state.session = data.session || null;
+  state.isAdmin = isAdminEmail(state.session?.user?.email);
+
+  state.supabase.auth.onAuthStateChange((_event, session) => {
+    state.session = session || null;
+    state.isAdmin = isAdminEmail(state.session?.user?.email);
+    updateAuthUi();
+    renderAll();
+  });
+
+  updateAuthUi();
+}
+
+function isAdminEmail(email) {
+  return Boolean(email && ADMIN_EMAILS.includes(email.toLowerCase()));
+}
+async function hydrateData() {
+  state.personas = loadLocal(STORAGE_KEYS.personas, seedPersonas);
+  state.wines = loadLocal(STORAGE_KEYS.wines, seedWines).map(normalizeLocalWine);
+
+  if (!state.supabase) {
+    return;
+  }
+
+  try {
+    const [personasResult, winesResult, reviewsResult] = await Promise.all([
+      state.supabase.from("personas").select("*").order("display_order"),
+      state.supabase.from("wines").select("*").order("created_at", { ascending: false }),
+      state.supabase.from("reviews").select("id, wine_id, persona_id, note, created_at").order("created_at", { ascending: false })
+    ]);
+
+    if (!personasResult.error && personasResult.data?.length) {
+      state.personas = personasResult.data.map(normalizePersonaRow);
+    }
+
+    if (!winesResult.error && winesResult.data?.length) {
+      const reviewsByWine = groupReviewsByWine(reviewsResult.data || []);
+      state.wines = winesResult.data.map((row) => normalizeWineRow(row, reviewsByWine[row.id] || []));
+    }
+  } catch (error) {
+    console.error(error);
+  }
+}
+
+function groupReviewsByWine(rows) {
+  return rows.reduce((accumulator, row) => {
+    if (!accumulator[row.wine_id]) {
+      accumulator[row.wine_id] = [];
+    }
+    accumulator[row.wine_id].push({
+      id: row.id,
+      personaId: row.persona_id,
+      note: row.note,
+      createdAt: (row.created_at || new Date().toISOString()).slice(0, 10)
+    });
+    return accumulator;
+  }, {});
+}
+
+function normalizePersonaRow(row) {
+  return {
+    id: row.id,
+    name: row.name,
+    role: row.role,
+    focus: row.focus,
+    tastes: {
+      red: row.red_taste,
+      white: row.white_taste
+    }
+  };
+}
+
+function normalizeWineRow(row, reviews) {
+  return {
+    id: row.id,
+    name: row.name,
+    vintage: row.vintage,
+    type: row.type,
+    varietal: row.varietal,
+    region: row.region,
+    averagePrice: row.average_price,
+    image: row.image_url || makePlaceholderImage(row.name, "#8a3650", "#f5d2c6"),
+    reviews: (reviews || []).map((review) => ({
+      id: review.id || `local-${cryptoRandomId()}`,
+      personaId: review.personaId,
+      note: review.note,
+      createdAt: review.createdAt
+    }))
+  };
+}
+
+function normalizeLocalWine(wine) {
+  return {
+    ...wine,
+    reviews: (wine.reviews || []).map((review) => ({
+      id: review.id || `local-${cryptoRandomId()}`,
+      personaId: review.personaId,
+      note: review.note,
+      createdAt: review.createdAt || new Date().toISOString().slice(0, 10)
+    }))
+  };
+}
+
+function loadLocal(key, fallback) {
+  try {
+    const raw = localStorage.getItem(key);
+    return raw ? JSON.parse(raw) : structuredClone(fallback);
+  } catch (error) {
+    return structuredClone(fallback);
+  }
+}
+
+function saveLocal() {
+  localStorage.setItem(STORAGE_KEYS.personas, JSON.stringify(state.personas));
+  localStorage.setItem(STORAGE_KEYS.wines, JSON.stringify(state.wines));
+}
+
+function hydrateTheme() {
+  const savedTheme = localStorage.getItem(STORAGE_KEYS.theme);
+  const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+  if (savedTheme === "dark" || (!savedTheme && prefersDark)) {
+    el.body.classList.add("dark-mode");
+  }
+  syncThemeButton();
+}
+
+function syncThemeButton() {
+  el.themeToggle.textContent = el.body.classList.contains("dark-mode") ? "Light Mode" : "Dark Mode";
+}
+
+function bindEvents() {
+  el.themeToggle.addEventListener("click", () => {
+    el.body.classList.toggle("dark-mode");
+    localStorage.setItem(STORAGE_KEYS.theme, el.body.classList.contains("dark-mode") ? "dark" : "light");
+    syncThemeButton();
+  });
+
+  el.searchInput.addEventListener("input", (event) => {
+    state.query = event.target.value.trim().toLowerCase();
+    renderWines();
+  });
+
+  el.tastePersona.addEventListener("change", syncTasteEditor);
+  el.tasteMode.addEventListener("change", syncTasteEditor);
+  el.reviewForm.addEventListener("submit", handleReviewSave);
+  el.tasteForm.addEventListener("submit", handleTasteSave);
+  el.fetchWineData.addEventListener("click", handleWineLookup);
+  el.authForm.addEventListener("submit", handleLogin);
+  el.signupButton.addEventListener("click", handleSignup);
+  el.logoutButton.addEventListener("click", handleLogout);
+  el.cancelEditButton.addEventListener("click", resetReviewForm);
+}
+
+function populatePersonaOptions() {
+  const options = state.personas.map((persona) => `<option value="${persona.id}">${persona.name}</option>`).join("");
+  el.reviewPersona.innerHTML = options;
+  el.tastePersona.innerHTML = options;
+
+  if (!el.reviewPersona.value) {
+    el.reviewPersona.value = state.personas[0]?.id || "";
+  }
+  if (!el.tastePersona.value) {
+    el.tastePersona.value = state.personas[0]?.id || "";
+  }
+}
+
+function renderAll() {
+  renderFilters();
+  renderPersonas();
+  renderWines();
+  renderRecentReviews();
+  updateMetrics();
+  updateAdminAccess();
+}
+
+function renderFilters() {
+  renderFilterGroup(el.personaFilters, "all", "전체 Persona", state.selectedPersona, (value) => {
+    state.selectedPersona = value;
+    renderAll();
+  });
+
+  renderFilterGroup(el.reviewerFilters, "all", "모든 리뷰어", state.selectedPersona, (value) => {
+    state.selectedPersona = value;
+    renderAll();
+  });
+
+  state.personas.forEach((persona) => {
+    appendChip(el.personaFilters, persona.name, state.selectedPersona === persona.id, () => {
+      state.selectedPersona = persona.id;
+      renderAll();
+    });
+    appendChip(el.reviewerFilters, persona.name, state.selectedPersona === persona.id, () => {
+      state.selectedPersona = persona.id;
+      renderAll();
+    });
+  });
+
+  el.typeFilters.innerHTML = "";
+  ["All", "Red", "White", "Sparkling", "Rose", "Orange"].forEach((type) => appendChip(el.typeFilters, type, state.selectedType === type, () => {
+    state.selectedType = type;
+    renderWines();
+  }));
+}
+
+function renderFilterGroup(container, value, label, activeValue, onClick) {
+  container.innerHTML = "";
+  appendChip(container, label, activeValue === value, () => onClick(value));
+}
+
+function appendChip(container, label, active, onClick) {
+  const button = document.createElement("button");
+  button.type = "button";
+  button.className = `chip${active ? " active" : ""}`;
+  button.textContent = label;
+  button.addEventListener("click", onClick);
+  container.appendChild(button);
+}
+function renderPersonas() {
+  const personas = state.selectedPersona === "all"
+    ? state.personas
+    : state.personas.filter((persona) => persona.id === state.selectedPersona);
+
+  el.personaGrid.innerHTML = personas.map(renderPersonaCard).join("");
+  attachTasteTabs();
+}
+
+function renderPersonaCard(persona) {
+  return `<article class="persona-card"><div class="persona-header"><div class="persona-top"><div class="avatar">${persona.name.slice(0, 2).toUpperCase()}</div><div><strong>${persona.name}</strong><br><span class="muted">${persona.role}</span></div></div><span class="pill">${persona.focus}</span></div><div class="taste-tabs"><button type="button" class="tab-button active" data-tab="${persona.id}-red">Red</button><button type="button" class="tab-button" data-tab="${persona.id}-white">White</button></div><div class="taste-panel active" id="${persona.id}-red"><div class="taste-summary"><span class="pill">${persona.tastes.red.varietal}</span><span class="pill">${persona.tastes.red.region}</span></div>${renderTasteTracks(persona.tastes.red, "red")}</div><div class="taste-panel" id="${persona.id}-white"><div class="taste-summary"><span class="pill">${persona.tastes.white.varietal}</span><span class="pill">${persona.tastes.white.region}</span></div>${renderTasteTracks(persona.tastes.white, "white")}</div></article>`;
+}
+
+function renderTasteTracks(taste, mode) {
+  return getFieldLabels(mode).map((field) => `<div class="taste-track"><div class="taste-label"><span>${field.label}</span><span>${field.left} / ${field.right}</span></div><div class="taste-scale">${renderSegments(taste[field.key])}</div></div>`).join("");
+}
+
+function renderSegments(activeCount) {
+  return Array.from({ length: 7 }, (_, index) => `<span class="taste-segment${index + 1 <= activeCount ? " active" : ""}"></span>`).join("");
+}
+
+function attachTasteTabs() {
+  document.querySelectorAll(".tab-button").forEach((button) => {
+    button.addEventListener("click", () => {
+      const panelId = button.dataset.tab;
+      const card = button.closest(".persona-card");
+      card.querySelectorAll(".tab-button").forEach((tab) => tab.classList.remove("active"));
+      card.querySelectorAll(".taste-panel").forEach((panel) => panel.classList.remove("active"));
+      button.classList.add("active");
+      card.querySelector(`#${panelId}`).classList.add("active");
+    });
+  });
+}
+
+function getFieldLabels(mode) {
+  if (mode === "white") {
+    return [
+      { key: "fruitDriven", label: "Fruit Driven", left: "Mineral / Linear", right: "Fruit Driven" },
+      { key: "oak", label: "New Oak", left: "Unoaked", right: "New Oak" },
+      { key: "acidity", label: "High Acidity", left: "Low Acidity", right: "High Acidity" },
+      { key: "body", label: "Rich", left: "Lean", right: "Rich" },
+      { key: "fruitProfile", label: "Fruit Profile", left: "Citrus", right: "Tropical Fruit" }
+    ];
+  }
+  return TASTE_FIELDS;
+}
+
+function filteredWines() {
+  return state.wines.filter((wine) => {
+    const matchesType = state.selectedType === "All" || wine.type === state.selectedType;
+    const matchesPersona = state.selectedPersona === "all" || wine.reviews.some((review) => review.personaId === state.selectedPersona);
+    const haystack = [wine.name, wine.varietal, wine.region, ...wine.reviews.map((review) => `${review.personaId} ${review.note}`)].join(" ").toLowerCase();
+    const matchesQuery = !state.query || haystack.includes(state.query);
+    return matchesType && matchesPersona && matchesQuery;
+  });
+}
+
+function renderWines() {
+  const wines = filteredWines();
+  if (!wines.length) {
+    el.wineGrid.innerHTML = '<div class="empty-state">조건에 맞는 와인이 아직 없습니다. 새 리뷰를 추가해보세요.</div>';
+    return;
+  }
+
+  el.wineGrid.innerHTML = wines.map((wine) => renderWineCard(wine)).join("");
+  attachReviewActions();
+}
+
+function renderWineCard(wine) {
+  const visibleReviews = wine.reviews.filter((review) => state.selectedPersona === "all" || review.personaId === state.selectedPersona);
+  const reviewMarkup = visibleReviews.map((review) => renderReviewSnippet(wine, review)).join("");
+
+  return `<article class="wine-card"><img class="wine-image" src="${wine.image || makePlaceholderImage(wine.name, "#8a3650", "#f5d2c6")}" alt="${wine.name} 이미지"><div class="row"><div><h3>${wine.name}</h3><div class="muted">${[wine.vintage, wine.varietal, wine.region].filter(Boolean).join(" · ")}</div></div><span class="pill">${wine.type}</span></div><div class="chip-row" style="margin-top:10px"><span class="pill">${wine.varietal || "Varietal 미입력"}</span><span class="pill">${wine.region || "Region 미입력"}</span><span class="pill">${wine.reviews.length} reviews</span></div><div class="muted" style="margin-top:10px">${wine.averagePrice ? `Wine-Searcher / Manual 가격 메모: ${wine.averagePrice}` : "아직 평균가 메모가 없습니다."}</div>${reviewMarkup}</article>`;
+}
+
+function renderReviewSnippet(wine, review) {
+  const persona = state.personas.find((item) => item.id === review.personaId);
+  const actionButtons = state.isAdmin
+    ? `<div class="review-actions"><button type="button" class="review-action" data-action="edit-review" data-wine-id="${wine.id}" data-review-id="${review.id}">수정</button><button type="button" class="review-action danger" data-action="delete-review" data-wine-id="${wine.id}" data-review-id="${review.id}">삭제</button></div>`
+    : "";
+
+  return `<div class="review-snippet"><div class="row" style="align-items:center"><div><strong>${persona ? persona.name : review.personaId}</strong><div class="review-meta">${review.createdAt}</div></div>${actionButtons}</div><div>${review.note}</div></div>`;
+}
+
+function attachReviewActions() {
+  document.querySelectorAll("[data-action='edit-review']").forEach((button) => {
+    button.addEventListener("click", () => startReviewEdit(button.dataset.wineId, button.dataset.reviewId));
+  });
+
+  document.querySelectorAll("[data-action='delete-review']").forEach((button) => {
+    button.addEventListener("click", () => handleReviewDelete(button.dataset.wineId, button.dataset.reviewId));
+  });
+}
+
+function renderRecentReviews() {
+  const reviews = state.wines
+    .flatMap((wine) => wine.reviews.map((review) => ({ ...review, wineName: wine.name, wineType: wine.type })))
+    .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+    .slice(0, 4);
+
+  el.recentGrid.innerHTML = reviews.length
+    ? reviews.map((review) => {
+      const persona = state.personas.find((item) => item.id === review.personaId);
+      return `<article class="review-card"><strong>${persona ? persona.name : review.personaId} on ${review.wineName}</strong><div class="review-meta">${review.createdAt} · ${review.wineType}</div><div>${review.note}</div></article>`;
+    }).join("")
+    : '<div class="empty-state">아직 리뷰가 없습니다.</div>';
+}
+
+function updateMetrics() {
+  const reviewCount = state.wines.reduce((sum, wine) => sum + wine.reviews.length, 0);
+  const regionCount = new Set(state.wines.map((wine) => wine.region).filter(Boolean)).size;
+  el.personaCount.textContent = String(state.personas.length);
+  el.wineCount.textContent = String(state.wines.length);
+  el.reviewCount.textContent = String(reviewCount);
+  el.regionCount.textContent = String(regionCount);
+}
+
+function updateStorageStatus() {
+  if (state.supabase) {
+    el.storageStatus.textContent = "Supabase Connected";
+    el.storageNote.textContent = state.isAdmin
+      ? "관리자 로그인 상태입니다. 리뷰 생성, 수정, 삭제와 taste 저장이 DB에 반영됩니다."
+      : "공개 읽기 모드입니다. 관리자 로그인 시 수정 권한이 열립니다.";
+  } else {
+    el.storageStatus.textContent = "Local Mode";
+    el.storageNote.textContent = "Supabase 설정 전에는 localStorage fallback으로 동작합니다.";
+  }
+}
+
+function updateAuthUi() {
+  if (!state.supabase) {
+    el.authBadge.textContent = "Local Prototype";
+    el.authStatus.textContent = "Supabase Auth를 연결하면 실제 관리자 로그인을 사용할 수 있습니다.";
+    el.authHelp.textContent = "현재는 로컬 프로토타입 모드입니다.";
+    el.logoutButton.hidden = true;
+    el.loginButton.disabled = true;
+    el.signupButton.disabled = true;
+    updateStorageStatus();
+    return;
+  }
+
+  const email = state.session?.user?.email || "";
+  el.loginButton.disabled = false;
+  el.signupButton.disabled = false;
+
+  if (state.isAdmin) {
+    el.authBadge.textContent = "Admin Verified";
+    el.authStatus.textContent = `${email} 계정으로 로그인됨`;
+    el.authHelp.textContent = "이메일 기반 관리자 인증이 통과되어 리뷰 수정/삭제와 taste 저장이 가능합니다.";
+    el.logoutButton.hidden = false;
+  } else if (state.session) {
+    el.authBadge.textContent = "Viewer Session";
+    el.authStatus.textContent = `${email} 계정으로 로그인됨`;
+    el.authHelp.textContent = "현재 계정은 관리자 허용 목록에 없어 읽기 전용입니다.";
+    el.logoutButton.hidden = false;
+  } else {
+    el.authBadge.textContent = "Admin Locked";
+    el.authStatus.textContent = "아직 로그인되지 않았습니다.";
+    el.authHelp.textContent = `관리자 이메일(${ADMIN_EMAILS.join(", ")})로 로그인하면 편집 권한이 열립니다.`;
+    el.logoutButton.hidden = true;
+  }
+
+  updateStorageStatus();
+}
+function updateAdminAccess() {
+  const disabled = !state.isAdmin;
+  [...el.reviewForm.elements, ...el.tasteForm.elements].forEach((field) => {
+    if (field === el.cancelEditButton) {
+      return;
+    }
+    field.disabled = disabled;
+  });
+
+  el.fetchWineData.disabled = disabled;
+  el.cancelEditButton.disabled = disabled;
+}
+
+function syncTasteEditor() {
+  const persona = state.personas.find((item) => item.id === el.tastePersona.value) || state.personas[0];
+  const mode = el.tasteMode.value;
+  const taste = persona.tastes[mode];
+  el.favVarietal.value = taste.varietal;
+  el.favRegion.value = taste.region;
+  state.tasteDraft = {
+    fruitDriven: taste.fruitDriven,
+    oak: taste.oak,
+    acidity: taste.acidity,
+    body: taste.body,
+    fruitProfile: taste.fruitProfile
+  };
+
+  const labels = getFieldLabels(mode);
+  el.tasteEditor.innerHTML = labels.map((field) => `<div class="dot-field"><div class="dot-guide"><strong>${field.label}</strong></div><div class="segment-picker" data-field="${field.key}"></div><div class="dot-guide"><span>${field.left}</span><span>${field.right}</span></div></div>`).join("");
+  labels.forEach((field) => renderSegmentPicker(field.key));
+}
+
+function renderSegmentPicker(fieldKey) {
+  const host = el.tasteEditor.querySelector(`[data-field="${fieldKey}"]`);
+  if (!host) {
+    return;
+  }
+
+  host.innerHTML = "";
+  for (let i = 1; i <= 7; i += 1) {
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = `segment-button${state.tasteDraft[fieldKey] >= i ? " active" : ""}`;
+    button.addEventListener("click", () => {
+      state.tasteDraft[fieldKey] = i;
+      renderSegmentPicker(fieldKey);
+    });
+    host.appendChild(button);
+  }
+}
+
+async function handleLogin(event) {
+  event.preventDefault();
+  if (!state.supabase) {
+    return;
+  }
+
+  const email = el.adminEmail.value.trim();
+  const password = el.adminPassword.value.trim();
+  if (!email || !password) {
+    el.authStatus.textContent = "이메일과 비밀번호를 입력해주세요.";
+    return;
+  }
+
+  el.authStatus.textContent = "로그인 중...";
+  const { error } = await state.supabase.auth.signInWithPassword({ email, password });
+  el.authStatus.textContent = error ? `로그인 실패: ${error.message}` : "로그인에 성공했습니다.";
+}
+
+async function handleSignup() {
+  if (!state.supabase) {
+    return;
+  }
+
+  const email = el.adminEmail.value.trim();
+  const password = el.adminPassword.value.trim();
+  if (!email || !password) {
+    el.authStatus.textContent = "가입용 이메일과 비밀번호를 먼저 입력해주세요.";
+    return;
+  }
+
+  el.authStatus.textContent = "관리자 계정 생성 중...";
+  const { error } = await state.supabase.auth.signUp({ email, password });
+  el.authStatus.textContent = error
+    ? `가입 실패: ${error.message}`
+    : "가입 요청이 완료됐습니다. 이메일 인증이 켜져 있다면 메일을 먼저 확인해주세요.";
+}
+
+async function handleLogout() {
+  if (!state.supabase) {
+    return;
+  }
+
+  await state.supabase.auth.signOut();
+  resetReviewForm();
+}
+
+function startReviewEdit(wineId, reviewId) {
+  if (!state.isAdmin) {
+    return;
+  }
+
+  const wine = state.wines.find((item) => item.id === wineId);
+  const review = wine?.reviews.find((item) => String(item.id) === String(reviewId));
+  if (!wine || !review) {
+    return;
+  }
+
+  state.reviewFormMode = "edit";
+  state.editingWineId = wineId;
+  state.editingReviewId = reviewId;
+  el.reviewPersona.value = review.personaId;
+  el.wineType.value = wine.type || "Red";
+  el.wineName.value = wine.name || "";
+  el.wineVintage.value = wine.vintage || "";
+  el.wineVarietal.value = wine.varietal || "";
+  el.wineRegion.value = wine.region || "";
+  el.winePrice.value = wine.averagePrice || "";
+  el.wineImage.value = wine.image?.startsWith("data:image") ? "" : (wine.image || "");
+  el.wineReview.value = review.note || "";
+  el.reviewSubmitLabel.textContent = "리뷰 수정 저장";
+  el.cancelEditButton.hidden = false;
+  el.reviewForm.scrollIntoView({ behavior: "smooth", block: "start" });
+}
+
+function resetReviewForm() {
+  state.reviewFormMode = "create";
+  state.editingWineId = null;
+  state.editingReviewId = null;
+  el.reviewForm.reset();
+  el.reviewPersona.value = state.personas[0]?.id || "";
+  el.wineType.value = "Red";
+  el.reviewSubmitLabel.textContent = "리뷰 저장하기";
+  el.cancelEditButton.hidden = true;
+  el.fetchStatus.textContent = "Cloudflare Function을 통해 자동 조회를 시도합니다.";
+}
+
+async function handleReviewSave(event) {
+  event.preventDefault();
+  if (!state.isAdmin) {
+    alert("관리자 로그인 후 저장할 수 있습니다.");
+    return;
+  }
+
+  const payload = {
+    personaId: el.reviewPersona.value,
+    type: el.wineType.value,
+    name: el.wineName.value.trim(),
+    vintage: el.wineVintage.value.trim(),
+    varietal: el.wineVarietal.value.trim(),
+    region: el.wineRegion.value.trim(),
+    averagePrice: el.winePrice.value.trim(),
+    image: el.wineImage.value.trim(),
+    note: el.wineReview.value.trim()
+  };
+
+  if (!payload.name || !payload.note) {
+    return;
+  }
+
+  if (state.reviewFormMode === "edit") {
+    await updateExistingReview(payload);
+  } else {
+    await createNewReview(payload);
+  }
+
+  saveLocal();
+  renderAll();
+  resetReviewForm();
+}
+
+async function createNewReview(payload) {
+  let wine = state.wines.find((item) => item.name.toLowerCase() === payload.name.toLowerCase());
+  if (!wine) {
+    wine = {
+      id: `wine-${Date.now()}`,
+      name: payload.name,
+      vintage: payload.vintage,
+      type: payload.type,
+      varietal: payload.varietal,
+      region: payload.region,
+      averagePrice: payload.averagePrice,
+      image: payload.image || makePlaceholderImage(payload.name, "#7a1f35", "#f1ddd2"),
+      reviews: []
+    };
+    state.wines.unshift(wine);
+  } else {
+    wine.vintage = payload.vintage || wine.vintage;
+    wine.type = payload.type || wine.type;
+    wine.varietal = payload.varietal || wine.varietal;
+    wine.region = payload.region || wine.region;
+    wine.averagePrice = payload.averagePrice || wine.averagePrice;
+    if (payload.image) {
+      wine.image = payload.image;
+    }
+  }
+
+  const review = {
+    id: `local-${cryptoRandomId()}`,
+    personaId: payload.personaId,
+    note: payload.note,
+    createdAt: new Date().toISOString().slice(0, 10)
+  };
+
+  wine.reviews.unshift(review);
+  const persistedReview = await persistReviewCreate(wine, review);
+  if (persistedReview?.id) {
+    review.id = persistedReview.id;
+  }
+}
+async function updateExistingReview(payload) {
+  const wine = state.wines.find((item) => item.id === state.editingWineId);
+  const review = wine?.reviews.find((item) => String(item.id) === String(state.editingReviewId));
+  if (!wine || !review) {
+    return;
+  }
+
+  wine.name = payload.name;
+  wine.vintage = payload.vintage;
+  wine.type = payload.type;
+  wine.varietal = payload.varietal;
+  wine.region = payload.region;
+  wine.averagePrice = payload.averagePrice;
+  wine.image = payload.image || wine.image || makePlaceholderImage(payload.name, "#7a1f35", "#f1ddd2");
+  review.personaId = payload.personaId;
+  review.note = payload.note;
+  review.createdAt = new Date().toISOString().slice(0, 10);
+
+  await persistReviewUpdate(wine, review);
+}
+
+async function handleReviewDelete(wineId, reviewId) {
+  if (!state.isAdmin) {
+    return;
+  }
+
+  const wine = state.wines.find((item) => item.id === wineId);
+  const review = wine?.reviews.find((item) => String(item.id) === String(reviewId));
+  if (!wine || !review) {
+    return;
+  }
+
+  const ok = window.confirm(`'${wine.name}' 리뷰를 삭제할까요?`);
+  if (!ok) {
+    return;
+  }
+
+  wine.reviews = wine.reviews.filter((item) => String(item.id) !== String(reviewId));
+  if (!wine.reviews.length) {
+    state.wines = state.wines.filter((item) => item.id !== wine.id);
+  }
+
+  await persistReviewDelete(wine.id, review.id, !wine.reviews.length);
+  saveLocal();
+  renderAll();
+  if (state.editingReviewId === reviewId) {
+    resetReviewForm();
+  }
+}
+
+async function handleTasteSave(event) {
+  event.preventDefault();
+  if (!state.isAdmin) {
+    alert("관리자 로그인 후 저장할 수 있습니다.");
+    return;
+  }
+
+  const persona = state.personas.find((item) => item.id === el.tastePersona.value);
+  const mode = el.tasteMode.value;
+  persona.tastes[mode] = {
+    varietal: el.favVarietal.value.trim(),
+    region: el.favRegion.value.trim(),
+    fruitDriven: state.tasteDraft.fruitDriven,
+    oak: state.tasteDraft.oak,
+    acidity: state.tasteDraft.acidity,
+    body: state.tasteDraft.body,
+    fruitProfile: state.tasteDraft.fruitProfile
+  };
+
+  await persistPersona(persona);
+  saveLocal();
+  renderAll();
+}
+
+async function handleWineLookup() {
+  const query = [el.wineName.value, el.wineVintage.value, el.wineVarietal.value].filter(Boolean).join(" ").trim();
+  if (!query) {
+    el.fetchStatus.textContent = "와인명 또는 검색 키워드를 먼저 입력해주세요.";
+    return;
+  }
+
+  el.fetchStatus.textContent = "이미지와 가격 후보를 조회 중...";
+  try {
+    const response = await fetch(`/functions/wine-lookup?q=${encodeURIComponent(query)}`);
+    const data = await response.json();
+    if (data.image_url && !el.wineImage.value) {
+      el.wineImage.value = data.image_url;
+    }
+    if (data.average_price && !el.winePrice.value) {
+      el.winePrice.value = data.average_price;
+    }
+    el.fetchStatus.textContent = data.note || "조회 결과를 입력 폼에 반영했습니다.";
+  } catch (error) {
+    el.fetchStatus.textContent = "자동 조회에 실패했습니다. Cloudflare Function 또는 API 설정을 확인해주세요.";
+  }
+}
+
+async function persistPersona(persona) {
+  if (!state.supabase) {
+    return;
+  }
+
+  await state.supabase.from("personas").upsert({
+    id: persona.id,
+    name: persona.name,
+    role: persona.role,
+    focus: persona.focus,
+    red_taste: persona.tastes.red,
+    white_taste: persona.tastes.white,
+    display_order: state.personas.findIndex((item) => item.id === persona.id)
+  });
+}
+
+async function persistReviewCreate(wine, review) {
+  if (!state.supabase) {
+    return null;
+  }
+
+  await state.supabase.from("wines").upsert({
+    id: wine.id,
+    name: wine.name,
+    vintage: wine.vintage,
+    type: wine.type,
+    varietal: wine.varietal,
+    region: wine.region,
+    average_price: wine.averagePrice,
+    image_url: wine.image
+  });
+
+  const { data, error } = await state.supabase.from("reviews").insert({
+    wine_id: wine.id,
+    persona_id: review.personaId,
+    note: review.note,
+    created_at: review.createdAt
+  }).select("id").single();
+
+  if (error) {
+    console.error(error);
+    return null;
+  }
+
+  return data;
+}
+
+async function persistReviewUpdate(wine, review) {
+  if (!state.supabase) {
+    return;
+  }
+
+  await state.supabase.from("wines").upsert({
+    id: wine.id,
+    name: wine.name,
+    vintage: wine.vintage,
+    type: wine.type,
+    varietal: wine.varietal,
+    region: wine.region,
+    average_price: wine.averagePrice,
+    image_url: wine.image
+  });
+
+  await state.supabase.from("reviews").update({
+    persona_id: review.personaId,
+    note: review.note,
+    created_at: review.createdAt
+  }).eq("id", review.id);
+}
+
+async function persistReviewDelete(wineId, reviewId, deleteWineToo) {
+  if (!state.supabase) {
+    return;
+  }
+
+  await state.supabase.from("reviews").delete().eq("id", reviewId);
+  if (deleteWineToo) {
+    await state.supabase.from("wines").delete().eq("id", wineId);
+  }
+}
+
+function makePlaceholderImage(title, start, end) {
+  const safe = title.replace(/[&<>]/g, (char) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;" }[char]));
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 600"><defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="${start}"/><stop offset="100%" stop-color="${end}"/></linearGradient></defs><rect width="800" height="600" rx="42" fill="url(#g)"/><circle cx="650" cy="120" r="110" fill="rgba(255,255,255,0.16)"/><circle cx="130" cy="520" r="160" fill="rgba(255,255,255,0.10)"/><text x="60" y="285" font-size="44" font-family="Georgia,serif" fill="white">${safe}</text><text x="60" y="340" font-size="24" font-family="sans-serif" fill="rgba(255,255,255,0.86)">VVR · Vintage Varietal Region</text></svg>`;
+  return `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(svg)}`;
+}
+
+function cryptoRandomId() {
+  if (window.crypto?.randomUUID) {
+    return window.crypto.randomUUID();
+  }
+  return `${Date.now()}-${Math.random().toString(16).slice(2)}`;
+}
