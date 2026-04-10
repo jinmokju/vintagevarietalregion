@@ -11,6 +11,7 @@ create table if not exists personas (
 create table if not exists wines (
   id text primary key,
   name text not null,
+  producer text,
   vintage text,
   type text,
   varietal text,
@@ -19,6 +20,8 @@ create table if not exists wines (
   image_url text,
   created_at timestamptz default now()
 );
+
+alter table wines add column if not exists producer text;
 
 create table if not exists reviews (
   id bigint generated always as identity primary key,
