@@ -1,100 +1,171 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="ko">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>빈품지 소개</title>
+  <title>빈티지 소개</title>
   <style>
     * { box-sizing: border-box; }
+    :root {
+      --bg: #faf7f2;
+      --text: #2b2b2b;
+      --header-start: #5b1f2a;
+      --header-end: #8d3b4f;
+      --surface: #ffffff;
+      --surface-alt: #f4e6ea;
+      --accent: #7a2f42;
+      --accent-strong: #5b1f2a;
+      --border-accent: #8d3b4f;
+      --footer-text: #666666;
+      --shadow-strong: 0 10px 24px rgba(0, 0, 0, 0.08);
+      --shadow-soft: 0 8px 20px rgba(0, 0, 0, 0.06);
+    }
+
+    body.dark-mode {
+      --bg: #171214;
+      --text: #f2e7e8;
+      --header-start: #2b0f16;
+      --header-end: #51212d;
+      --surface: #241c1f;
+      --surface-alt: #34262b;
+      --accent: #f4c8d1;
+      --accent-strong: #ffd9df;
+      --border-accent: #d98095;
+      --footer-text: #c8b7bb;
+      --shadow-strong: 0 14px 30px rgba(0, 0, 0, 0.32);
+      --shadow-soft: 0 10px 22px rgba(0, 0, 0, 0.24);
+    }
+
     body {
       margin: 0;
       font-family: "Pretendard", "Apple SD Gothic Neo", sans-serif;
-      background: #faf7f2;
-      color: #2b2b2b;
+      background: var(--bg);
+      color: var(--text);
       line-height: 1.6;
+      transition: background-color 0.25s ease, color 0.25s ease;
     }
+
     header {
-      background: linear-gradient(135deg, #5b1f2a, #8d3b4f);
+      position: relative;
+      background: linear-gradient(135deg, var(--header-start), var(--header-end));
       color: white;
       padding: 80px 20px;
       text-align: center;
     }
+
+    .theme-toggle {
+      position: absolute;
+      top: 24px;
+      right: 20px;
+      border: 1px solid rgba(255, 255, 255, 0.32);
+      background: rgba(255, 255, 255, 0.14);
+      color: #fff;
+      padding: 10px 16px;
+      border-radius: 999px;
+      font: inherit;
+      cursor: pointer;
+      backdrop-filter: blur(8px);
+    }
+
     header h1 {
       margin: 0 0 16px;
       font-size: 3rem;
     }
+
     header p {
       margin: 0 auto;
       max-width: 700px;
       font-size: 1.1rem;
       opacity: 0.95;
     }
+
     .btn {
       display: inline-block;
       margin-top: 28px;
       padding: 12px 24px;
       background: #fff;
-      color: #7a2f42;
+      color: var(--accent);
       text-decoration: none;
       border-radius: 999px;
       font-weight: 700;
     }
+
     section {
       max-width: 1100px;
       margin: 0 auto;
       padding: 70px 20px;
     }
+
     h2 {
       font-size: 2rem;
       margin-bottom: 16px;
-      color: #5b1f2a;
+      color: var(--accent-strong);
     }
+
     .intro {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
       gap: 28px;
       align-items: center;
     }
+
     .card-grid {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
       gap: 20px;
       margin-top: 28px;
     }
+
     .card {
-      background: white;
+      background: var(--surface);
       border-radius: 18px;
       padding: 24px;
-      box-shadow: 0 10px 24px rgba(0,0,0,0.08);
+      box-shadow: var(--shadow-strong);
+      transition: background-color 0.25s ease, box-shadow 0.25s ease;
     }
+
     .card h3 {
       margin-top: 0;
-      color: #7a2f42;
+      color: var(--accent);
     }
+
     .highlight {
-      background: #f4e6ea;
-      border-left: 6px solid #8d3b4f;
+      background: var(--surface-alt);
+      border-left: 6px solid var(--border-accent);
       padding: 24px;
       border-radius: 14px;
       margin-top: 24px;
+      transition: background-color 0.25s ease, border-color 0.25s ease;
     }
+
     .timeline {
       display: grid;
       gap: 16px;
       margin-top: 24px;
     }
+
     .timeline-item {
-      background: white;
+      background: var(--surface);
       padding: 18px 22px;
       border-radius: 14px;
-      box-shadow: 0 8px 20px rgba(0,0,0,0.06);
+      box-shadow: var(--shadow-soft);
+      transition: background-color 0.25s ease, box-shadow 0.25s ease;
     }
+
     footer {
       text-align: center;
       padding: 30px 20px 50px;
-      color: #666;
+      color: var(--footer-text);
+      transition: color 0.25s ease;
     }
+
     @media (max-width: 640px) {
+      .theme-toggle {
+        top: 18px;
+        right: 16px;
+        padding: 8px 14px;
+      }
+
       header h1 { font-size: 2.2rem; }
       h2 { font-size: 1.6rem; }
     }
@@ -102,10 +173,11 @@
 </head>
 <body>
   <header>
-    <h1>빈품지 소개</h1>
+    <button class="theme-toggle" type="button" aria-label="테마 변경">Dark Mode</button>
+    <h1>빈티지 소개</h1>
     <p>
-      와인의 향, 맛, 산지, 생산자 이야기를 더 쉽게 기록하고 공유할 수 있도록 돕는
-      감각적인 와인 소개 플랫폼입니다.
+      와인의 맛과 향, 생산지와 이야기를 더 쉽게 기록하고 공유할 수 있도록 돕는
+      감각적인 와인 소개 페이지입니다.
     </p>
     <a href="#about" class="btn">자세히 보기</a>
   </header>
@@ -113,16 +185,16 @@
   <section id="about">
     <div class="intro">
       <div>
-        <h2>빈품지는 무엇인가요?</h2>
+        <h2>빈티지는 무엇을 담을까요?</h2>
         <p>
-          빈품지는 와인을 좋아하는 사람들이 각 와인의 특징과 테이스팅 노트를 직관적으로
-          확인할 수 있도록 만든 소개형 홈페이지입니다. 생산 지역, 품종, 스타일, 어울리는 음식까지
+          빈티지는 와인을 좋아하는 사람들이 각 와인의 특징과 테이스팅 노트를 직관적으로
+          확인할 수 있도록 만든 소개형 랜딩 페이지입니다. 생산 지역, 품종, 스타일, 잘 어울리는 페어링까지
           한눈에 볼 수 있도록 구성했습니다.
         </p>
       </div>
       <div class="card">
-        <h3>핵심 키워드</h3>
-        <p>와인 기록 · 산지 정보 · 품종 비교 · 테이스팅 노트 · 취향 아카이빙</p>
+        <h3>한눈에 보는 정보</h3>
+        <p>와인 기록, 품종 정보, 지역 비교, 테이스팅 노트, 취향 아카이브</p>
       </div>
     </div>
   </section>
@@ -132,28 +204,28 @@
     <div class="card-grid">
       <div class="card">
         <h3>와인 소개</h3>
-        <p>각 와인의 생산지, 품종, 빈티지, 스타일을 깔끔하게 정리해 보여줍니다.</p>
+        <p>각 와인의 생산지, 품종, 빈티지, 스타일을 명확하게 정리해 보여줍니다.</p>
       </div>
       <div class="card">
         <h3>테이스팅 노트</h3>
         <p>향과 맛, 질감, 여운을 기록해 개인 취향을 체계적으로 쌓을 수 있습니다.</p>
       </div>
       <div class="card">
-        <h3>음식 페어링</h3>
-        <p>와인과 잘 어울리는 음식 조합을 제안해 실제 경험을 더 풍성하게 만듭니다.</p>
+        <h3>푸드 페어링</h3>
+        <p>와인과 잘 어울리는 음식 조합을 제안해 실제 경험까지 연결해줍니다.</p>
       </div>
       <div class="card">
         <h3>취향 발견</h3>
-        <p>좋아하는 스타일을 정리하며 자신만의 와인 취향 지도를 만들 수 있습니다.</p>
+        <p>좋아하는 스타일을 정리하고 나만의 와인 취향 지도를 만들 수 있습니다.</p>
       </div>
     </div>
   </section>
 
   <section>
-    <h2>빈품지가 좋은 이유</h2>
+    <h2>빈티지가 좋은 이유</h2>
     <div class="highlight">
-      단순히 와인을 나열하는 것이 아니라, 와인을 둘러싼 경험과 맥락까지 함께 담아
-      초보자에게는 친절한 입문 페이지로, 애호가에게는 기록과 공유의 공간으로 활용할 수 있습니다.
+      단순히 와인을 나열하는 것이 아니라 와인을 둘러싼 경험과 맥락까지 함께 담아,
+      초보자에게는 친절한 입문 페이지로, 애호가에게는 기록과 공유의 공간으로 사용할 수 있습니다.
     </div>
   </section>
 
@@ -161,14 +233,41 @@
     <h2>이용 흐름</h2>
     <div class="timeline">
       <div class="timeline-item"><strong>1.</strong> 와인을 선택하고 기본 정보를 확인합니다.</div>
-      <div class="timeline-item"><strong>2.</strong> 향, 맛, 구조감, 인상적인 포인트를 기록합니다.</div>
+      <div class="timeline-item"><strong>2.</strong> 향과 맛, 구조감 등 인상적인 포인트를 기록합니다.</div>
       <div class="timeline-item"><strong>3.</strong> 음식 페어링과 함께 자신의 취향을 정리합니다.</div>
-      <div class="timeline-item"><strong>4.</strong> 나만의 와인 아카이브를 쌓아갑니다.</div>
+      <div class="timeline-item"><strong>4.</strong> 쌓여가는 와인 아카이브를 둘러봅니다.</div>
     </div>
   </section>
 
   <footer>
-    © 2026 빈품지. 당신의 와인 취향을 기록하는 가장 감각적인 방법.
+    © 2026 빈티지. 당신의 와인 취향을 기록하는 가장 감각적인 방법.
   </footer>
+
+  <script>
+    const themeToggleButton = document.querySelector('.theme-toggle');
+    const savedTheme = localStorage.getItem('theme');
+    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+
+    if (savedTheme === 'dark' || (!savedTheme && prefersDark)) {
+      document.body.classList.add('dark-mode');
+    }
+
+    function syncThemeLabel() {
+      const isDark = document.body.classList.contains('dark-mode');
+      themeToggleButton.textContent = isDark ? 'Light Mode' : 'Dark Mode';
+      themeToggleButton.setAttribute('aria-pressed', isDark ? 'true' : 'false');
+    }
+
+    themeToggleButton.addEventListener('click', () => {
+      document.body.classList.toggle('dark-mode');
+      localStorage.setItem(
+        'theme',
+        document.body.classList.contains('dark-mode') ? 'dark' : 'light'
+      );
+      syncThemeLabel();
+    });
+
+    syncThemeLabel();
+  </script>
 </body>
 </html>
