@@ -447,7 +447,7 @@ function renderTasteTracks(taste, mode) {
 }
 
 function renderSegments(activeCount) {
-  return Array.from({ length: 7 }, (_, index) => `<span class="taste-segment${index + 1 <= activeCount ? " active" : ""}"></span>`).join("");
+  return `<div class="taste-meter"><div class="taste-line"></div><span class="taste-marker" style="left:${scalePosition(activeCount)}%"></span></div>`;
 }
 
 function attachTasteTabs() {
@@ -662,17 +662,21 @@ function renderSegmentPicker(fieldKey) {
     return;
   }
 
-  host.innerHTML = "";
+  host.innerHTML = `<div class="taste-meter interactive"><div class="taste-line"></div><span class="taste-marker" style="left:${scalePosition(state.tasteDraft[fieldKey])}%"></span></div>`;
   for (let i = 1; i <= 7; i += 1) {
     const button = document.createElement("button");
     button.type = "button";
-    button.className = `segment-button${state.tasteDraft[fieldKey] >= i ? " active" : ""}`;
+    button.className = `segment-button${state.tasteDraft[fieldKey] === i ? " active" : ""}`;
     button.addEventListener("click", () => {
       state.tasteDraft[fieldKey] = i;
       renderSegmentPicker(fieldKey);
     });
     host.appendChild(button);
   }
+}
+
+function scalePosition(value) {
+  return ((Math.max(1, Math.min(7, value)) - 1) / 6) * 100;
 }
 
 async function handleLogin(event) {
