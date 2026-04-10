@@ -14,8 +14,8 @@ const TASTE_FIELDS = [
   { key: "fruitProfile", label: "Fruit Profile", left: "Red Fruit", right: "Dark Fruit" }
 ];
 
-const createTaste = (varietal, region, fruitDriven, oak, acidity, body, fruitProfile) => ({
-  varietal,
+const createTaste = (favorites, region, fruitDriven, oak, acidity, body, fruitProfile) => ({
+  favorites,
   region,
   fruitDriven,
   oak,
@@ -24,16 +24,7 @@ const createTaste = (varietal, region, fruitDriven, oak, acidity, body, fruitPro
   fruitProfile
 });
 
-const seedPersonas = [
-  { id: "mina", name: "Mina", role: "트렌드 발견형 큐레이터", focus: "산도 중심 탐험가", tastes: { red: createTaste("Pinot Noir", "Burgundy", 5, 2, 6, 2, 3), white: createTaste("Riesling", "Mosel", 5, 1, 7, 2, 2) } },
-  { id: "jun", name: "Jun", role: "레스토랑 페어링 메이커", focus: "오크와 구조감 선호", tastes: { red: createTaste("Cabernet Sauvignon", "Napa Valley", 4, 6, 3, 6, 6), white: createTaste("Chardonnay", "Sonoma Coast", 3, 6, 4, 5, 5) } },
-  { id: "ara", name: "Ara", role: "감성 기록형 테이스터", focus: "과실미 중심 입문 친화", tastes: { red: createTaste("Gamay", "Beaujolais", 7, 2, 5, 2, 2), white: createTaste("Sauvignon Blanc", "Marlborough", 6, 1, 6, 2, 2) } },
-  { id: "soyeon", name: "Soyeon", role: "빈티지 비교 덕후", focus: "지역 차이 분석가", tastes: { red: createTaste("Nebbiolo", "Barolo", 3, 4, 7, 4, 5), white: createTaste("Chenin Blanc", "Loire Valley", 3, 2, 6, 3, 3) } },
-  { id: "dohyun", name: "Dohyun", role: "클래식 보르도 지향", focus: "다크프루트·세이보리", tastes: { red: createTaste("Bordeaux Blend", "Left Bank Bordeaux", 2, 6, 4, 6, 7), white: createTaste("Semillon Blend", "Pessac-Leognan", 3, 4, 4, 4, 4) } },
-  { id: "hyejin", name: "Hyejin", role: "내추럴 와인 셀렉터", focus: "텍스처와 향의 자유도", tastes: { red: createTaste("Syrah", "Northern Rhone", 4, 2, 5, 5, 5), white: createTaste("Orange Blend", "Georgia", 5, 2, 5, 5, 6) } },
-  { id: "taeho", name: "Taeho", role: "가격대비 만족도 추적자", focus: "실용적인 데일리 와인 헌터", tastes: { red: createTaste("Tempranillo", "Rioja", 5, 5, 4, 4, 6), white: createTaste("Albarino", "Rias Baixas", 6, 1, 6, 2, 1) } },
-  { id: "eun", name: "Eun", role: "샴페인과 화이트 애호가", focus: "시트러스·미네랄 선호", tastes: { red: createTaste("Frappato", "Sicily", 6, 1, 5, 2, 2), white: createTaste("Champagne Blend", "Champagne", 3, 1, 7, 1, 1) } }
-];
+const seedPersonas = [];
 
 const seedWines = [
   {
@@ -110,7 +101,12 @@ const el = {
   fetchStatus: document.getElementById("fetchStatus"),
   tastePersona: document.getElementById("tastePersona"),
   tasteMode: document.getElementById("tasteMode"),
-  favVarietal: document.getElementById("favVarietal"),
+  personaIdInput: document.getElementById("personaIdInput"),
+  personaNameInput: document.getElementById("personaNameInput"),
+  personaRoleInput: document.getElementById("personaRoleInput"),
+  personaFocusInput: document.getElementById("personaFocusInput"),
+  favOne: document.getElementById("favOne"),
+  favTwo: document.getElementById("favTwo"),
   favRegion: document.getElementById("favRegion"),
   tasteEditor: document.getElementById("tasteEditor"),
   storageStatus: document.getElementById("storageStatus"),
@@ -225,8 +221,8 @@ function normalizePersonaRow(row) {
     role: row.role,
     focus: row.focus,
     tastes: {
-      red: row.red_taste,
-      white: row.white_taste
+      red: normalizeTaste(row.red_taste),
+      white: normalizeTaste(row.white_taste)
     }
   };
 }
@@ -260,6 +256,26 @@ function normalizeLocalWine(wine) {
       createdAt: review.createdAt || new Date().toISOString().slice(0, 10)
     }))
   };
+}
+
+function normalizeTaste(taste) {
+  const favorites = Array.isArray(taste?.favorites)
+    ? taste.favorites
+    : [taste?.varietal || "", ""];
+
+  return {
+    favorites: [favorites[0] || "", favorites[1] || ""],
+    region: taste?.region || "",
+    fruitDriven: taste?.fruitDriven || 4,
+    oak: taste?.oak || 4,
+    acidity: taste?.acidity || 4,
+    body: taste?.body || 4,
+    fruitProfile: taste?.fruitProfile || 4
+  };
+}
+
+function createEmptyTaste() {
+  return normalizeTaste({});
 }
 
 function loadLocal(key, fallback) {
@@ -315,15 +331,21 @@ function bindEvents() {
 }
 
 function populatePersonaOptions() {
-  const options = state.personas.map((persona) => `<option value="${persona.id}">${persona.name}</option>`).join("");
-  el.reviewPersona.innerHTML = options;
-  el.tastePersona.innerHTML = options;
+  const reviewOptions = state.personas.length
+    ? state.personas.map((persona) => `<option value="${persona.id}">${persona.name}</option>`).join("")
+    : '<option value="">Persona를 먼저 등록하세요</option>';
+  const tasteOptions = ['<option value="__new__">+ New Persona</option>']
+    .concat(state.personas.map((persona) => `<option value="${persona.id}">${persona.name}</option>`))
+    .join("");
+
+  el.reviewPersona.innerHTML = reviewOptions;
+  el.tastePersona.innerHTML = tasteOptions;
 
   if (!el.reviewPersona.value) {
     el.reviewPersona.value = state.personas[0]?.id || "";
   }
   if (!el.tastePersona.value) {
-    el.tastePersona.value = state.personas[0]?.id || "";
+    el.tastePersona.value = state.personas[0]?.id || "__new__";
   }
 }
 
@@ -384,12 +406,19 @@ function renderPersonas() {
     ? state.personas
     : state.personas.filter((persona) => persona.id === state.selectedPersona);
 
-  el.personaGrid.innerHTML = personas.map(renderPersonaCard).join("");
+  el.personaGrid.innerHTML = personas.length
+    ? personas.map(renderPersonaCard).join("")
+    : '<div class="empty-state">아직 등록된 persona가 없습니다. 관리자 계정으로 직접 key in 해주세요.</div>';
   attachTasteTabs();
 }
 
 function renderPersonaCard(persona) {
-  return `<article class="persona-card"><div class="persona-header"><div class="persona-top"><div class="avatar">${persona.name.slice(0, 2).toUpperCase()}</div><div><strong>${persona.name}</strong><br><span class="muted">${persona.role}</span></div></div><span class="pill">${persona.focus}</span></div><div class="taste-tabs"><button type="button" class="tab-button active" data-tab="${persona.id}-red">Red</button><button type="button" class="tab-button" data-tab="${persona.id}-white">White</button></div><div class="taste-panel active" id="${persona.id}-red"><div class="taste-summary"><span class="pill">${persona.tastes.red.varietal}</span><span class="pill">${persona.tastes.red.region}</span></div>${renderTasteTracks(persona.tastes.red, "red")}</div><div class="taste-panel" id="${persona.id}-white"><div class="taste-summary"><span class="pill">${persona.tastes.white.varietal}</span><span class="pill">${persona.tastes.white.region}</span></div>${renderTasteTracks(persona.tastes.white, "white")}</div></article>`;
+  return `<article class="persona-card"><div class="persona-header"><div class="persona-top"><div class="avatar">${persona.name.slice(0, 2).toUpperCase()}</div><div><strong>${persona.name}</strong><br><span class="muted">${persona.role || "Role 미입력"}</span></div></div><span class="pill">${persona.focus || "Focus 미입력"}</span></div><div class="taste-tabs"><button type="button" class="tab-button active" data-tab="${persona.id}-red">Red</button><button type="button" class="tab-button" data-tab="${persona.id}-white">White</button></div><div class="taste-panel active" id="${persona.id}-red"><div class="taste-summary">${renderFavoritePills(persona.tastes.red)}</div>${renderTasteTracks(persona.tastes.red, "red")}</div><div class="taste-panel" id="${persona.id}-white"><div class="taste-summary">${renderFavoritePills(persona.tastes.white)}</div>${renderTasteTracks(persona.tastes.white, "white")}</div></article>`;
+}
+
+function renderFavoritePills(taste) {
+  const items = [...(taste.favorites || []), taste.region].filter(Boolean);
+  return items.length ? items.map((item) => `<span class="pill">${item}</span>`).join("") : '<span class="pill">아직 입력 전</span>';
 }
 
 function renderTasteTracks(taste, mode) {
@@ -557,10 +586,15 @@ function updateAdminAccess() {
 }
 
 function syncTasteEditor() {
-  const persona = state.personas.find((item) => item.id === el.tastePersona.value) || state.personas[0];
+  const persona = getSelectedPersonaData();
   const mode = el.tasteMode.value;
   const taste = persona.tastes[mode];
-  el.favVarietal.value = taste.varietal;
+  el.personaIdInput.value = persona.id === "__new__" ? "" : persona.id;
+  el.personaNameInput.value = persona.name || "";
+  el.personaRoleInput.value = persona.role || "";
+  el.personaFocusInput.value = persona.focus || "";
+  el.favOne.value = taste.favorites?.[0] || "";
+  el.favTwo.value = taste.favorites?.[1] || "";
   el.favRegion.value = taste.region;
   state.tasteDraft = {
     fruitDriven: taste.fruitDriven,
@@ -573,6 +607,30 @@ function syncTasteEditor() {
   const labels = getFieldLabels(mode);
   el.tasteEditor.innerHTML = labels.map((field) => `<div class="dot-field"><div class="dot-guide"><strong>${field.label}</strong></div><div class="segment-picker" data-field="${field.key}"></div><div class="dot-guide"><span>${field.left}</span><span>${field.right}</span></div></div>`).join("");
   labels.forEach((field) => renderSegmentPicker(field.key));
+}
+
+function getSelectedPersonaData() {
+  const selected = state.personas.find((item) => item.id === el.tastePersona.value);
+  if (selected) {
+    return {
+      ...selected,
+      tastes: {
+        red: normalizeTaste(selected.tastes.red),
+        white: normalizeTaste(selected.tastes.white)
+      }
+    };
+  }
+
+  return {
+    id: "__new__",
+    name: "",
+    role: "",
+    focus: "",
+    tastes: {
+      red: createEmptyTaste(),
+      white: createEmptyTaste()
+    }
+  };
 }
 
 function renderSegmentPicker(fieldKey) {
@@ -701,7 +759,10 @@ async function handleReviewSave(event) {
     note: el.wineReview.value.trim()
   };
 
-  if (!payload.name || !payload.note) {
+  if (!payload.personaId || !payload.name || !payload.note) {
+    if (!payload.personaId) {
+      alert("리뷰를 남기기 전에 persona를 먼저 등록해주세요.");
+    }
     return;
   }
 
@@ -812,10 +873,34 @@ async function handleTasteSave(event) {
     return;
   }
 
-  const persona = state.personas.find((item) => item.id === el.tastePersona.value);
+  const rawId = el.personaIdInput.value.trim() || slugifyPersonaId(el.personaNameInput.value.trim());
+  const personaName = el.personaNameInput.value.trim();
+  if (!rawId || !personaName) {
+    alert("Persona Key와 Persona Name을 입력해주세요.");
+    return;
+  }
+
+  let persona = state.personas.find((item) => item.id === rawId);
+  if (!persona) {
+    persona = {
+      id: rawId,
+      name: personaName,
+      role: "",
+      focus: "",
+      tastes: {
+        red: createEmptyTaste(),
+        white: createEmptyTaste()
+      }
+    };
+    state.personas.push(persona);
+  }
+
+  persona.name = personaName;
+  persona.role = el.personaRoleInput.value.trim();
+  persona.focus = el.personaFocusInput.value.trim();
   const mode = el.tasteMode.value;
   persona.tastes[mode] = {
-    varietal: el.favVarietal.value.trim(),
+    favorites: [el.favOne.value.trim(), el.favTwo.value.trim()],
     region: el.favRegion.value.trim(),
     fruitDriven: state.tasteDraft.fruitDriven,
     oak: state.tasteDraft.oak,
@@ -826,6 +911,10 @@ async function handleTasteSave(event) {
 
   await persistPersona(persona);
   saveLocal();
+  populatePersonaOptions();
+  el.tastePersona.value = persona.id;
+  el.reviewPersona.value = persona.id;
+  syncTasteEditor();
   renderAll();
 }
 
@@ -966,4 +1055,12 @@ function cryptoRandomId() {
     return window.crypto.randomUUID();
   }
   return `${Date.now()}-${Math.random().toString(16).slice(2)}`;
+}
+
+function slugifyPersonaId(value) {
+  return value
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
 }
