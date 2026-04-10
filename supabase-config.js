@@ -1,0 +1,2 @@
+﻿window.VVR_SUPABASE_URL = window.VVR_SUPABASE_URL || "";
+window.VVR_SUPABASE_ANON_KEY = window.VVR_SUPABASE_ANON_KEY || "";
