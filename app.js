@@ -7,7 +7,7 @@
 const ADMIN_EMAILS = ["jinmokju@gmail.com"];
 
 const TASTE_FIELDS = [
-  { key: "fruitDriven", label: "Fruitiness", left: "Fruitdriven", right: "Savory / Earthy" },
+  { key: "fruitDriven", label: "Fruitiness", left: "Fruit-Driven", right: "Savory / Earthy" },
   { key: "oak", label: "Oak", left: "New Oak", right: "Neutral Oak" },
   { key: "acidity", label: "Acidity", left: "High", right: "Low" },
   { key: "body", label: "Body", left: "Rich", right: "Lean" },
@@ -466,7 +466,7 @@ function attachTasteTabs() {
 function getFieldLabels(mode) {
   if (mode === "white") {
     return [
-      { key: "fruitDriven", label: "Fruitiness", left: "Fruitdriven", right: "Mineral / Linear" },
+      { key: "fruitDriven", label: "Fruitiness", left: "Fruit-Driven", right: "Mineral / Linear" },
       { key: "oak", label: "Oak", left: "New Oak", right: "Neutral Oak" },
       { key: "acidity", label: "Acidity", left: "High", right: "Low" },
       { key: "body", label: "Body", left: "Rich", right: "Lean" },
