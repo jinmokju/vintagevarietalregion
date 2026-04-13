@@ -90,7 +90,7 @@ export async function onRequestGet(context) {
         image_source: "",
         image_candidates: [],
         average_price: "",
-        note: `자동 조회 중 오류가 발생했습니다. ${error.message || "Functions 로그를 확인해주세요."}`
+        note: `?먮룞 議고쉶 以??ㅻ쪟媛 諛쒖깮?덉뒿?덈떎. ${error.message || "Functions 濡쒓렇瑜??뺤씤?댁＜?몄슂."}`
       },
       { status: 500 }
     );
