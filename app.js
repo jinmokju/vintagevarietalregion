@@ -886,7 +886,8 @@ async function analyzeWineLabelWithVision(file) {
 }
 
 async function convertImageFileToJpegDataUrl(file) {
-  const image = await loadBrowserImage(file);
+  const preparedFile = await normalizeVisionInputFile(file);
+  const image = await loadBrowserImage(preparedFile);
   const maxEdge = 1800;
   const scale = Math.min(1, maxEdge / Math.max(image.naturalWidth || image.width, image.naturalHeight || image.height));
   const width = Math.max(1, Math.round((image.naturalWidth || image.width) * scale));
@@ -899,6 +900,28 @@ async function convertImageFileToJpegDataUrl(file) {
   context.fillRect(0, 0, width, height);
   context.drawImage(image, 0, 0, width, height);
   return canvas.toDataURL("image/jpeg", 0.92);
+}
+
+async function normalizeVisionInputFile(file) {
+  const type = String(file?.type || "").toLowerCase();
+  const name = String(file?.name || "").toLowerCase();
+  const isHeicLike = type.includes("heic") || type.includes("heif") || name.endsWith(".heic") || name.endsWith(".heif");
+
+  if (!isHeicLike) {
+    return file;
+  }
+
+  if (!window.heic2any) {
+    throw new Error("HEIC 변환 라이브러리를 불러오지 못했습니다.");
+  }
+
+  const converted = await window.heic2any({
+    blob: file,
+    toType: "image/jpeg",
+    quality: 0.92
+  });
+  const jpegBlob = Array.isArray(converted) ? converted[0] : converted;
+  return new File([jpegBlob], file.name.replace(/\.(heic|heif)$/i, ".jpg"), { type: "image/jpeg" });
 }
 
 function loadBrowserImage(file) {
