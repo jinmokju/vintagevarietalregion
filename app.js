@@ -277,10 +277,8 @@ const el = {
   imageCandidateGrid: document.getElementById("imageCandidateGrid"),
   tastePersona: document.getElementById("tastePersona"),
   tasteMode: document.getElementById("tasteMode"),
-  personaIdInput: document.getElementById("personaIdInput"),
   personaNameInput: document.getElementById("personaNameInput"),
-  personaRoleInput: document.getElementById("personaRoleInput"),
-  personaFocusInput: document.getElementById("personaFocusInput"),
+  personaSummaryPreview: document.getElementById("personaSummaryPreview"),
   favVarietyOne: document.getElementById("favVarietyOne"),
   favRegionOne: document.getElementById("favRegionOne"),
   favVarietyTwo: document.getElementById("favVarietyTwo"),
@@ -401,7 +399,7 @@ function groupReviewsByWine(rows) {
 }
 
 function normalizePersonaRow(row) {
-  return {
+  const persona = {
     id: row.id,
     name: row.name,
     role: row.role,
@@ -411,6 +409,8 @@ function normalizePersonaRow(row) {
       white: normalizeTaste(row.white_taste)
     }
   };
+  persona.summary = buildPersonaCharacterSummary(persona);
+  return persona;
 }
 
 function normalizeWineRow(row, reviews) {
@@ -678,6 +678,11 @@ function bindEvents() {
   el.wineVarietal.addEventListener("blur", populateReviewInputs);
   el.tastePersona.addEventListener("change", syncTasteEditor);
   el.tasteMode.addEventListener("change", syncTasteEditor);
+  el.personaNameInput?.addEventListener("input", refreshPersonaSummaryPreview);
+  el.favVarietyOne?.addEventListener("input", refreshPersonaSummaryPreview);
+  el.favRegionOne?.addEventListener("input", refreshPersonaSummaryPreview);
+  el.favVarietyTwo?.addEventListener("input", refreshPersonaSummaryPreview);
+  el.favRegionTwo?.addEventListener("input", refreshPersonaSummaryPreview);
   el.reviewForm.addEventListener("submit", handleReviewSave);
   el.tasteForm.addEventListener("submit", handleTasteSave);
   el.fetchImageCandidates.addEventListener("click", handleImageLookup);
@@ -1027,7 +1032,8 @@ function renderPersonas() {
 }
 
 function renderPersonaCard(persona) {
-  return `<article class="persona-card"><div class="persona-header"><div class="persona-top"><div class="avatar">${persona.name.slice(0, 2).toUpperCase()}</div><div><strong>${persona.name}</strong><br><span class="muted">${persona.role || "Role 미입력"}</span></div></div><span class="pill">${persona.focus || "Focus 미입력"}</span></div><div class="taste-tabs"><button type="button" class="tab-button active" data-tab="${persona.id}-red">Red</button><button type="button" class="tab-button" data-tab="${persona.id}-white">White</button></div><div class="taste-panel active" id="${persona.id}-red"><div class="taste-summary">${renderFavoritePills(persona.tastes.red)}</div>${renderTasteTracks(persona.tastes.red, "red")}</div><div class="taste-panel" id="${persona.id}-white"><div class="taste-summary">${renderFavoritePills(persona.tastes.white)}</div>${renderTasteTracks(persona.tastes.white, "white")}</div></article>`;
+  const summary = persona.summary || buildPersonaCharacterSummary(persona);
+  return `<article class="persona-card"><div class="persona-header"><div class="persona-top"><div class="avatar">${persona.name.slice(0, 2).toUpperCase()}</div><div><strong>${persona.name}</strong><br><span class="muted">${summary || "취향을 입력하면 자동 요약이 생성됩니다."}</span></div></div></div><div class="taste-tabs"><button type="button" class="tab-button active" data-tab="${persona.id}-red">Red</button><button type="button" class="tab-button" data-tab="${persona.id}-white">White</button></div><div class="taste-panel active" id="${persona.id}-red"><div class="taste-summary">${renderFavoritePills(persona.tastes.red)}</div>${renderTasteTracks(persona.tastes.red, "red")}</div><div class="taste-panel" id="${persona.id}-white"><div class="taste-summary">${renderFavoritePills(persona.tastes.white)}</div>${renderTasteTracks(persona.tastes.white, "white")}</div></article>`;
 }
 
 function renderFavoritePills(taste) {
@@ -1247,10 +1253,7 @@ function syncTasteEditor() {
   const persona = getSelectedPersonaData();
   const mode = el.tasteMode.value;
   const taste = persona.tastes[mode];
-  el.personaIdInput.value = persona.id === "__new__" ? "" : persona.id;
   el.personaNameInput.value = persona.name || "";
-  el.personaRoleInput.value = persona.role || "";
-  el.personaFocusInput.value = persona.focus || "";
   el.favVarietyOne.value = taste.favoritePairs?.[0]?.varietal || "";
   el.favRegionOne.value = taste.favoritePairs?.[0]?.region || "";
   el.favVarietyTwo.value = taste.favoritePairs?.[1]?.varietal || "";
@@ -1262,6 +1265,7 @@ function syncTasteEditor() {
     body: taste.body,
     fruitProfile: taste.fruitProfile
   };
+  refreshPersonaSummaryPreview();
 
   const labels = getFieldLabels(mode);
   el.tasteEditor.innerHTML = labels.map((field) => `<div class="taste-track minimal editor"><div class="taste-axis-head"><strong>${field.label}</strong></div><div class="segment-picker" data-field="${field.key}"></div><div class="taste-poles"><span>${field.left}</span><span>${field.right}</span></div></div>`).join("");
@@ -1285,6 +1289,7 @@ function getSelectedPersonaData() {
     name: "",
     role: "",
     focus: "",
+    summary: "",
     tastes: {
       red: createEmptyTaste(),
       white: createEmptyTaste()
@@ -1306,9 +1311,38 @@ function renderSegmentPicker(fieldKey) {
     button.addEventListener("click", () => {
       state.tasteDraft[fieldKey] = i;
       renderSegmentPicker(fieldKey);
+      refreshPersonaSummaryPreview();
     });
     host.appendChild(button);
   }
+}
+
+function refreshPersonaSummaryPreview() {
+  if (!el.personaSummaryPreview) {
+    return;
+  }
+  const persona = getSelectedPersonaData();
+  const mode = el.tasteMode.value;
+  const taste = persona.tastes[mode];
+  el.personaSummaryPreview.textContent = buildPersonaCharacterSummary({
+    ...persona,
+    name: el.personaNameInput.value.trim() || persona.name || "이 페르소나",
+    tastes: {
+      ...persona.tastes,
+      [mode]: {
+        ...taste,
+        favoritePairs: [
+          { varietal: el.favVarietyOne.value.trim(), region: el.favRegionOne.value.trim() },
+          { varietal: el.favVarietyTwo.value.trim(), region: el.favRegionTwo.value.trim() }
+        ],
+        fruitDriven: state.tasteDraft.fruitDriven,
+        oak: state.tasteDraft.oak,
+        acidity: state.tasteDraft.acidity,
+        body: state.tasteDraft.body,
+        fruitProfile: state.tasteDraft.fruitProfile
+      }
+    }
+  });
 }
 
 function scalePosition(value) {
@@ -1688,10 +1722,11 @@ async function handleTasteSave(event) {
     return;
   }
 
-  const rawId = el.personaIdInput.value.trim() || slugifyPersonaId(el.personaNameInput.value.trim());
   const personaName = el.personaNameInput.value.trim();
+  const selectedPersonaId = el.tastePersona.value !== "__new__" ? el.tastePersona.value : "";
+  const rawId = selectedPersonaId || slugifyPersonaId(personaName);
   if (!rawId || !personaName) {
-    alert("Persona Key와 Persona Name을 입력해주세요.");
+    alert("Persona Name을 입력해주세요.");
     return;
   }
 
@@ -1702,6 +1737,7 @@ async function handleTasteSave(event) {
       name: personaName,
       role: "",
       focus: "",
+      summary: "",
       tastes: {
         red: createEmptyTaste(),
         white: createEmptyTaste()
@@ -1711,8 +1747,6 @@ async function handleTasteSave(event) {
   }
 
   persona.name = personaName;
-  persona.role = el.personaRoleInput.value.trim();
-  persona.focus = el.personaFocusInput.value.trim();
   const mode = el.tasteMode.value;
   persona.tastes[mode] = {
     favoritePairs: [
@@ -1731,6 +1765,9 @@ async function handleTasteSave(event) {
     body: state.tasteDraft.body,
     fruitProfile: state.tasteDraft.fruitProfile
   };
+  persona.summary = buildPersonaCharacterSummary(persona);
+  persona.role = persona.summary;
+  persona.focus = "";
 
   await persistPersona(persona);
   saveLocal();
@@ -2079,12 +2116,41 @@ async function persistPersona(persona) {
   await state.supabase.from("personas").upsert({
     id: persona.id,
     name: persona.name,
-    role: persona.role,
-    focus: persona.focus,
+    role: persona.summary || buildPersonaCharacterSummary(persona),
+    focus: "",
     red_taste: persona.tastes.red,
     white_taste: persona.tastes.white,
     display_order: state.personas.findIndex((item) => item.id === persona.id)
   });
+}
+
+function buildPersonaCharacterSummary(persona) {
+  const name = persona?.name || "이 페르소나";
+  const red = normalizeTaste(persona?.tastes?.red || {});
+  const white = normalizeTaste(persona?.tastes?.white || {});
+  const favoritePairs = [...(red.favoritePairs || []), ...(white.favoritePairs || [])]
+    .map((pair) => [pair?.varietal, pair?.region].filter(Boolean).join(" - "))
+    .filter(Boolean)
+    .slice(0, 3);
+
+  const favoriteText = favoritePairs.length ? `${favoritePairs.join(", ")} 계열을 특히 좋아하고, ` : "";
+  const redStyle = describeTasteVector(red, "red");
+  const whiteStyle = describeTasteVector(white, "white");
+  return `${name}은 ${favoriteText}레드에선 ${redStyle}, 화이트에선 ${whiteStyle} 쪽으로 기우는 취향입니다.`;
+}
+
+function describeTasteVector(taste, mode) {
+  const descriptors = [];
+  descriptors.push(taste.acidity <= 3 ? "높은 산도" : taste.acidity >= 5 ? "부드러운 산도" : "균형 잡힌 산도");
+  descriptors.push(taste.body <= 3 ? "리치한 바디" : taste.body >= 5 ? "린한 바디" : "중간 바디");
+  descriptors.push(taste.oak <= 3 ? "뉴 오크 성향" : taste.oak >= 5 ? "뉴트럴 오크 성향" : "오크 균형");
+  descriptors.push(taste.fruitDriven <= 3 ? "과실 중심" : taste.fruitDriven >= 5 ? "세이보리/어시한 결" : "과실과 세이보리의 균형");
+  if (mode === "white") {
+    descriptors.push(taste.fruitProfile <= 3 ? "트로피컬 과실 뉘앙스" : taste.fruitProfile >= 5 ? "시트러스 중심" : "트로피컬과 시트러스의 중간");
+  } else {
+    descriptors.push(taste.fruitProfile <= 3 ? "다크 프루트 쪽" : taste.fruitProfile >= 5 ? "레드 프루트 쪽" : "레드/다크 프루트의 중간");
+  }
+  return descriptors.slice(0, 3).join(", ");
 }
 
 async function persistPersonaDelete(personaId) {

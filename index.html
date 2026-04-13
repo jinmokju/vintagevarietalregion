@@ -312,14 +312,15 @@
                 <div class="form-grid">
                   <label>Persona 선택<select id="tastePersona"></select></label>
                   <label>모드<select id="tasteMode"><option value="red">Red Taste</option><option value="white">White Taste</option></select></label>
-                  <label>Persona Key<input id="personaIdInput" placeholder="예: jinmokju"></label>
-                  <label>Persona Name<input id="personaNameInput" placeholder="표시 이름"></label>
-                  <label>Role<input id="personaRoleInput" placeholder="예: 클래식 보르도 지향"></label>
-                  <label>Focus<input id="personaFocusInput" placeholder="예: 산도 중심 탐험가"></label>
+                  <label style="grid-column:1 / -1">Persona Name<input id="personaNameInput" placeholder="표시 이름"></label>
                   <label>Favorite Grape Variety 1<input id="favVarietyOne" placeholder="예: Pinot Noir"></label>
                   <label>Favorite Region 1<input id="favRegionOne" placeholder="예: Burgundy"></label>
                   <label>Favorite Grape Variety 2<input id="favVarietyTwo" placeholder="예: Syrah"></label>
                   <label>Favorite Region 2<input id="favRegionTwo" placeholder="예: Northern Rhone"></label>
+                </div>
+                <div class="mini-stat">
+                  <strong>Persona Character</strong>
+                  <div class="muted" id="personaSummaryPreview">favorite 품종과 taste 축을 입력하면 이 페르소나의 와인 캐릭터를 자동으로 요약합니다.</div>
                 </div>
                 <div class="range" id="tasteEditor"></div>
                 <div class="button-row">
