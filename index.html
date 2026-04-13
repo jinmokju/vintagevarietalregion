@@ -181,6 +181,23 @@
               <datalist id="wineVintageOptions"></datalist>
               <datalist id="wineVarietalOptions"></datalist>
               <datalist id="wineRegionOptions"></datalist>
+              <div class="review-section" style="margin-top:14px">
+                <h3>라벨 사진 자동 입력</h3>
+                <p>와인 라벨 사진을 올리면 OCR로 Producer, Wine Name, Vintage, Varietal, Region 후보를 읽어와 폼을 먼저 채웁니다.</p>
+                <div class="form-grid">
+                  <label>라벨 사진 업로드<input id="labelImageInput" type="file" accept="image/*" capture="environment"></label>
+                  <div class="button-row" style="align-items:end">
+                    <button class="ghost-button" id="runOcrButton" type="button" style="color:var(--text); border-color:var(--line); background:var(--surface-strong)">라벨 OCR로 자동 입력</button>
+                  </div>
+                </div>
+                <div class="image-preview" id="labelPreviewCard" hidden style="margin-top:12px">
+                  <div class="image-preview-head">
+                    <strong>업로드한 라벨 미리보기</strong>
+                  </div>
+                  <img id="labelPreviewImage" alt="업로드한 와인 라벨 미리보기">
+                  <div class="image-caption" id="ocrStatus">라벨 사진을 올리면 기존 와인 매칭과 주요 정보 추출을 먼저 시도합니다.</div>
+                </div>
+              </div>
               <div class="row" style="margin:10px 0 14px"><button class="ghost-button" id="fetchWineData" type="button" style="color:var(--text); border-color:var(--line); background:var(--surface-strong)">이미지/가격 자동 조회</button><span class="muted" id="fetchStatus">Cloudflare Function을 통해 자동 조회를 시도합니다.</span></div>
               <div class="image-preview" id="imagePreviewCard" hidden>
                 <div class="image-preview-head">
@@ -254,6 +271,7 @@
     </main>
   </div>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
   <script src="./supabase-config.js"></script>
   <script src="./app.js"></script>
 </body>

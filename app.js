@@ -3,7 +3,8 @@ const STORAGE_KEYS = {
   personas: "vvr-personas",
   wines: "vvr-wines",
   customAromas: "vvr-custom-aromas",
-  customVarietals: "vvr-custom-varietals"
+  customVarietals: "vvr-custom-varietals",
+  ocrLabelCache: "vvr-ocr-label-cache"
 };
 
 const ADMIN_EMAILS = ["jinmokju@gmail.com"];
@@ -252,6 +253,11 @@ const el = {
   wineRegion: document.getElementById("wineRegion"),
   winePrice: document.getElementById("winePrice"),
   wineImage: document.getElementById("wineImage"),
+  labelImageInput: document.getElementById("labelImageInput"),
+  runOcrButton: document.getElementById("runOcrButton"),
+  labelPreviewCard: document.getElementById("labelPreviewCard"),
+  labelPreviewImage: document.getElementById("labelPreviewImage"),
+  ocrStatus: document.getElementById("ocrStatus"),
   wineImagePreview: document.getElementById("wineImagePreview"),
   imagePreviewCard: document.getElementById("imagePreviewCard"),
   imagePreviewCaption: document.getElementById("imagePreviewCaption"),
@@ -654,6 +660,8 @@ function bindEvents() {
   el.wineVarietal.addEventListener("blur", persistCustomVarietalFromInput);
   el.wineVarietal.addEventListener("change", populateReviewInputs);
   el.wineVarietal.addEventListener("blur", populateReviewInputs);
+  el.labelImageInput.addEventListener("change", handleLabelImageSelected);
+  el.runOcrButton.addEventListener("click", handleLabelOcr);
   el.tastePersona.addEventListener("change", syncTasteEditor);
   el.tasteMode.addEventListener("change", syncTasteEditor);
   el.reviewForm.addEventListener("submit", handleReviewSave);
@@ -773,6 +781,230 @@ function updateWineNameMeta() {
   }
 
   el.wineNameMeta.textContent = `${wine.reviews.length}개 리뷰가 등록된 기존 와인입니다.${wine.producer ? ` Producer: ${wine.producer}.` : ""}`;
+}
+
+function handleLabelImageSelected(event) {
+  const file = event.target.files?.[0];
+  if (!file) {
+    el.labelPreviewCard.hidden = true;
+    el.ocrStatus.textContent = "라벨 사진을 올리면 기존 와인 매칭과 주요 정보 추출을 먼저 시도합니다.";
+    return;
+  }
+
+  const objectUrl = URL.createObjectURL(file);
+  el.labelPreviewCard.hidden = false;
+  el.labelPreviewImage.src = objectUrl;
+  el.ocrStatus.textContent = "라벨 사진이 준비되었습니다. OCR로 자동 입력을 눌러주세요.";
+}
+
+async function handleLabelOcr() {
+  const file = el.labelImageInput.files?.[0];
+  if (!file) {
+    el.ocrStatus.textContent = "먼저 라벨 사진을 업로드해주세요.";
+    return;
+  }
+  if (!window.Tesseract) {
+    el.ocrStatus.textContent = "OCR 라이브러리를 불러오지 못했습니다. 새로고침 후 다시 시도해주세요.";
+    return;
+  }
+
+  el.runOcrButton.disabled = true;
+  el.ocrStatus.textContent = "OCR로 라벨 텍스트를 읽는 중...";
+  try {
+    const result = await window.Tesseract.recognize(file, "eng", {
+      logger: (message) => {
+        if (message.status === "recognizing text" && typeof message.progress === "number") {
+          el.ocrStatus.textContent = `OCR 분석 중... ${Math.round(message.progress * 100)}%`;
+        }
+      }
+    });
+    const parsed = parseLabelOcrText(result.data?.text || "");
+    applyOcrSuggestion(parsed);
+  } catch (error) {
+    console.error(error);
+    el.ocrStatus.textContent = "라벨 OCR에 실패했습니다. 사진을 더 밝고 정면으로 다시 찍어보면 정확도가 올라갑니다.";
+  } finally {
+    el.runOcrButton.disabled = false;
+  }
+}
+
+function parseLabelOcrText(rawText) {
+  const text = String(rawText || "").replace(/\r/g, "\n");
+  const collapsed = text.replace(/[^\S\n]+/g, " ");
+  const lines = collapsed
+    .split("\n")
+    .map((line) => line.trim())
+    .filter(Boolean);
+  const normalizedText = normalizeLookupValue(lines.join(" "));
+
+  const matchedWine = findBestWineFromText(normalizedText);
+  const vintageMatch = collapsed.match(/\b(19|20)\d{2}\b/);
+  const vintage = matchedWine?.vintage || (vintageMatch ? vintageMatch[0] : "");
+  const detectedVarietal = matchedWine?.varietal || detectBestKeywordMatch(normalizedText, getAllKnownVarietals());
+  const detectedRegion = matchedWine?.region || detectBestKeywordMatch(normalizedText, getAllKnownRegions());
+  const detectedProducer = matchedWine?.producer || detectBestKeywordMatch(normalizedText, getAllKnownProducers());
+  const detectedType = matchedWine?.type || inferWineType({ normalizedText, varietal: detectedVarietal, region: detectedRegion });
+  const detectedName = matchedWine?.name || deriveWineName(lines, detectedProducer, vintage);
+
+  return {
+    text: collapsed,
+    lines,
+    wine: matchedWine,
+    type: detectedType || el.wineType.value || "Red",
+    name: detectedName,
+    producer: detectedProducer,
+    vintage,
+    varietal: detectedVarietal,
+    region: detectedRegion
+  };
+}
+
+function applyOcrSuggestion(parsed) {
+  if (parsed.wine) {
+    el.wineName.value = parsed.wine.name || "";
+    handleWineNameSelection();
+  } else {
+    if (parsed.type) {
+      el.wineType.value = parsed.type;
+    }
+    el.wineName.value = parsed.name || el.wineName.value;
+    el.wineProducer.value = parsed.producer || el.wineProducer.value;
+    el.wineVintage.value = parsed.vintage || el.wineVintage.value;
+    el.wineVarietal.value = parsed.varietal || el.wineVarietal.value;
+    el.wineRegion.value = parsed.region || el.wineRegion.value;
+    persistCustomVarietalFromInput();
+    syncReviewEditor();
+    populateReviewInputs();
+  }
+
+  updateWineNameMeta();
+  const summary = [];
+  if (parsed.wine) {
+    summary.push(`기존 와인 '${parsed.wine.name}'와 매칭했습니다.`);
+  } else {
+    summary.push("OCR로 읽은 후보 값을 폼에 채웠습니다.");
+  }
+  if (parsed.producer) {
+    summary.push(`Producer: ${parsed.producer}`);
+  }
+  if (parsed.vintage) {
+    summary.push(`Vintage: ${parsed.vintage}`);
+  }
+  if (parsed.varietal) {
+    summary.push(`Varietal: ${parsed.varietal}`);
+  }
+  if (parsed.region) {
+    summary.push(`Region: ${parsed.region}`);
+  }
+  if (!parsed.producer && !parsed.name && !parsed.varietal && !parsed.region && !parsed.vintage) {
+    summary.push("정확한 값을 거의 찾지 못했습니다. OCR 원문을 보고 일부 수동 보정이 필요합니다.");
+  }
+  el.ocrStatus.textContent = summary.join(" ");
+}
+
+function findBestWineFromText(normalizedText) {
+  let bestWine = null;
+  let bestScore = 0;
+
+  state.wines.forEach((wine) => {
+    let score = 0;
+    const normalizedName = normalizeLookupValue(wine.name);
+    const normalizedProducer = normalizeLookupValue(wine.producer || "");
+    const normalizedVarietal = normalizeLookupValue(wine.varietal || "");
+    const normalizedRegion = normalizeLookupValue(wine.region || "");
+    const normalizedVintage = normalizeLookupValue(wine.vintage || "");
+
+    if (normalizedName && normalizedText.includes(normalizedName)) {
+      score += 8;
+    }
+    if (normalizedProducer && normalizedText.includes(normalizedProducer)) {
+      score += 6;
+    }
+    if (normalizedVintage && normalizedText.includes(normalizedVintage)) {
+      score += 3;
+    }
+    if (normalizedVarietal && normalizedText.includes(normalizedVarietal)) {
+      score += 2;
+    }
+    if (normalizedRegion && normalizedText.includes(normalizedRegion)) {
+      score += 2;
+    }
+
+    if (score > bestScore) {
+      bestScore = score;
+      bestWine = wine;
+    }
+  });
+
+  return bestScore >= 8 ? bestWine : null;
+}
+
+function getAllKnownVarietals() {
+  return [...new Set(Object.values(VARIETAL_OPTIONS).flat().concat(Object.values(state.customVarietals || {}).flatMap((value) => Array.isArray(value) ? value : [])))];
+}
+
+function getAllKnownRegions() {
+  return [...new Set(state.wines.map((wine) => wine.region).filter(Boolean))];
+}
+
+function getAllKnownProducers() {
+  return [...new Set(state.wines.map((wine) => wine.producer).filter(Boolean))];
+}
+
+function detectBestKeywordMatch(normalizedText, candidates) {
+  const ranked = (candidates || [])
+    .filter(Boolean)
+    .map((value) => ({ value, normalized: normalizeLookupValue(value) }))
+    .filter((entry) => entry.normalized && normalizedText.includes(entry.normalized))
+    .sort((left, right) => right.normalized.length - left.normalized.length);
+  return ranked[0]?.value || "";
+}
+
+function inferWineType({ normalizedText, varietal, region }) {
+  const varietalType = Object.entries(VARIETAL_OPTIONS).find(([, values]) => values.includes(varietal || ""))?.[0];
+  if (varietalType) {
+    return varietalType;
+  }
+  if (/(champagne|cava|cremant|prosecco|franciacorta|sparkling)/.test(normalizedText)) {
+    return "Sparkling";
+  }
+  if (/(rose|rosato|rosado)/.test(normalizedText)) {
+    return "Rose";
+  }
+  if (/(orange wine|skin contact|ramato)/.test(normalizedText)) {
+    return "Orange";
+  }
+  if (/(sauternes|chablis|mosel|sancerre|riesling|chardonnay|chenin|sauvignonblanc)/.test(normalizedText)) {
+    return "White";
+  }
+  if (/(barolo|barbaresco|burgundy|bourgogne|rioja|priorat|bordeaux|pinotnoir|cabernetsauvignon|merlot|syrah)/.test(normalizedText)) {
+    return "Red";
+  }
+  if (region && /(champagne|cava|franciacorta)/i.test(region)) {
+    return "Sparkling";
+  }
+  return el.wineType.value || "Red";
+}
+
+function deriveWineName(lines, producer, vintage) {
+  const cleaned = lines
+    .map((line) => line.replace(/\b(19|20)\d{2}\b/g, "").trim())
+    .filter(Boolean);
+  if (!cleaned.length) {
+    return "";
+  }
+  const producerNormalized = normalizeLookupValue(producer || "");
+  const candidates = cleaned.filter((line) => normalizeLookupValue(line) !== producerNormalized);
+  const joined = candidates.slice(0, 2).join(" ");
+  return joined || cleaned[0] || vintage || "";
+}
+
+function normalizeLookupValue(value) {
+  return String(value || "")
+    .toLowerCase()
+    .normalize("NFKD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-z0-9]+/g, "");
 }
 
 function persistCustomVarietalFromInput() {
