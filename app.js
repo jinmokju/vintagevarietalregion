@@ -3,8 +3,7 @@ const STORAGE_KEYS = {
   personas: "vvr-personas",
   wines: "vvr-wines",
   customAromas: "vvr-custom-aromas",
-  customVarietals: "vvr-custom-varietals",
-  ocrLabelCache: "vvr-ocr-label-cache"
+  customVarietals: "vvr-custom-varietals"
 };
 
 const ADMIN_EMAILS = ["jinmokju@gmail.com"];
@@ -1483,7 +1482,7 @@ function resetReviewForm() {
   state.reviewDraft = createEmptyReviewDraft("Red");
   el.reviewSubmitLabel.textContent = "리뷰 저장하기";
   el.cancelEditButton.hidden = true;
-  el.fetchStatus.textContent = "Cloudflare Function을 통해 자동 조회를 시도합니다.";
+  el.fetchStatus.textContent = "기존 와인 재사용 후, 필요하면 외부 이미지/가격 조회까지 이어서 시도합니다.";
   syncImagePreview();
   syncReviewEditor();
   populateReviewInputs();
@@ -1743,27 +1742,47 @@ async function handlePersonaDelete() {
 
 async function handleWineLookup() {
   const query = buildWineLookupQuery();
-  if (!query) {
+  if (!query.primary) {
     el.fetchStatus.textContent = "와인명 또는 검색 키워드를 먼저 입력해주세요.";
     return;
   }
 
   const existingWine = findClosestExistingWine();
-  if (existingWine?.image && !existingWine.image.startsWith("data:image") && !el.wineImage.value.trim()) {
-    el.wineImage.value = existingWine.image;
-    syncImagePreview("기존 등록 와인 이미지");
-    el.fetchStatus.textContent = `기존 등록 와인 '${existingWine.name}' 이미지로 먼저 채웠습니다. 더 찾고 싶으면 다시 자동 조회를 눌러도 됩니다.`;
-    return;
+  let reusedParts = [];
+  if (existingWine) {
+    if (existingWine.image && !existingWine.image.startsWith("data:image") && !el.wineImage.value.trim()) {
+      el.wineImage.value = existingWine.image;
+      syncImagePreview("기존 등록 와인 이미지");
+      reusedParts.push("이미지");
+    }
+    if (existingWine.averagePrice && !el.winePrice.value.trim()) {
+      el.winePrice.value = existingWine.averagePrice;
+      reusedParts.push("가격 메모");
+    }
+    if (reusedParts.length && !needsExternalLookup()) {
+      el.fetchStatus.textContent = `기존 등록 와인 '${existingWine.name}'에서 ${reusedParts.join(", ")}를 먼저 재사용했습니다.`;
+      return;
+    }
   }
 
-  el.fetchStatus.textContent = "이미지와 가격 후보를 조회 중...";
+  el.fetchStatus.textContent = reusedParts.length
+    ? `기존 와인에서 ${reusedParts.join(", ")}를 먼저 채웠고, 비어 있는 값은 외부 조회로 보강 중입니다...`
+    : "이미지와 가격 후보를 조회 중...";
   try {
-    const response = await fetch(`/functions/wine-lookup?q=${encodeURIComponent(query)}`);
+    const params = new URLSearchParams();
+    params.set("q", query.primary);
+    params.set("name", el.wineName.value.trim());
+    params.set("producer", el.wineProducer.value.trim());
+    params.set("vintage", el.wineVintage.value.trim());
+    params.set("varietal", el.wineVarietal.value.trim());
+    params.set("region", el.wineRegion.value.trim());
+    params.set("type", el.wineType.value.trim());
+    const response = await fetch(`/functions/wine-lookup?${params.toString()}`);
     const data = await response.json();
-    if (data.image_url) {
+    if (data.image_url && (!el.wineImage.value.trim() || reusedParts.includes("이미지"))) {
       el.wineImage.value = data.image_url;
     }
-    if (data.average_price && !el.winePrice.value) {
+    if (data.average_price && (!el.winePrice.value.trim() || reusedParts.includes("가격 메모"))) {
       el.winePrice.value = data.average_price;
     }
     syncImagePreview(data.image_source || "");
@@ -1773,8 +1792,12 @@ async function handleWineLookup() {
   }
 }
 
+function needsExternalLookup() {
+  return !el.wineImage.value.trim() || !el.winePrice.value.trim();
+}
+
 function buildWineLookupQuery() {
-  return [
+  const parts = [
     el.wineProducer.value,
     el.wineName.value,
     el.wineVintage.value,
@@ -1782,8 +1805,14 @@ function buildWineLookupQuery() {
     el.wineRegion.value
   ]
     .map((value) => String(value || "").trim())
-    .filter(Boolean)
-    .join(" ");
+    .filter(Boolean);
+  return {
+    primary: parts.join(" "),
+    fallback: [el.wineProducer.value, el.wineName.value, el.wineVintage.value]
+      .map((value) => String(value || "").trim())
+      .filter(Boolean)
+      .join(" ")
+  };
 }
 
 function findClosestExistingWine() {

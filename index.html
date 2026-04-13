@@ -156,8 +156,8 @@
             <strong>운영 메모</strong>
             <div class="muted" id="authHelp">로그인 전에는 공개 읽기 전용, 로그인 후에는 관리자 쓰기 권한으로 동작합니다.</div>
             <div class="admin-note-grid">
-              <div class="mini-stat"><strong>OCR</strong><div class="muted">라벨 사진으로 Producer, 빈티지, 품종 후보를 먼저 채웁니다.</div></div>
-              <div class="mini-stat"><strong>Match</strong><div class="muted">기존 와인과 맞으면 리뷰를 이어서 누적할 수 있습니다.</div></div>
+              <div class="mini-stat"><strong>Lookup</strong><div class="muted">Producer, 와인명, 빈티지, 품종, 지역 조합으로 이미지와 가격을 더 정교하게 찾습니다.</div></div>
+              <div class="mini-stat"><strong>Reuse</strong><div class="muted">기존에 등록된 같은 와인이 있으면 이미지와 가격 메모를 먼저 재사용합니다.</div></div>
               <div class="mini-stat"><strong>Edit</strong><div class="muted">리뷰 카드에서 수정/삭제는 관리자에게만 열립니다.</div></div>
             </div>
           </div>
@@ -165,44 +165,11 @@
         <div class="admin-grid">
           <div>
             <form id="reviewForm">
-              <div class="tool-grid" style="margin-top:14px">
-                <div class="form-card">
-                  <div class="form-card-head">
-                    <div>
-                      <div class="section-kicker">Step 1</div>
-                      <h3>Image & Price Assist</h3>
-                    </div>
-                    <div class="summary-meta">입력된 와인 정보를 바탕으로 이미지 후보와 가격 메모를 더 정교하게 찾습니다.</div>
-                  </div>
-                  <div class="button-row">
-                    <button class="ghost-button" id="fetchWineData" type="button" style="color:var(--text); border-color:var(--line); background:var(--surface-strong)">이미지/가격 자동 조회</button>
-                  </div>
-                  <div class="muted" id="fetchStatus">와인명, 생산자, 빈티지, 품종, 지역을 함께 반영해 더 정확한 이미지 후보를 찾습니다.</div>
-                </div>
-                <div class="form-card">
-                  <div class="form-card-head">
-                    <div>
-                      <div class="section-kicker">Preview</div>
-                      <h3>Image Check</h3>
-                    </div>
-                    <div class="summary-meta">자동으로 가져온 이미지도 바로 눈으로 확인</div>
-                  </div>
-                  <div class="image-preview" id="imagePreviewCard" hidden>
-                    <div class="image-preview-head">
-                      <strong>이미지 미리보기</strong>
-                      <button class="ghost-button" id="clearImageButton" type="button" style="color:var(--text); border-color:var(--line); background:var(--surface-strong)">이미지 비우기</button>
-                    </div>
-                    <img id="wineImagePreview" alt="선택한 와인 이미지 미리보기">
-                    <div class="image-caption" id="imagePreviewCaption">입력된 이미지 URL이나 자동 조회 결과를 여기서 바로 확인할 수 있습니다.</div>
-                  </div>
-                  <div class="empty-state" id="imagePreviewPlaceholder">아직 불러온 이미지가 없습니다. 자동 조회 후 여기서 먼저 확인하세요.</div>
-                </div>
-              </div>
               <div class="form-shell">
                 <div class="form-card">
                   <div class="form-card-head">
                     <div>
-                      <div class="section-kicker">Step 2</div>
+                      <div class="section-kicker">Step 1</div>
                       <h3>Wine Identity</h3>
                     </div>
                     <div class="summary-meta">기존 와인 선택 또는 새 와인 생성 후 필요한 값만 빠르게 보정</div>
@@ -224,6 +191,39 @@
               <datalist id="wineVintageOptions"></datalist>
               <datalist id="wineVarietalOptions"></datalist>
               <datalist id="wineRegionOptions"></datalist>
+              <div class="tool-grid" style="margin-top:14px">
+                <div class="form-card">
+                  <div class="form-card-head">
+                    <div>
+                      <div class="section-kicker">Step 2</div>
+                      <h3>Image & Price Assist</h3>
+                    </div>
+                    <div class="summary-meta">생산자, 와인명, 빈티지, 품종, 지역을 함께 반영해 더 정교하게 자동 조회합니다.</div>
+                  </div>
+                  <div class="button-row">
+                    <button class="ghost-button" id="fetchWineData" type="button" style="color:var(--text); border-color:var(--line); background:var(--surface-strong)">이미지/가격 자동 조회</button>
+                  </div>
+                  <div class="muted" id="fetchStatus">입력 정보가 많을수록 이미지와 가격 후보 정확도가 올라갑니다.</div>
+                </div>
+                <div class="form-card">
+                  <div class="form-card-head">
+                    <div>
+                      <div class="section-kicker">Preview</div>
+                      <h3>Image Check</h3>
+                    </div>
+                    <div class="summary-meta">자동으로 가져온 이미지 후보를 바로 확인</div>
+                  </div>
+                  <div class="image-preview" id="imagePreviewCard" hidden>
+                    <div class="image-preview-head">
+                      <strong>이미지 미리보기</strong>
+                      <button class="ghost-button" id="clearImageButton" type="button" style="color:var(--text); border-color:var(--line); background:var(--surface-strong)">이미지 비우기</button>
+                    </div>
+                    <img id="wineImagePreview" alt="선택한 와인 이미지 미리보기">
+                    <div class="image-caption" id="imagePreviewCaption">입력된 이미지 URL이나 자동 조회 결과를 여기서 바로 확인할 수 있습니다.</div>
+                  </div>
+                  <div class="empty-state" id="imagePreviewPlaceholder">아직 불러온 이미지가 없습니다. 자동 조회 후 여기서 먼저 확인하세요.</div>
+                </div>
+              </div>
               <details class="details-panel" open>
                 <summary><strong>Step 3. 구조 평가</strong><span>와인의 골격을 빠르게 잡는 구간</span></summary>
                 <div class="review-section" style="margin-top:0;padding:0;border:none;background:transparent">
