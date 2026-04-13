@@ -253,14 +253,6 @@ const el = {
   wineRegion: document.getElementById("wineRegion"),
   winePrice: document.getElementById("winePrice"),
   wineImage: document.getElementById("wineImage"),
-  labelImageInput: document.getElementById("labelImageInput"),
-  labelCameraInput: document.getElementById("labelCameraInput"),
-  pickGalleryButton: document.getElementById("pickGalleryButton"),
-  pickCameraButton: document.getElementById("pickCameraButton"),
-  runOcrButton: document.getElementById("runOcrButton"),
-  labelPreviewCard: document.getElementById("labelPreviewCard"),
-  labelPreviewImage: document.getElementById("labelPreviewImage"),
-  ocrStatus: document.getElementById("ocrStatus"),
   wineImagePreview: document.getElementById("wineImagePreview"),
   imagePreviewCard: document.getElementById("imagePreviewCard"),
   imagePreviewPlaceholder: document.getElementById("imagePreviewPlaceholder"),
@@ -664,11 +656,6 @@ function bindEvents() {
   el.wineVarietal.addEventListener("blur", persistCustomVarietalFromInput);
   el.wineVarietal.addEventListener("change", populateReviewInputs);
   el.wineVarietal.addEventListener("blur", populateReviewInputs);
-  el.pickGalleryButton.addEventListener("click", () => el.labelImageInput.click());
-  el.pickCameraButton.addEventListener("click", () => el.labelCameraInput.click());
-  el.labelImageInput.addEventListener("change", handleLabelImageSelected);
-  el.labelCameraInput.addEventListener("change", handleLabelImageSelected);
-  el.runOcrButton.addEventListener("click", handleLabelOcr);
   el.tastePersona.addEventListener("change", syncTasteEditor);
   el.tasteMode.addEventListener("change", syncTasteEditor);
   el.reviewForm.addEventListener("submit", handleReviewSave);
@@ -788,216 +775,6 @@ function updateWineNameMeta() {
   }
 
   el.wineNameMeta.textContent = `${wine.reviews.length}개 리뷰가 등록된 기존 와인입니다.${wine.producer ? ` Producer: ${wine.producer}.` : ""}`;
-}
-
-function handleLabelImageSelected(event) {
-  const file = event.target.files?.[0];
-  if (!file) {
-    el.labelPreviewCard.hidden = true;
-    el.ocrStatus.textContent = "라벨 사진을 올리면 기존 와인 매칭과 주요 정보 추출을 먼저 시도합니다.";
-    return;
-  }
-
-  if (event.target === el.labelImageInput && el.labelCameraInput) {
-    el.labelCameraInput.value = "";
-  }
-  if (event.target === el.labelCameraInput && el.labelImageInput) {
-    el.labelImageInput.value = "";
-  }
-
-  const objectUrl = URL.createObjectURL(file);
-  el.labelPreviewCard.hidden = false;
-  el.labelPreviewImage.src = objectUrl;
-  el.ocrStatus.textContent = "라벨 사진이 준비되었습니다. OCR로 자동 입력을 눌러주세요.";
-}
-
-async function handleLabelOcr() {
-  const file = getSelectedLabelFile();
-  if (!file) {
-    el.ocrStatus.textContent = "먼저 라벨 사진을 업로드해주세요.";
-    return;
-  }
-
-  el.runOcrButton.disabled = true;
-  el.ocrStatus.textContent = "OpenAI Vision으로 라벨을 분석하는 중...";
-  try {
-    const parsed = await analyzeWineLabelWithVision(file);
-    applyOcrSuggestion(parsed);
-  } catch (error) {
-    console.error(error);
-    el.ocrStatus.textContent = `Vision 라벨 분석 실패: ${error.message || "Cloudflare 환경변수나 API 연결을 확인해주세요."}`;
-  } finally {
-    el.runOcrButton.disabled = false;
-  }
-}
-
-function getSelectedLabelFile() {
-  return el.labelImageInput.files?.[0] || el.labelCameraInput?.files?.[0] || null;
-}
-
-async function analyzeWineLabelWithVision(file) {
-  const preparedFile = await convertImageFileToJpegFile(file);
-  const form = new FormData();
-  form.append("file", preparedFile, preparedFile.name || "label.jpg");
-  form.append("wine_type_hint", el.wineType.value || "Red");
-  form.append("candidates", JSON.stringify({
-    wines: state.wines.map((wine) => ({
-      id: wine.id,
-      name: wine.name,
-      producer: wine.producer || "",
-      vintage: wine.vintage || "",
-      type: wine.type || "",
-      varietal: wine.varietal || "",
-      region: wine.region || ""
-    })),
-    varietals: getAllKnownVarietals(),
-    regions: getAllKnownRegions(),
-    producers: getAllKnownProducers()
-  }));
-
-  const response = await fetch("/functions/label-vision", {
-    method: "POST",
-    body: form
-  });
-
-  const data = await response.json();
-  if (!response.ok) {
-    throw new Error(data?.error || data?.details || "Vision label analysis failed");
-  }
-
-  const matchedWine = data.matched_wine_id
-    ? state.wines.find((wine) => wine.id === data.matched_wine_id) || null
-    : findWineByExactIdentity(data.name, data.producer, data.vintage);
-
-  return {
-    wine: matchedWine,
-    type: data.type || matchedWine?.type || el.wineType.value || "Red",
-    name: data.name || matchedWine?.name || "",
-    producer: data.producer || matchedWine?.producer || "",
-    vintage: data.vintage || matchedWine?.vintage || "",
-    varietal: data.varietal || matchedWine?.varietal || "",
-    region: data.region || matchedWine?.region || "",
-    rawText: data.raw_text || "",
-    confidence: data.confidence || "medium",
-    notes: Array.isArray(data.notes) ? data.notes : []
-  };
-}
-
-async function convertImageFileToJpegFile(file) {
-  const preparedFile = await normalizeVisionInputFile(file);
-  const image = await loadBrowserImage(preparedFile);
-  const maxEdge = 1800;
-  const scale = Math.min(1, maxEdge / Math.max(image.naturalWidth || image.width, image.naturalHeight || image.height));
-  const width = Math.max(1, Math.round((image.naturalWidth || image.width) * scale));
-  const height = Math.max(1, Math.round((image.naturalHeight || image.height) * scale));
-  const canvas = document.createElement("canvas");
-  canvas.width = width;
-  canvas.height = height;
-  const context = canvas.getContext("2d");
-  context.fillStyle = "#ffffff";
-  context.fillRect(0, 0, width, height);
-  context.drawImage(image, 0, 0, width, height);
-  const blob = await new Promise((resolve) => canvas.toBlob(resolve, "image/jpeg", 0.92));
-  return new File([blob], "label.jpg", { type: "image/jpeg" });
-}
-
-async function normalizeVisionInputFile(file) {
-  const type = String(file?.type || "").toLowerCase();
-  const name = String(file?.name || "").toLowerCase();
-  const isHeicLike = type.includes("heic") || type.includes("heif") || name.endsWith(".heic") || name.endsWith(".heif");
-
-  if (!isHeicLike) {
-    return file;
-  }
-
-  if (!window.heic2any) {
-    throw new Error("HEIC 변환 라이브러리를 불러오지 못했습니다.");
-  }
-
-  const converted = await window.heic2any({
-    blob: file,
-    toType: "image/jpeg",
-    quality: 0.92
-  });
-  const jpegBlob = Array.isArray(converted) ? converted[0] : converted;
-  return new File([jpegBlob], file.name.replace(/\.(heic|heif)$/i, ".jpg"), { type: "image/jpeg" });
-}
-
-function loadBrowserImage(file) {
-  return new Promise((resolve, reject) => {
-    const objectUrl = URL.createObjectURL(file);
-    const image = new Image();
-    image.onload = () => {
-      URL.revokeObjectURL(objectUrl);
-      resolve(image);
-    };
-    image.onerror = (error) => {
-      URL.revokeObjectURL(objectUrl);
-      reject(error);
-    };
-    image.src = objectUrl;
-  });
-}
-
-function findWineByExactIdentity(name, producer, vintage) {
-  const normalizedName = normalizeLookupValue(name || "");
-  const normalizedProducer = normalizeLookupValue(producer || "");
-  const vintageValue = String(vintage || "").trim();
-  return state.wines.find((wine) => {
-    const sameName = normalizedName && normalizeLookupValue(wine.name) === normalizedName;
-    const sameProducer = !normalizedProducer || normalizeLookupValue(wine.producer || "") === normalizedProducer;
-    const sameVintage = !vintageValue || String(wine.vintage || "") === vintageValue;
-    return sameName && sameProducer && sameVintage;
-  }) || null;
-}
-
-function applyOcrSuggestion(parsed) {
-  if (parsed.wine) {
-    el.wineName.value = parsed.wine.name || "";
-    handleWineNameSelection();
-  } else {
-    if (parsed.type) {
-      el.wineType.value = parsed.type;
-    }
-    el.wineName.value = parsed.name || el.wineName.value;
-    el.wineProducer.value = parsed.producer || el.wineProducer.value;
-    el.wineVintage.value = parsed.vintage || el.wineVintage.value;
-    el.wineVarietal.value = parsed.varietal || el.wineVarietal.value;
-    el.wineRegion.value = parsed.region || el.wineRegion.value;
-    persistCustomVarietalFromInput();
-    syncReviewEditor();
-    populateReviewInputs();
-  }
-
-  updateWineNameMeta();
-  const summary = [];
-  if (parsed.wine) {
-    summary.push(`기존 와인 '${parsed.wine.name}'와 매칭했습니다.`);
-  } else {
-    summary.push("Vision이 읽은 후보 값을 폼에 채웠습니다.");
-  }
-  if (parsed.producer) {
-    summary.push(`Producer: ${parsed.producer}`);
-  }
-  if (parsed.vintage) {
-    summary.push(`Vintage: ${parsed.vintage}`);
-  }
-  if (parsed.varietal) {
-    summary.push(`Varietal: ${parsed.varietal}`);
-  }
-  if (parsed.region) {
-    summary.push(`Region: ${parsed.region}`);
-  }
-  if (parsed.confidence) {
-    summary.push(`Confidence: ${parsed.confidence}`);
-  }
-  if (parsed.notes?.length) {
-    summary.push(parsed.notes.join(" "));
-  }
-  if (!parsed.producer && !parsed.name && !parsed.varietal && !parsed.region && !parsed.vintage) {
-    summary.push("정확한 값을 거의 찾지 못했습니다. 라벨 사진을 더 정면으로 찍거나 수동 입력이 필요합니다.");
-  }
-  el.ocrStatus.textContent = summary.join(" ");
 }
 
 function findBestWineFromText(normalizedText) {
@@ -1965,9 +1742,17 @@ async function handlePersonaDelete() {
 }
 
 async function handleWineLookup() {
-  const query = [el.wineName.value, el.wineVintage.value, el.wineVarietal.value].filter(Boolean).join(" ").trim();
+  const query = buildWineLookupQuery();
   if (!query) {
     el.fetchStatus.textContent = "와인명 또는 검색 키워드를 먼저 입력해주세요.";
+    return;
+  }
+
+  const existingWine = findClosestExistingWine();
+  if (existingWine?.image && !existingWine.image.startsWith("data:image") && !el.wineImage.value.trim()) {
+    el.wineImage.value = existingWine.image;
+    syncImagePreview("기존 등록 와인 이미지");
+    el.fetchStatus.textContent = `기존 등록 와인 '${existingWine.name}' 이미지로 먼저 채웠습니다. 더 찾고 싶으면 다시 자동 조회를 눌러도 됩니다.`;
     return;
   }
 
@@ -1986,6 +1771,49 @@ async function handleWineLookup() {
   } catch (error) {
     el.fetchStatus.textContent = "자동 조회에 실패했습니다. Cloudflare Function 또는 API 설정을 확인해주세요.";
   }
+}
+
+function buildWineLookupQuery() {
+  return [
+    el.wineProducer.value,
+    el.wineName.value,
+    el.wineVintage.value,
+    el.wineVarietal.value,
+    el.wineRegion.value
+  ]
+    .map((value) => String(value || "").trim())
+    .filter(Boolean)
+    .join(" ");
+}
+
+function findClosestExistingWine() {
+  const name = normalizeLookupValue(el.wineName.value);
+  const producer = normalizeLookupValue(el.wineProducer.value);
+  const vintage = String(el.wineVintage.value || "").trim();
+  if (!name && !producer) {
+    return null;
+  }
+
+  let bestWine = null;
+  let bestScore = 0;
+  state.wines.forEach((wine) => {
+    let score = 0;
+    if (name && normalizeLookupValue(wine.name).includes(name)) {
+      score += 8;
+    }
+    if (producer && normalizeLookupValue(wine.producer || "").includes(producer)) {
+      score += 6;
+    }
+    if (vintage && String(wine.vintage || "") === vintage) {
+      score += 3;
+    }
+    if (score > bestScore) {
+      bestScore = score;
+      bestWine = wine;
+    }
+  });
+
+  return bestScore >= 6 ? bestWine : null;
 }
 
 function clearImageField() {

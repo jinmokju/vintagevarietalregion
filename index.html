@@ -170,34 +170,14 @@
                   <div class="form-card-head">
                     <div>
                       <div class="section-kicker">Step 1</div>
-                      <h3>Smart Fill Studio</h3>
+                      <h3>Image & Price Assist</h3>
                     </div>
-                    <div class="summary-meta">사진함 선택 또는 촬영 후 Vision 자동 채우기</div>
+                    <div class="summary-meta">입력된 와인 정보를 바탕으로 이미지 후보와 가격 메모를 더 정교하게 찾습니다.</div>
                   </div>
-                  <div class="form-grid">
-                    <div class="form-card" style="padding:14px">
-                      <strong>라벨 사진 선택</strong>
-                      <div class="muted">직접 촬영한 사진도, 이미 찍어둔 사진함 이미지도 둘 다 올릴 수 있습니다.</div>
-                      <div class="button-row">
-                        <button class="ghost-button" id="pickGalleryButton" type="button" style="color:var(--text); border-color:var(--line); background:var(--surface-strong)">사진함에서 선택</button>
-                        <button class="ghost-button" id="pickCameraButton" type="button" style="color:var(--text); border-color:var(--line); background:var(--surface-strong)">카메라로 촬영</button>
-                      </div>
-                      <input id="labelImageInput" type="file" accept="image/*" hidden>
-                      <input id="labelCameraInput" type="file" accept="image/*" capture="environment" hidden>
-                    </div>
-                    <div class="button-row" style="align-items:end;justify-content:flex-end">
-                      <button class="ghost-button" id="runOcrButton" type="button" style="color:var(--text); border-color:var(--line); background:var(--surface-strong)">라벨 Vision으로 자동 입력</button>
-                      <button class="ghost-button" id="fetchWineData" type="button" style="color:var(--text); border-color:var(--line); background:var(--surface-strong)">이미지/가격 자동 조회</button>
-                    </div>
+                  <div class="button-row">
+                    <button class="ghost-button" id="fetchWineData" type="button" style="color:var(--text); border-color:var(--line); background:var(--surface-strong)">이미지/가격 자동 조회</button>
                   </div>
-                  <div class="muted" id="fetchStatus">Cloudflare Function을 통해 이미지, 가격, Vision 분석을 연결합니다.</div>
-                  <div class="image-preview" id="labelPreviewCard" hidden style="margin-top:6px">
-                    <div class="image-preview-head">
-                      <strong>업로드한 라벨 미리보기</strong>
-                    </div>
-                    <img id="labelPreviewImage" alt="업로드한 와인 라벨 미리보기">
-                    <div class="image-caption" id="ocrStatus">라벨 사진을 올리면 Vision이 producer, vintage, varietal, region 후보를 먼저 구조화합니다.</div>
-                  </div>
+                  <div class="muted" id="fetchStatus">와인명, 생산자, 빈티지, 품종, 지역을 함께 반영해 더 정확한 이미지 후보를 찾습니다.</div>
                 </div>
                 <div class="form-card">
                   <div class="form-card-head">
@@ -215,7 +195,7 @@
                     <img id="wineImagePreview" alt="선택한 와인 이미지 미리보기">
                     <div class="image-caption" id="imagePreviewCaption">입력된 이미지 URL이나 자동 조회 결과를 여기서 바로 확인할 수 있습니다.</div>
                   </div>
-                  <div class="empty-state" id="imagePreviewPlaceholder">아직 불러온 이미지가 없습니다. OCR이나 자동 조회 후 여기서 먼저 확인하세요.</div>
+                  <div class="empty-state" id="imagePreviewPlaceholder">아직 불러온 이미지가 없습니다. 자동 조회 후 여기서 먼저 확인하세요.</div>
                 </div>
               </div>
               <div class="form-shell">
@@ -225,7 +205,7 @@
                       <div class="section-kicker">Step 2</div>
                       <h3>Wine Identity</h3>
                     </div>
-                    <div class="summary-meta">자동 채워진 값을 빠르게 확인하고 필요한 것만 수정</div>
+                    <div class="summary-meta">기존 와인 선택 또는 새 와인 생성 후 필요한 값만 빠르게 보정</div>
                   </div>
                   <div class="form-grid">
                     <label>리뷰어 Persona<select id="reviewPersona"></select></label>
@@ -328,7 +308,6 @@
     </main>
   </div>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="https://cdn.jsdelivr.net/npm/heic2any/dist/heic2any.min.js"></script>
   <script src="./supabase-config.js"></script>
   <script src="./app.js"></script>
 </body>

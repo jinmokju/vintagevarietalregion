@@ -16,14 +16,11 @@
 
 ## Auto Lookup Function
 - `/functions/wine-lookup.js` is the Cloudflare Pages Function for wine image / average price lookup.
-- `/functions/label-vision.js` sends a bottle label image to OpenAI Vision and returns structured wine fields.
 - By default it can fetch a first image candidate from Openverse's public image search API.
 - Optional environment variables:
   - `OPENVERSE_API_ENDPOINT`
   - `WINE_SEARCHER_API_ENDPOINT`
   - `WINE_SEARCHER_API_KEY`
-  - `OPENAI_API_KEY`
-  - `OPENAI_VISION_MODEL` (optional, defaults to `gpt-4.1-mini`)
 
 ## Notes
 - Before Supabase is configured, the app falls back to localStorage.
