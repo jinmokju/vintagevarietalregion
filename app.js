@@ -825,7 +825,7 @@ async function handleLabelOcr() {
     applyOcrSuggestion(parsed);
   } catch (error) {
     console.error(error);
-    el.ocrStatus.textContent = "Vision 라벨 분석에 실패했습니다. Cloudflare 환경변수나 API 연결을 확인해주세요.";
+    el.ocrStatus.textContent = `Vision 라벨 분석 실패: ${error.message || "Cloudflare 환경변수나 API 연결을 확인해주세요."}`;
   } finally {
     el.runOcrButton.disabled = false;
   }
@@ -864,7 +864,7 @@ async function analyzeWineLabelWithVision(file) {
 
   const data = await response.json();
   if (!response.ok) {
-    throw new Error(data?.error || "Vision label analysis failed");
+    throw new Error(data?.error || data?.details || "Vision label analysis failed");
   }
 
   const matchedWine = data.matched_wine_id
