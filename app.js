@@ -582,10 +582,18 @@ function getAromaOptions(category, type) {
 
 function getAromaGroups(category, type) {
   const typeKey = getAromaTypeKey(type);
-  return {
-    ...AROMA_OPTIONS[category][typeKey],
-    ...state.customAromas[category][typeKey]
-  };
+  const baseGroups = AROMA_OPTIONS[category][typeKey] || {};
+  const customGroups = state.customAromas[category][typeKey] || {};
+  const merged = {};
+
+  for (const groupName of new Set([...Object.keys(baseGroups), ...Object.keys(customGroups)])) {
+    merged[groupName] = [
+      ...(Array.isArray(baseGroups[groupName]) ? baseGroups[groupName] : []),
+      ...(Array.isArray(customGroups[groupName]) ? customGroups[groupName] : [])
+    ].filter(Boolean);
+  }
+
+  return merged;
 }
 
 function findMatchingAroma(category, type, candidate) {
