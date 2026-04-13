@@ -1032,8 +1032,44 @@ function renderPersonas() {
 }
 
 function renderPersonaCard(persona) {
-  const summary = persona.summary || buildPersonaCharacterSummary(persona);
-  return `<article class="persona-card"><div class="persona-header"><div class="persona-top"><div class="avatar">${persona.name.slice(0, 2).toUpperCase()}</div><div><strong>${persona.name}</strong><br><span class="muted">${summary || "취향을 입력하면 자동 요약이 생성됩니다."}</span></div></div></div><div class="taste-tabs"><button type="button" class="tab-button active" data-tab="${persona.id}-red">Red</button><button type="button" class="tab-button" data-tab="${persona.id}-white">White</button></div><div class="taste-panel active" id="${persona.id}-red"><div class="taste-summary">${renderFavoritePills(persona.tastes.red)}</div>${renderTasteTracks(persona.tastes.red, "red")}</div><div class="taste-panel" id="${persona.id}-white"><div class="taste-summary">${renderFavoritePills(persona.tastes.white)}</div>${renderTasteTracks(persona.tastes.white, "white")}</div></article>`;
+  const summary = buildPersonaSummaryLines(persona);
+  return `<article class="persona-card">
+    <div class="persona-header">
+      <div class="persona-top">
+        <div class="avatar">${persona.name.slice(0, 2).toUpperCase()}</div>
+        <div class="persona-copy">
+          <strong>${persona.name}</strong>
+          <div class="muted">${summary.headline}</div>
+        </div>
+      </div>
+    </div>
+    <div class="persona-character">
+      <div class="persona-character-kicker">Character</div>
+      <p>${summary.deck}</p>
+    </div>
+    <div class="persona-character-grid">
+      <div class="persona-character-block">
+        <span class="persona-character-label">Red Character</span>
+        <p>${summary.red}</p>
+      </div>
+      <div class="persona-character-block">
+        <span class="persona-character-label">White Character</span>
+        <p>${summary.white}</p>
+      </div>
+    </div>
+    <div class="taste-tabs">
+      <button type="button" class="tab-button active" data-tab="${persona.id}-red">Red</button>
+      <button type="button" class="tab-button" data-tab="${persona.id}-white">White</button>
+    </div>
+    <div class="taste-panel active" id="${persona.id}-red">
+      <div class="taste-summary persona-favorites">${renderFavoritePills(persona.tastes.red)}</div>
+      ${renderTasteTracks(persona.tastes.red, "red")}
+    </div>
+    <div class="taste-panel" id="${persona.id}-white">
+      <div class="taste-summary persona-favorites">${renderFavoritePills(persona.tastes.white)}</div>
+      ${renderTasteTracks(persona.tastes.white, "white")}
+    </div>
+  </article>`;
 }
 
 function renderFavoritePills(taste) {
@@ -1324,9 +1360,9 @@ function refreshPersonaSummaryPreview() {
   const persona = getSelectedPersonaData();
   const mode = el.tasteMode.value;
   const taste = persona.tastes[mode];
-  el.personaSummaryPreview.textContent = buildPersonaCharacterSummary({
+  const summary = buildPersonaSummaryLines({
     ...persona,
-    name: el.personaNameInput.value.trim() || persona.name || "이 페르소나",
+    name: el.personaNameInput.value.trim() || persona.name || "? ????",
     tastes: {
       ...persona.tastes,
       [mode]: {
@@ -1343,6 +1379,7 @@ function refreshPersonaSummaryPreview() {
       }
     }
   });
+  el.personaSummaryPreview.innerHTML = `<strong>${summary.headline}</strong><br><span>${summary.deck}</span><br><span>Red: ${summary.red}</span><br><span>White: ${summary.white}</span>`;
 }
 
 function scalePosition(value) {
@@ -2125,32 +2162,79 @@ async function persistPersona(persona) {
 }
 
 function buildPersonaCharacterSummary(persona) {
-  const name = persona?.name || "이 페르소나";
-  const red = normalizeTaste(persona?.tastes?.red || {});
-  const white = normalizeTaste(persona?.tastes?.white || {});
-  const favoritePairs = [...(red.favoritePairs || []), ...(white.favoritePairs || [])]
-    .map((pair) => [pair?.varietal, pair?.region].filter(Boolean).join(" - "))
-    .filter(Boolean)
-    .slice(0, 3);
-
-  const favoriteText = favoritePairs.length ? `${favoritePairs.join(", ")} 계열을 특히 좋아하고, ` : "";
-  const redStyle = describeTasteVector(red, "red");
-  const whiteStyle = describeTasteVector(white, "white");
-  return `${name}은 ${favoriteText}레드에선 ${redStyle}, 화이트에선 ${whiteStyle} 쪽으로 기우는 취향입니다.`;
+  return buildPersonaSummaryLines(persona).deck;
 }
 
 function describeTasteVector(taste, mode) {
-  const descriptors = [];
-  descriptors.push(taste.acidity <= 3 ? "높은 산도" : taste.acidity >= 5 ? "부드러운 산도" : "균형 잡힌 산도");
-  descriptors.push(taste.body <= 3 ? "리치한 바디" : taste.body >= 5 ? "린한 바디" : "중간 바디");
-  descriptors.push(taste.oak <= 3 ? "뉴 오크 성향" : taste.oak >= 5 ? "뉴트럴 오크 성향" : "오크 균형");
-  descriptors.push(taste.fruitDriven <= 3 ? "과실 중심" : taste.fruitDriven >= 5 ? "세이보리/어시한 결" : "과실과 세이보리의 균형");
-  if (mode === "white") {
-    descriptors.push(taste.fruitProfile <= 3 ? "트로피컬 과실 뉘앙스" : taste.fruitProfile >= 5 ? "시트러스 중심" : "트로피컬과 시트러스의 중간");
-  } else {
-    descriptors.push(taste.fruitProfile <= 3 ? "다크 프루트 쪽" : taste.fruitProfile >= 5 ? "레드 프루트 쪽" : "레드/다크 프루트의 중간");
+  const style = {
+    acidity: taste.acidity <= 2 ? "??? ?? ???? ???" : taste.acidity >= 6 ? "??? ?? ???? ???" : "?? ??? ??",
+    body: taste.body <= 2 ? "??? ??? ????" : taste.body >= 6 ? "??? ??? ??? ????" : "?? ??? ??? ???? ??",
+    oak: taste.oak <= 2 ? "? ?? ???? ???" : taste.oak >= 6 ? "?? ??? ?? ???? ????" : "?? ?? ??? ????",
+    fruitDriven: taste.fruitDriven <= 2 ? "?? ??? ???" : taste.fruitDriven >= 6 ? (mode === "white" ? "???? ???? ????" : "????? ???? ???") : "??? ??? ??? ??? ??",
+    fruitProfileRed: taste.fruitProfile <= 2 ? "?? ??? ???" : taste.fruitProfile >= 6 ? "?? ??? ???" : "?? ??? ??? ??? ????",
+    fruitProfileWhite: taste.fruitProfile <= 2 ? "?? ?? ?? ??" : taste.fruitProfile >= 6 ? "???? ?? ???" : "?? ??? ????? ????"
+  };
+  const fruitLine = mode === "white" ? style.fruitProfileWhite : style.fruitProfileRed;
+  return [style.fruitDriven, fruitLine, style.acidity, style.body, style.oak].slice(0, 4).join(", ");
+}
+
+function buildPersonaSummaryLines(persona) {
+  const name = persona?.name || "? ????";
+  const red = normalizeTaste(persona?.tastes?.red || {});
+  const white = normalizeTaste(persona?.tastes?.white || {});
+  const redFavorites = formatFavoritePairs(red.favoritePairs);
+  const whiteFavorites = formatFavoritePairs(white.favoritePairs);
+  const headline = buildPersonaHeadline(red, white);
+  const deckParts = [];
+  if (redFavorites.length || whiteFavorites.length) {
+    const favoriteCopy = [
+      redFavorites.length ? `Red favorites: ${redFavorites.join(", ")}` : "",
+      whiteFavorites.length ? `White favorites: ${whiteFavorites.join(", ")}` : ""
+    ].filter(Boolean).join(" / ");
+    deckParts.push(favoriteCopy);
   }
-  return descriptors.slice(0, 3).join(", ");
+  deckParts.push(`${name}? ${headline}.`);
+  return {
+    headline,
+    deck: deckParts.join(" "),
+    red: buildModeSummary(red, "red", redFavorites),
+    white: buildModeSummary(white, "white", whiteFavorites)
+  };
+}
+
+function buildPersonaHeadline(red, white) {
+  const anchors = [];
+  anchors.push(red.acidity <= 3 || white.acidity <= 3 ? "?? ???? ??? ??? ??" : "??? ??? ??? ?? ??");
+  anchors.push(red.oak >= 6 && white.oak >= 6 ? "??? ??? ??? ???? ???" : red.oak <= 3 || white.oak <= 3 ? "?? ?? ??? ?????" : "??? ???? ?? ?? ????");
+  anchors.push(red.body <= 3 || white.body <= 3 ? "?? ??? ??? ?? ????" : red.body >= 6 && white.body >= 6 ? "??? ??? ??? ????" : "????? ???? ????");
+  return anchors.slice(0, 2).join(", ");
+}
+
+function buildModeSummary(taste, mode, favorites) {
+  const fruitSide = describeFruitPreference(taste, mode);
+  const acidSide = taste.acidity <= 3 ? "??? ?? ?? ???? ?? ??" : taste.acidity >= 6 ? "??? ?? ??? ??? ??" : "?? ??? ????? ??";
+  const bodySide = taste.body <= 3 ? "???? ???? ?? ??" : taste.body >= 6 ? "??? ??? ??" : "?? ??? ??";
+  const oakSide = taste.oak <= 3 ? "? ??? ??? ?? ?? ??" : taste.oak >= 6 ? "?? ??? ??? ??" : "??? ??? ???? ??";
+  const favoriteLine = favorites.length ? `${favorites.join(", ")} ??? ?? ??, ` : "";
+  return `${favoriteLine}${fruitSide}, ${acidSide}, ${bodySide}, ${oakSide} ??? ????.`;
+}
+
+function describeFruitPreference(taste, mode) {
+  if (mode === "white") {
+    const drive = taste.fruitDriven <= 3 ? "?? ??" : taste.fruitDriven >= 6 ? "??????? ??" : "??? ???? ??";
+    const profile = taste.fruitProfile <= 3 ? "?? ??" : taste.fruitProfile >= 6 ? "????" : "?? ??? ????? ??";
+    return `${drive}?? ${profile} ???? ??`;
+  }
+  const drive = taste.fruitDriven <= 3 ? "?? ??" : taste.fruitDriven >= 6 ? "??????? ??" : "??? ????? ??";
+  const profile = taste.fruitProfile <= 3 ? "?? ???" : taste.fruitProfile >= 6 ? "?? ???" : "?? ???? ?? ???? ??";
+  return `${drive}?? ${profile} ???? ??`;
+}
+
+function formatFavoritePairs(pairs = []) {
+  return pairs
+    .map((pair) => [pair?.varietal, pair?.region].filter(Boolean).join(" - "))
+    .filter(Boolean)
+    .slice(0, 2);
 }
 
 async function persistPersonaDelete(personaId) {
