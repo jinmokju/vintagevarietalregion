@@ -12,21 +12,22 @@ export async function onRequestPost(context) {
     );
   }
 
-  let body;
+  let formData;
   try {
-    body = await request.json();
+    formData = await request.formData();
   } catch {
-    return Response.json({ error: "Invalid JSON body." }, { status: 400 });
+    return Response.json({ error: "Invalid multipart body." }, { status: 400 });
   }
 
-  const imageDataUrl = body?.image_data_url;
-  if (!imageDataUrl || typeof imageDataUrl !== "string") {
-    return Response.json({ error: "Missing image_data_url." }, { status: 400 });
+  const uploadedFile = formData.get("file");
+  if (!(uploadedFile instanceof File)) {
+    return Response.json({ error: "Missing image file." }, { status: 400 });
   }
 
-  const candidates = sanitizeCandidates(body?.candidates);
-  const wineTypeHint = String(body?.wine_type_hint || "Red");
-  const upload = await uploadVisionFile(imageDataUrl, env.OPENAI_API_KEY);
+  const rawCandidates = formData.get("candidates");
+  const wineTypeHint = String(formData.get("wine_type_hint") || "Red");
+  const candidates = sanitizeCandidates(parseCandidatePayload(rawCandidates));
+  const upload = await uploadVisionFile(uploadedFile, env.OPENAI_API_KEY);
 
   const prompt = [
     "You are extracting wine label information from a single bottle label image.",
@@ -140,18 +141,10 @@ export async function onRequestPost(context) {
   return Response.json(parsed);
 }
 
-async function uploadVisionFile(imageDataUrl, apiKey) {
-  const parsed = parseDataUrl(imageDataUrl);
-  if (!parsed) {
-    throw new Error("Image upload payload could not be parsed.");
-  }
-
+async function uploadVisionFile(file, apiKey) {
   const form = new FormData();
   form.append("purpose", "vision");
-  form.append(
-    "file",
-    new File([parsed.bytes], `label.${parsed.extension}`, { type: parsed.mimeType })
-  );
+  form.append("file", file, file.name || "label.jpg");
 
   const response = await fetch(OPENAI_FILES_URL, {
     method: "POST",
@@ -169,29 +162,15 @@ async function uploadVisionFile(imageDataUrl, apiKey) {
   return { file_id: payload.id };
 }
 
-function parseDataUrl(dataUrl) {
-  const match = String(dataUrl || "").match(/^data:(image\/[a-zA-Z0-9.+-]+);base64,(.+)$/);
-  if (!match) {
-    return null;
+function parseCandidatePayload(rawCandidates) {
+  if (typeof rawCandidates !== "string" || !rawCandidates.trim()) {
+    return {};
   }
-
-  const mimeType = match[1];
-  const base64 = match[2];
-  const binary = atob(base64);
-  const bytes = new Uint8Array(binary.length);
-  for (let index = 0; index < binary.length; index += 1) {
-    bytes[index] = binary.charCodeAt(index);
+  try {
+    return JSON.parse(rawCandidates);
+  } catch {
+    return {};
   }
-
-  const extension = mimeType.includes("png")
-    ? "png"
-    : mimeType.includes("webp")
-      ? "webp"
-      : mimeType.includes("gif")
-        ? "gif"
-        : "jpg";
-
-  return { mimeType, bytes, extension };
 }
 
 function sanitizeCandidates(candidates) {

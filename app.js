@@ -836,30 +836,28 @@ function getSelectedLabelFile() {
 }
 
 async function analyzeWineLabelWithVision(file) {
-  const imageDataUrl = await convertImageFileToJpegDataUrl(file);
+  const preparedFile = await convertImageFileToJpegFile(file);
+  const form = new FormData();
+  form.append("file", preparedFile, preparedFile.name || "label.jpg");
+  form.append("wine_type_hint", el.wineType.value || "Red");
+  form.append("candidates", JSON.stringify({
+    wines: state.wines.map((wine) => ({
+      id: wine.id,
+      name: wine.name,
+      producer: wine.producer || "",
+      vintage: wine.vintage || "",
+      type: wine.type || "",
+      varietal: wine.varietal || "",
+      region: wine.region || ""
+    })),
+    varietals: getAllKnownVarietals(),
+    regions: getAllKnownRegions(),
+    producers: getAllKnownProducers()
+  }));
+
   const response = await fetch("/functions/label-vision", {
     method: "POST",
-    headers: {
-      "Content-Type": "application/json"
-    },
-    body: JSON.stringify({
-      image_data_url: imageDataUrl,
-      wine_type_hint: el.wineType.value || "Red",
-      candidates: {
-        wines: state.wines.map((wine) => ({
-          id: wine.id,
-          name: wine.name,
-          producer: wine.producer || "",
-          vintage: wine.vintage || "",
-          type: wine.type || "",
-          varietal: wine.varietal || "",
-          region: wine.region || ""
-        })),
-        varietals: getAllKnownVarietals(),
-        regions: getAllKnownRegions(),
-        producers: getAllKnownProducers()
-      }
-    })
+    body: form
   });
 
   const data = await response.json();
@@ -885,7 +883,7 @@ async function analyzeWineLabelWithVision(file) {
   };
 }
 
-async function convertImageFileToJpegDataUrl(file) {
+async function convertImageFileToJpegFile(file) {
   const preparedFile = await normalizeVisionInputFile(file);
   const image = await loadBrowserImage(preparedFile);
   const maxEdge = 1800;
@@ -899,7 +897,8 @@ async function convertImageFileToJpegDataUrl(file) {
   context.fillStyle = "#ffffff";
   context.fillRect(0, 0, width, height);
   context.drawImage(image, 0, 0, width, height);
-  return canvas.toDataURL("image/jpeg", 0.92);
+  const blob = await new Promise((resolve) => canvas.toBlob(resolve, "image/jpeg", 0.92));
+  return new File([blob], "label.jpg", { type: "image/jpeg" });
 }
 
 async function normalizeVisionInputFile(file) {
