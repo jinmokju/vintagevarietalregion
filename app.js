@@ -1060,32 +1060,29 @@ function renderPersonaCard(persona) {
       </div>
     </div>
     <div class="persona-review-shell">
-      <div class="persona-review-stats">
-        <div class="persona-review-stat">
-          <span>평균 점수</span>
+      <div class="persona-review-summary">
+        <div class="persona-review-stat hero">
+          <span>&#xD3C9;&#xADE0; &#xC810;&#xC218;</span>
           <strong>${insights.averageLabel}</strong>
-        </div>
-        <div class="persona-review-stat">
-          <span>리뷰 수</span>
-          <strong>${insights.reviewCount}</strong>
-        </div>
-        <div class="persona-review-stat">
-          <span>Top Score</span>
-          <strong>${insights.topScoreLabel}</strong>
+          <div class="persona-review-meta-line">
+            <span>&#xB9AC;&#xBDF0; ${insights.reviewCount}&#xAC1C;</span>
+            <span>&#xCD5C;&#xACE0; ${insights.topScoreLabel}</span>
+            <span>&#xCD5C;&#xADFC; ${insights.latestLabel}</span>
+          </div>
         </div>
       </div>
       <div class="persona-review-grid">
         <div class="persona-review-panel">
           <span class="persona-character-label">Top 5 Wines</span>
-          ${renderPersonaReviewLinks(insights.topReviews, "아직 점수가 있는 리뷰가 없습니다.")}
+          ${renderPersonaReviewLinks(insights.topReviews, "&#xC544;&#xC9C1; &#xC810;&#xC218;&#xAC00; &#xC788;&#xB294; &#xB9AC;&#xBDF0;&#xAC00; &#xC5C6;&#xC2B5;&#xB2C8;&#xB2E4;.", true)}
         </div>
         <div class="persona-review-panel">
           <span class="persona-character-label">Recent Reviews</span>
-          ${renderPersonaReviewLinks(insights.recentReviews, "아직 최근 리뷰가 없습니다.")}
+          ${renderPersonaReviewLinks(insights.recentReviews, "&#xC544;&#xC9C1; &#xCD5C;&#xADFC; &#xB9AC;&#xBDF0;&#xAC00; &#xC5C6;&#xC2B5;&#xB2C8;&#xB2E4;.")}
         </div>
       </div>
       <div class="button-row">
-        <button type="button" class="review-action" data-action="focus-persona-reviews" data-persona-id="${persona.id}">${persona.name} 리뷰만 보기</button>
+        <button type="button" class="review-action" data-action="focus-persona-reviews" data-persona-id="${persona.id}">${persona.name} &#xB9AC;&#xBDF0;&#xB9CC; &#xBCF4;&#xAE30;</button>
       </div>
     </div>
     <div class="taste-tabs">
@@ -1103,21 +1100,22 @@ function renderPersonaCard(persona) {
   </article>`;
 }
 
-function renderFavoritePills(taste, emptyLabel = "아직 입력 전") {
+function renderFavoritePills(taste, emptyLabel = "&#xC544;&#xC9C1; &#xC785;&#xB825; &#xC804;") {
   const items = (taste.favoritePairs || [])
     .map((pair) => [pair?.varietal, pair?.region].filter(Boolean).join(" - "))
     .filter(Boolean);
   return items.length ? items.map((item) => `<span class="pill">${item}</span>`).join("") : `<span class="pill">${emptyLabel}</span>`;
 }
 
-function renderPersonaReviewLinks(items, emptyMessage) {
+function renderPersonaReviewLinks(items, emptyMessage, ranked = false) {
   if (!items.length) {
     return `<div class="empty-state compact">${emptyMessage}</div>`;
   }
-  return `<div class="persona-review-list">${items.map((item) => `
+  return `<div class="persona-review-list">${items.map((item, index) => `
     <button type="button" class="persona-review-link" data-action="jump-to-review" data-persona-id="${item.personaId}" data-wine-id="${item.wineId}" data-review-id="${item.reviewId}">
+      ${ranked ? `<span class="persona-rank-badge">#${index + 1}</span>` : ""}
       <strong>${item.wineName}</strong>
-      <span>${item.scoreLabel}${item.createdAt ? ` · ${item.createdAt}` : ""}</span>
+      <span>${item.scoreLabel}${item.createdAt ? ` / ${item.createdAt}` : ""}</span>
     </button>
   `).join("")}</div>`;
 }
@@ -1203,7 +1201,7 @@ function filteredWines() {
 function renderWines() {
   const wines = filteredWines();
   if (!wines.length) {
-    el.wineGrid.innerHTML = '<div class="empty-state">조건에 맞는 와인이 아직 없습니다. 새 리뷰를 추가해보세요.</div>';
+    el.wineGrid.innerHTML = '<div class="empty-state">&#xC870;&#xAC74;&#xC5D0; &#xB9DE;&#xB294; &#xC640;&#xC778;&#xC774; &#xC544;&#xC9C1; &#xC5C6;&#xC2B5;&#xB2C8;&#xB2E4;. &#xC0C8; &#xB9AC;&#xBDF0;&#xB97C; &#xCD94;&#xAC00;&#xD574;&#xBCF4;&#xC138;&#xC694;.</div>';
     return;
   }
 
@@ -1215,14 +1213,20 @@ function renderWineCard(wine) {
   const visibleReviews = wine.reviews.filter((review) => state.selectedPersona === "all" || review.personaId === state.selectedPersona);
   const reviewMarkup = visibleReviews.map((review) => renderReviewSnippet(wine, review)).join("");
   const typeClass = `type-${String(wine.type || "red").toLowerCase()}`;
+  const metaLine = [wine.producer, wine.vintage, wine.varietal, wine.region].filter(Boolean).join(" / ");
+  const varietalLabel = wine.varietal || "Varietal &#xBBF8;&#xC785;&#xB825;";
+  const regionLabel = wine.region || "Region &#xBBF8;&#xC785;&#xB825;";
+  const priceLine = wine.averagePrice
+    ? `Wine-Searcher / Manual &#xAC00;&#xACA9; &#xBA54;&#xBAA8;: ${wine.averagePrice}`
+    : "&#xC544;&#xC9C1; &#xD3C9;&#xADE0;&#xAC00; &#xBA54;&#xBAA8;&#xAC00; &#xC5C6;&#xC2B5;&#xB2C8;&#xB2E4;.";
 
-  return `<article class="wine-card ${typeClass}" id="wine-${wine.id}"><img class="wine-image" src="${wine.image || makePlaceholderImage(wine.name, "#8a3650", "#f5d2c6")}" alt="${wine.name} 이미지"><div class="row"><div><h3>${wine.name}</h3><div class="muted">${[wine.producer, wine.vintage, wine.varietal, wine.region].filter(Boolean).join(" · ")}</div></div><span class="type-badge ${typeClass}">${wine.type}</span></div><div class="chip-row" style="margin-top:10px"><span class="pill">${wine.varietal || "Varietal 미입력"}</span><span class="pill">${wine.region || "Region 미입력"}</span><span class="pill">${wine.reviews.length} reviews</span></div><div class="muted" style="margin-top:10px">${wine.averagePrice ? `Wine-Searcher / Manual 가격 메모: ${wine.averagePrice}` : "아직 평균가 메모가 없습니다."}</div>${reviewMarkup}</article>`;
+  return `<article class="wine-card ${typeClass}" id="wine-${wine.id}"><img class="wine-image" src="${wine.image || makePlaceholderImage(wine.name, "#8a3650", "#f5d2c6")}" alt="${wine.name} &#xC774;&#xBBF8;&#xC9C0;"><div class="row"><div><h3>${wine.name}</h3><div class="muted">${metaLine}</div></div><span class="type-badge ${typeClass}">${wine.type}</span></div><div class="chip-row" style="margin-top:10px"><span class="pill">${varietalLabel}</span><span class="pill">${regionLabel}</span><span class="pill">${wine.reviews.length} reviews</span></div><div class="muted" style="margin-top:10px">${priceLine}</div>${reviewMarkup}</article>`;
 }
 
 function renderReviewSnippet(wine, review) {
   const persona = state.personas.find((item) => item.id === review.personaId);
   const actionButtons = state.isAdmin
-    ? `<div class="review-actions"><button type="button" class="review-action" data-action="edit-review" data-wine-id="${wine.id}" data-review-id="${review.id}">수정</button><button type="button" class="review-action danger" data-action="delete-review" data-wine-id="${wine.id}" data-review-id="${review.id}">삭제</button></div>`
+    ? `<div class="review-actions"><button type="button" class="review-action" data-action="edit-review" data-wine-id="${wine.id}" data-review-id="${review.id}">&#xC218;&#xC815;</button><button type="button" class="review-action danger" data-action="delete-review" data-wine-id="${wine.id}" data-review-id="${review.id}">&#xC0AD;&#xC81C;</button></div>`
     : "";
 
   const structureMarkup = renderReviewStructureSnapshot(review, wine.type);
@@ -1243,7 +1247,7 @@ function getPersonaReviewInsights(personaId) {
       wineName: wine.name,
       reviewId: review.id,
       score: Number(review.overallScore),
-      scoreLabel: Number.isFinite(Number(review.overallScore)) ? `${Number(review.overallScore)} pts` : "점수 없음",
+      scoreLabel: Number.isFinite(Number(review.overallScore)) ? `${Number(review.overallScore)} pts` : "&#xC810;&#xC218; &#xC5C6;&#xC74C;",
       createdAt: review.createdAt || ""
     })));
 
@@ -1262,6 +1266,7 @@ function getPersonaReviewInsights(personaId) {
     reviewCount: reviews.length,
     averageLabel: average === null ? "-" : average.toFixed(1),
     topScoreLabel: topReviews[0] ? `${topReviews[0].score} pts` : "-",
+    latestLabel: recentReviews[0]?.createdAt || "-",
     topReviews,
     recentReviews
   };
@@ -1286,9 +1291,9 @@ function renderRecentReviews() {
   el.recentGrid.innerHTML = reviews.length
     ? reviews.map((review) => {
       const persona = state.personas.find((item) => item.id === review.personaId);
-      return `<article class="review-card"><strong>${persona ? persona.name : review.personaId} on ${review.wineName}</strong><div class="review-meta">${review.createdAt} · ${review.wineType}${review.overallScore !== "" && review.overallScore !== null && review.overallScore !== undefined ? ` · ${review.overallScore} pts` : ""}</div><div>${review.summary || review.note}</div></article>`;
+      return `<article class="review-card"><strong>${persona ? persona.name : review.personaId} on ${review.wineName}</strong><div class="review-meta">${review.createdAt} / ${review.wineType}${review.overallScore !== "" && review.overallScore !== null && review.overallScore !== undefined ? ` / ${review.overallScore} pts` : ""}</div><div>${review.summary || review.note}</div></article>`;
     }).join("")
-    : '<div class="empty-state">아직 리뷰가 없습니다.</div>';
+    : '<div class="empty-state">&#xC544;&#xC9C1; &#xB9AC;&#xBDF0;&#xAC00; &#xC5C6;&#xC2B5;&#xB2C8;&#xB2E4;.</div>';
 }
 
 function renderReviewStructureSnapshot(review, type) {
@@ -1322,20 +1327,20 @@ function updateMetrics() {
 function updateStorageStatus() {
   if (state.supabase) {
     el.storageStatus.textContent = "Supabase Connected";
-    el.storageNote.textContent = state.isAdmin
-      ? "관리자 로그인 상태입니다. 리뷰 생성, 수정, 삭제와 taste 저장이 DB에 반영됩니다."
-      : "공개 읽기 모드입니다. 관리자 로그인 시 수정 권한이 열립니다.";
+    el.storageNote.innerHTML = state.isAdmin
+      ? "&#xAD00;&#xB9AC;&#xC790; &#xB85C;&#xADF8;&#xC778; &#xC0C1;&#xD0DC;&#xC785;&#xB2C8;&#xB2E4;. &#xB9AC;&#xBDF0; &#xC0DD;&#xC131;, &#xC218;&#xC815;, &#xC0AD;&#xC81C;&#xC640; taste &#xC800;&#xC7A5;&#xC774; DB&#xC5D0; &#xBC18;&#xC601;&#xB429;&#xB2C8;&#xB2E4;."
+      : "&#xACF5;&#xAC1C; &#xC77D;&#xAE30; &#xBAA8;&#xB4DC;&#xC785;&#xB2C8;&#xB2E4;. &#xAD00;&#xB9AC;&#xC790; &#xB85C;&#xADF8;&#xC778; &#xD6C4; &#xC218;&#xC815; &#xAD8C;&#xD55C;&#xC774; &#xC5F4;&#xB9BD;&#xB2C8;&#xB2E4;.";
   } else {
     el.storageStatus.textContent = "Local Mode";
-    el.storageNote.textContent = "Supabase 설정 전에는 localStorage fallback으로 동작합니다.";
+    el.storageNote.innerHTML = "Supabase &#xC124;&#xC815; &#xC804;&#xC5D0;&#xB294; localStorage fallback&#xC73C;&#xB85C; &#xB3D9;&#xC791;&#xD569;&#xB2C8;&#xB2E4;.";
   }
 }
 
 function updateAuthUi() {
   if (!state.supabase) {
     el.authBadge.textContent = "Local Prototype";
-    el.authStatus.textContent = "Supabase Auth를 연결하면 실제 관리자 로그인을 사용할 수 있습니다.";
-    el.authHelp.textContent = "현재는 로컬 프로토타입 모드입니다.";
+    el.authStatus.innerHTML = "Supabase Auth&#xB97C; &#xC5F0;&#xACB0;&#xD558;&#xBA74; &#xC2E4;&#xC81C; &#xAD00;&#xB9AC;&#xC790; &#xB85C;&#xADF8;&#xC778;&#xC744; &#xC0AC;&#xC6A9;&#xD560; &#xC218; &#xC788;&#xC2B5;&#xB2C8;&#xB2E4;.";
+    el.authHelp.innerHTML = "&#xD604;&#xC7AC;&#xB294; &#xB85C;&#xCEEC; &#xD504;&#xB85C;&#xD1A0;&#xD0C0;&#xC785; &#xBAA8;&#xB4DC;&#xC785;&#xB2C8;&#xB2E4;.";
     el.logoutButton.hidden = true;
     el.loginButton.disabled = true;
     el.signupButton.disabled = true;
@@ -1349,18 +1354,18 @@ function updateAuthUi() {
 
   if (state.isAdmin) {
     el.authBadge.textContent = "Admin Verified";
-    el.authStatus.textContent = `${email} 계정으로 로그인됨`;
-    el.authHelp.textContent = "이메일 기반 관리자 인증이 통과되어 리뷰 수정/삭제와 taste 저장이 가능합니다.";
+    el.authStatus.innerHTML = `${email} &#xACC4;&#xC815;&#xC73C;&#xB85C; &#xB85C;&#xADF8;&#xC778;&#xB428;`;
+    el.authHelp.innerHTML = "&#xC774;&#xBA54;&#xC77C; &#xAE30;&#xBC18; &#xAD00;&#xB9AC;&#xC790; &#xC778;&#xC99D;&#xC774; &#xD1B5;&#xACFC;&#xB418;&#xC5B4; &#xB9AC;&#xBDF0; &#xC218;&#xC815;/&#xC0AD;&#xC81C;&#xC640; taste &#xC800;&#xC7A5;&#xC774; &#xAC00;&#xB2A5;&#xD569;&#xB2C8;&#xB2E4;.";
     el.logoutButton.hidden = false;
   } else if (state.session) {
     el.authBadge.textContent = "Viewer Session";
-    el.authStatus.textContent = `${email} 계정으로 로그인됨`;
-    el.authHelp.textContent = "현재 계정은 관리자 허용 목록에 없어 읽기 전용입니다.";
+    el.authStatus.innerHTML = `${email} &#xACC4;&#xC815;&#xC73C;&#xB85C; &#xB85C;&#xADF8;&#xC778;&#xB428;`;
+    el.authHelp.innerHTML = "&#xD604;&#xC7AC; &#xACC4;&#xC815;&#xC740; &#xAD00;&#xB9AC;&#xC790; &#xD5C8;&#xC6A9; &#xBAA9;&#xB85D;&#xC5D0; &#xC5C6;&#xC5B4; &#xC77D;&#xAE30; &#xC804;&#xC6A9;&#xC785;&#xB2C8;&#xB2E4;.";
     el.logoutButton.hidden = false;
   } else {
     el.authBadge.textContent = "Admin Locked";
-    el.authStatus.textContent = "아직 로그인되지 않았습니다.";
-    el.authHelp.textContent = `관리자 이메일(${ADMIN_EMAILS.join(", ")})로 로그인하면 편집 권한이 열립니다.`;
+    el.authStatus.innerHTML = "&#xC544;&#xC9C1; &#xB85C;&#xADF8;&#xC778;&#xB418;&#xC9C0; &#xC54A;&#xC558;&#xC2B5;&#xB2C8;&#xB2E4;.";
+    el.authHelp.innerHTML = `&#xAD00;&#xB9AC;&#xC790; &#xC774;&#xBA54;&#xC77C;(${ADMIN_EMAILS.join(", ")})&#xB85C; &#xB85C;&#xADF8;&#xC778;&#xD558;&#xBA74; &#xD3B8;&#xC9D1; &#xAD8C;&#xD55C;&#xC774; &#xC5F4;&#xB9BD;&#xB2C8;&#xB2E4;.`;
     el.logoutButton.hidden = true;
   }
 
@@ -2309,44 +2314,44 @@ function buildPersonaHeadline(red, white) {
   const denseBody = red.body <= 3 || white.body <= 3;
 
   if (acidForward && oakQuiet) {
-    return "??? ????, ??? ??? ??";
+    return "\uc0b0\ub3c4\uc5d4 \uc608\ubbfc\ud558\uace0, \uc624\ud06c\uc5d4 \ub0c9\uc815\ud55c \ud0c0\uc785";
   }
   if (acidForward && denseBody) {
-    return "??? ??? ??? ?? ??? ?? ??";
+    return "\uc120\uba85\ud55c \uc0b0\ub3c4\uc640 \uc874\uc7ac\uac10 \uc788\ub294 \ubc14\ub514\uc5d0 \uc57d\ud55c \ud0c0\uc785";
   }
   if (oakQuiet) {
-    return "??? ?? ?? ??? ??";
+    return "\uc624\ud06c\ub294 \ube7c\uace0 \uacb0\ub9cc \ub0a8\uae30\ub294 \ucde8\ud5a5";
   }
   if (denseBody) {
-    return "? ?? ? ??? ?? ???? ??";
+    return "\ud798 \uc788\ub294 \ud55c \ubcd1\uc774\uba74 \ubc14\ub85c \uc124\ub4dd\ub418\ub294 \ud0c0\uc785";
   }
-  return "?? ?? ? ??? ?? ??? ??";
+  return "\uade0\ud615 \uc88b\uc740 \ubcd1 \uc55e\uc5d0\uc11c \uc624\ub798 \uba38\ubb34\ub294 \ud0c0\uc785";
 }
 
 function buildModeSummary(taste, mode, favorites) {
-  const favoriteLine = favorites.length ? `${favorites.join(", ")}? ?? ????, ` : "";
+  const favoriteLine = favorites.length ? `${favorites.join(", ")}\uc5d0 \ud2b9\ud788 \ubc18\uc751\ud558\uace0, ` : "";
 
   if (mode === "white") {
-    const acidityLine = taste.acidity <= 3 ? "??? ????? ??" : taste.acidity >= 6 ? "??? ???? ???? ?? ?????" : "??? ???? ??? ?? ????";
-    const bodyLine = taste.body <= 3 ? "??? ?? ???? ???? ?????" : taste.body >= 6 ? "??? ??? ??? ?? ?????" : "??? ?? ??? ?????";
-    const oakLine = taste.oak <= 3 ? "??? ?? ??? ???? ?????" : taste.oak >= 6 ? "??? ??? ?? ???? ????" : "??? ? ?? ?? ???? ????";
+    const acidityLine = taste.acidity <= 3 ? "\uc0b0\ub3c4\ub294 \ub610\ub835\ud560\uc218\ub85d \uc88b\uace0" : taste.acidity >= 6 ? "\uc0b0\ub3c4\ub294 \ubd80\ub4dc\ub7fd\uac8c \uac00\ub77c\uc549\uc740 \ucabd\uc744 \ud3b8\uc548\ud574\ud558\uace0" : "\uc0b0\ub3c4\ub294 \ub9e4\ub054\ud558\uac8c \uc815\ub3c8\ub41c \ucabd\uc744 \uc120\ud638\ud558\uace0";
+    const bodyLine = taste.body <= 3 ? "\ubc14\ub514\ub294 \uc81c\ubc95 \ucc28\uc624\ub974\ub294 \uc2a4\ud0c0\uc77c\uc744 \uc88b\uc544\ud569\ub2c8\ub2e4" : taste.body >= 6 ? "\ubc14\ub514\ub294 \uac00\ubccd\uace0 \uc2ac\ub9bc\ud55c \ud3b8\uc744 \uc88b\uc544\ud569\ub2c8\ub2e4" : "\ubc14\ub514\ub294 \uc911\uac04 \ubc00\ub3c4\uba74 \ucda9\ubd84\ud569\ub2c8\ub2e4";
+    const oakLine = taste.oak <= 3 ? "\uc624\ud06c\ub294 \ud5a5\uc744 \ubcf4\ud0dc\ub294 \uc5ed\ud560\uae4c\uc9c0 \ud5c8\uc6a9\ud569\ub2c8\ub2e4" : taste.oak >= 6 ? "\uc624\ud06c\ub294 \ucd5c\ub300\ud55c \ub4a4\ub85c \ubb3c\ub7ec\ub098\uae38 \ubc14\ub78d\ub2c8\ub2e4" : "\uc624\ud06c\ub294 \ud2f0 \ub098\uc9c0 \uc54a\uac8c \uc815\ub9ac\ub418\uae38 \ubc14\ub78d\ub2c8\ub2e4";
     return `${favoriteLine}${describeFruitPreference(taste, mode)}. ${acidityLine} ${bodyLine}. ${oakLine}.`;
   }
 
-  const acidityLine = taste.acidity <= 3 ? "???? ?? ??? ??? ?? ??" : taste.acidity >= 6 ? "??? ??? ??? ????? ???" : "??? ??? ?? ??? ??? ??";
-  const bodyLine = taste.body <= 3 ? "??? ???? ??? ?? ?? ??? ???" : taste.body >= 6 ? "??? ??? ??? ?? ? ????" : "??? ?? ??? ??? ?? ??????";
-  const oakLine = taste.oak <= 3 ? "?? ??? ????? ??? ??????" : taste.oak >= 6 ? "??? ????? ????" : "??? ???? ?? ??? ?? ????";
+  const acidityLine = taste.acidity <= 3 ? "\uc0b0\ub3c4\uac10\uc774 \uc0b4\uc544 \uc788\uc5b4\uc57c \uc640\uc778\uc774 \uacf3\uac8c \uc11c\uace0" : taste.acidity >= 6 ? "\uc0b0\ub3c4\ub294 \ub0ae\uc544\ub3c4 \uc9c8\uac10\uc774 \ubd80\ub4dc\ub7ec\uc6b0\uba74 \uad1c\ucc2e\uace0" : "\uc0b0\ub3c4\ub294 \uacfc\ud558\uc9c0 \uc54a\uac8c \uade0\ud615\ub9cc \uc7a1\ud788\uba74 \ub418\uace0";
+  const bodyLine = taste.body <= 3 ? "\ubc14\ub514\ub294 \ub18d\ubc00\ud558\uace0 \uc874\uc7ac\uac10 \uc788\ub294 \ucabd\uc5d0 \ub9c8\uc74c\uc774 \uac11\ub2c8\ub2e4" : taste.body >= 6 ? "\ubc14\ub514\ub294 \uac00\ubccd\uace0 \ub0a0\ub835\ud55c \ucabd\uc774 \ub354 \ud3b8\ud569\ub2c8\ub2e4" : "\ubc14\ub514\ub294 \uc911\uac04 \uc815\ub3c4\uc758 \ubc00\ub3c4\uac00 \uac00\uc7a5 \uc548\uc815\uc801\uc785\ub2c8\ub2e4";
+  const oakLine = taste.oak <= 3 ? "\uc624\ud06c \ud130\uce58\ub3c4 \uce90\ub9ad\ud130\ub77c\uba74 \uae30\uaebc\uc774 \ubc1b\uc544\ub4e4\uc785\ub2c8\ub2e4" : taste.oak >= 6 ? "\uc624\ud06c\ub294 \uc808\uc81c\ub420\uc218\ub85d \uc88b\uc2b5\ub2c8\ub2e4" : "\uc624\ud06c\ub294 \uc874\uc7ac\ud558\ub418 \uc55e\uc5d0 \ub098\uc11c\uc9c0 \uc54a\uae38 \ubc14\ub78d\ub2c8\ub2e4";
   return `${favoriteLine}${describeFruitPreference(taste, mode)}. ${acidityLine} ${bodyLine}. ${oakLine}.`;
 }
 
 function describeFruitPreference(taste, mode) {
   if (mode === "white") {
-    const drive = taste.fruitDriven <= 3 ? "???? ??? ???? ???" : taste.fruitDriven >= 6 ? "???? ???? ???? ?? ????" : "???? ??? ???? ???? ??? ????";
-    const profile = taste.fruitProfile <= 2 ? "?? ?? ?? ?? ? ?????" : taste.fruitProfile >= 6 ? "???? ?? ????? ? ??? ???" : "?? ??? ????? ??? ??? ??? ???";
+    const drive = taste.fruitDriven <= 3 ? "\ud654\uc774\ud2b8\ub294 \uacfc\uc2e4\uc758 \uc120\uba85\ub3c4\uac00 \uba3c\uc800\uace0" : taste.fruitDriven >= 6 ? "\ud654\uc774\ud2b8\ub294 \ubbf8\ub124\ub784\uacfc \uc9c1\uc120\uc801\uc778 \uacb0\uc774 \uc6b0\uc120\uc774\uace0" : "\ud654\uc774\ud2b8\ub294 \uacfc\uc2e4\uacfc \ubbf8\ub124\ub784\uc774 \ub9de\ubb3c\ub9ac\ub294 \uc9c0\uc810\uc744 \uc88b\uc544\ud558\uace0";
+    const profile = taste.fruitProfile <= 2 ? "\uc5f4\ub300 \uacfc\uc2e4 \ud1a4\uc774 \ub3cc\uba74 \ub354 \ubc18\uac11\uc2b5\ub2c8\ub2e4" : taste.fruitProfile >= 6 ? "\uc2dc\ud2b8\ub7ec\uc2a4 \uacb0\uc774 \ub610\ub835\ud560\uc218\ub85d \ub354 \ub9c8\uc74c\uc774 \uac11\ub2c8\ub2e4" : "\uc5f4\ub300 \uacfc\uc2e4\uacfc \uc2dc\ud2b8\ub7ec\uc2a4\uac00 \uacb9\uce58\ub294 \uad6c\uac04\uc744 \ud3b8\ud558\uac8c \ubd05\ub2c8\ub2e4";
     return `${drive} ${profile}`;
   }
-  const drive = taste.fruitDriven <= 3 ? "??? ??? ?? ??? ?? ??" : taste.fruitDriven >= 6 ? "??? ????? ?? ?? ?? ?? ?? ??" : "??? ??? ????? ???? ?? ??";
-  const profile = taste.fruitProfile <= 2 ? "?? ??? ??? ??? ? ??? ?????" : taste.fruitProfile >= 6 ? "?? ??? ??? ??? ? ???? ?????" : "??? ?? ???? ???? ??? ????? ??????";
+  const drive = taste.fruitDriven <= 3 ? "\ub808\ub4dc\ub294 \uacfc\uc2e4\uc774 \uc55e\uc5d0 \ub098\uc624\ub294 \ud3b8\uc774 \uc88b\uace0" : taste.fruitDriven >= 6 ? "\ub808\ub4dc\ub294 \uc138\uc774\ubcf4\ub9ac\uc640 \uc5b4\uc2dc \ud1a4\uc774 \uc0b4\uc544 \uc788\ub294 \ud3b8\uc774 \uc88b\uace0" : "\ub808\ub4dc\ub294 \uacfc\uc2e4\uacfc \uc138\uc774\ubcf4\ub9ac\uac00 \ub9de\ubb3c\ub9ac\ub294 \uacb0\uc774 \uc88b\uace0";
+  const profile = taste.fruitProfile <= 2 ? "\ub2e4\ud06c \ud504\ub8e8\ud2b8 \ucabd\uc73c\ub85c \uae30\uc6b8\uba74 \ub354 \ube60\ub974\uac8c \ubc18\uc751\ud569\ub2c8\ub2e4" : taste.fruitProfile >= 6 ? "\ub808\ub4dc \ud504\ub8e8\ud2b8 \ucabd\uc73c\ub85c \uae30\uc6b8\uba74 \ub354 \uc120\uba85\ud558\uac8c \ubc18\uc751\ud569\ub2c8\ub2e4" : "\ub808\ub4dc\uc640 \ub2e4\ud06c \ud504\ub8e8\ud2b8\uac00 \uad50\ucc28\ud558\ub294 \uc9c0\uc810\ub3c4 \uc790\uc5f0\uc2a4\ub7fd\uac8c \ubc1b\uc544\ub4e4\uc785\ub2c8\ub2e4";
   return `${drive} ${profile}`;
 }
 
