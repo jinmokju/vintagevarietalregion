@@ -254,6 +254,9 @@ const el = {
   winePrice: document.getElementById("winePrice"),
   wineImage: document.getElementById("wineImage"),
   labelImageInput: document.getElementById("labelImageInput"),
+  labelCameraInput: document.getElementById("labelCameraInput"),
+  pickGalleryButton: document.getElementById("pickGalleryButton"),
+  pickCameraButton: document.getElementById("pickCameraButton"),
   runOcrButton: document.getElementById("runOcrButton"),
   labelPreviewCard: document.getElementById("labelPreviewCard"),
   labelPreviewImage: document.getElementById("labelPreviewImage"),
@@ -661,7 +664,10 @@ function bindEvents() {
   el.wineVarietal.addEventListener("blur", persistCustomVarietalFromInput);
   el.wineVarietal.addEventListener("change", populateReviewInputs);
   el.wineVarietal.addEventListener("blur", populateReviewInputs);
+  el.pickGalleryButton.addEventListener("click", () => el.labelImageInput.click());
+  el.pickCameraButton.addEventListener("click", () => el.labelCameraInput.click());
   el.labelImageInput.addEventListener("change", handleLabelImageSelected);
+  el.labelCameraInput.addEventListener("change", handleLabelImageSelected);
   el.runOcrButton.addEventListener("click", handleLabelOcr);
   el.tastePersona.addEventListener("change", syncTasteEditor);
   el.tasteMode.addEventListener("change", syncTasteEditor);
@@ -792,6 +798,13 @@ function handleLabelImageSelected(event) {
     return;
   }
 
+  if (event.target === el.labelImageInput && el.labelCameraInput) {
+    el.labelCameraInput.value = "";
+  }
+  if (event.target === el.labelCameraInput && el.labelImageInput) {
+    el.labelImageInput.value = "";
+  }
+
   const objectUrl = URL.createObjectURL(file);
   el.labelPreviewCard.hidden = false;
   el.labelPreviewImage.src = objectUrl;
@@ -799,7 +812,7 @@ function handleLabelImageSelected(event) {
 }
 
 async function handleLabelOcr() {
-  const file = el.labelImageInput.files?.[0];
+  const file = getSelectedLabelFile();
   if (!file) {
     el.ocrStatus.textContent = "먼저 라벨 사진을 업로드해주세요.";
     return;
@@ -823,6 +836,10 @@ async function handleLabelOcr() {
   } finally {
     el.runOcrButton.disabled = false;
   }
+}
+
+function getSelectedLabelFile() {
+  return el.labelImageInput.files?.[0] || el.labelCameraInput?.files?.[0] || null;
 }
 
 async function runEnhancedLabelOcr(file, updateStatus) {
@@ -855,14 +872,16 @@ async function createOcrImageVariants(file) {
   const targetHeight = Math.round(height * scale);
 
   const variants = [
-    { label: "원본", filter: "contrast(1.1) saturate(.92) brightness(1.04)" },
-    { label: "고대비", filter: "grayscale(1) contrast(1.7) brightness(1.15)" },
-    { label: "선명 강조", filter: "grayscale(1) contrast(2.1) brightness(1.24)" }
+    { label: "원본", filter: "contrast(1.1) saturate(.92) brightness(1.04)", rotation: 0, crop: 1 },
+    { label: "고대비", filter: "grayscale(1) contrast(1.7) brightness(1.15)", rotation: 0, crop: 1 },
+    { label: "선명 강조", filter: "grayscale(1) contrast(2.1) brightness(1.24)", rotation: 0, crop: 1 },
+    { label: "중앙 크롭", filter: "grayscale(1) contrast(1.9) brightness(1.18)", rotation: 0, crop: 0.84 },
+    { label: "살짝 회전 보정", filter: "grayscale(1) contrast(1.9) brightness(1.2)", rotation: -1.8, crop: 1 }
   ];
 
   return variants.map((variant) => ({
     label: variant.label,
-    dataUrl: drawProcessedImage(image, targetWidth, targetHeight, variant.filter)
+    dataUrl: drawProcessedImage(image, targetWidth, targetHeight, variant.filter, variant.rotation, variant.crop)
   }));
 }
 
@@ -882,13 +901,24 @@ function loadImageFromFile(file) {
   });
 }
 
-function drawProcessedImage(image, width, height, filter) {
+function drawProcessedImage(image, width, height, filter, rotation = 0, crop = 1) {
   const canvas = document.createElement("canvas");
   canvas.width = width;
   canvas.height = height;
   const context = canvas.getContext("2d");
   context.filter = filter;
-  context.drawImage(image, 0, 0, width, height);
+  const sourceWidth = image.naturalWidth || image.width;
+  const sourceHeight = image.naturalHeight || image.height;
+  const cropWidth = sourceWidth * crop;
+  const cropHeight = sourceHeight * crop;
+  const cropX = (sourceWidth - cropWidth) / 2;
+  const cropY = (sourceHeight - cropHeight) / 2;
+
+  context.save();
+  context.translate(width / 2, height / 2);
+  context.rotate((rotation * Math.PI) / 180);
+  context.drawImage(image, cropX, cropY, cropWidth, cropHeight, -width / 2, -height / 2, width, height);
+  context.restore();
   return canvas.toDataURL("image/png");
 }
 

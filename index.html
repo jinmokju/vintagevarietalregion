@@ -165,44 +165,27 @@
         <div class="admin-grid">
           <div>
             <form id="reviewForm">
-              <div class="form-shell">
-                <div class="form-card">
-                  <div class="form-card-head">
-                    <div>
-                      <div class="section-kicker">Step 1</div>
-                      <h3>Wine Identity</h3>
-                    </div>
-                    <div class="summary-meta">기존 와인 선택 또는 OCR 자동 채우기 후 보정</div>
-                  </div>
-                  <div class="form-grid">
-                    <label>리뷰어 Persona<select id="reviewPersona"></select></label>
-                    <label>와인 타입<select id="wineType"><option>Red</option><option>White</option><option>Sparkling</option><option>Rose</option><option>Orange</option></select></label>
-                    <label>와인명<input id="wineName" list="wineNameOptions" required placeholder="기존 와인 선택 또는 새 와인 입력"><span class="aroma-add-status" id="wineNameMeta">기존에 등록된 와인을 고르면 관련 정보와 리뷰 수를 자동으로 불러옵니다.</span></label>
-                    <label>Producer<input id="wineProducer" placeholder="예: Domaine Dujac"></label>
-                    <label>Vintage<input id="wineVintage" list="wineVintageOptions" placeholder="기존 빈티지 선택 또는 직접 입력"></label>
-                    <label>Varietal<input id="wineVarietal" list="wineVarietalOptions" placeholder="타입별 품종 선택 또는 직접 입력"></label>
-                    <label>Region<input id="wineRegion" list="wineRegionOptions" placeholder="기존 지역 선택 또는 직접 입력"></label>
-                    <label>평균가 (Wine-Searcher / Manual)<input id="winePrice" placeholder="예: KRW 62,000"></label>
-                    <label style="grid-column:1 / -1">이미지 URL<input id="wineImage" type="url" placeholder="자동 조회 후 마음에 들면 그대로 저장"></label>
-                  </div>
-                </div>
-              </div>
-              <datalist id="wineNameOptions"></datalist>
-              <datalist id="wineVintageOptions"></datalist>
-              <datalist id="wineVarietalOptions"></datalist>
-              <datalist id="wineRegionOptions"></datalist>
               <div class="tool-grid" style="margin-top:14px">
                 <div class="form-card">
                   <div class="form-card-head">
                     <div>
-                      <div class="section-kicker">Step 2</div>
+                      <div class="section-kicker">Step 1</div>
                       <h3>Smart Fill Studio</h3>
                     </div>
-                    <div class="summary-meta">사진 OCR과 이미지/가격 자동 조회</div>
+                    <div class="summary-meta">사진함 선택 또는 촬영 후 OCR 자동 채우기</div>
                   </div>
                   <div class="form-grid">
-                    <label>라벨 사진 업로드<input id="labelImageInput" type="file" accept="image/*" capture="environment"></label>
-                    <div class="button-row" style="align-items:end">
+                    <div class="form-card" style="padding:14px">
+                      <strong>라벨 사진 선택</strong>
+                      <div class="muted">직접 촬영한 사진도, 이미 찍어둔 사진함 이미지도 둘 다 올릴 수 있습니다.</div>
+                      <div class="button-row">
+                        <button class="ghost-button" id="pickGalleryButton" type="button" style="color:var(--text); border-color:var(--line); background:var(--surface-strong)">사진함에서 선택</button>
+                        <button class="ghost-button" id="pickCameraButton" type="button" style="color:var(--text); border-color:var(--line); background:var(--surface-strong)">카메라로 촬영</button>
+                      </div>
+                      <input id="labelImageInput" type="file" accept="image/*" hidden>
+                      <input id="labelCameraInput" type="file" accept="image/*" capture="environment" hidden>
+                    </div>
+                    <div class="button-row" style="align-items:end;justify-content:flex-end">
                       <button class="ghost-button" id="runOcrButton" type="button" style="color:var(--text); border-color:var(--line); background:var(--surface-strong)">라벨 OCR로 자동 입력</button>
                       <button class="ghost-button" id="fetchWineData" type="button" style="color:var(--text); border-color:var(--line); background:var(--surface-strong)">이미지/가격 자동 조회</button>
                     </div>
@@ -235,6 +218,32 @@
                   <div class="empty-state" id="imagePreviewPlaceholder">아직 불러온 이미지가 없습니다. OCR이나 자동 조회 후 여기서 먼저 확인하세요.</div>
                 </div>
               </div>
+              <div class="form-shell">
+                <div class="form-card">
+                  <div class="form-card-head">
+                    <div>
+                      <div class="section-kicker">Step 2</div>
+                      <h3>Wine Identity</h3>
+                    </div>
+                    <div class="summary-meta">자동 채워진 값을 빠르게 확인하고 필요한 것만 수정</div>
+                  </div>
+                  <div class="form-grid">
+                    <label>리뷰어 Persona<select id="reviewPersona"></select></label>
+                    <label>와인 타입<select id="wineType"><option>Red</option><option>White</option><option>Sparkling</option><option>Rose</option><option>Orange</option></select></label>
+                    <label>와인명<input id="wineName" list="wineNameOptions" required placeholder="기존 와인 선택 또는 새 와인 입력"><span class="aroma-add-status" id="wineNameMeta">기존에 등록된 와인을 고르면 관련 정보와 리뷰 수를 자동으로 불러옵니다.</span></label>
+                    <label>Producer<input id="wineProducer" placeholder="예: Domaine Dujac"></label>
+                    <label>Vintage<input id="wineVintage" list="wineVintageOptions" placeholder="기존 빈티지 선택 또는 직접 입력"></label>
+                    <label>Varietal<input id="wineVarietal" list="wineVarietalOptions" placeholder="타입별 품종 선택 또는 직접 입력"></label>
+                    <label>Region<input id="wineRegion" list="wineRegionOptions" placeholder="기존 지역 선택 또는 직접 입력"></label>
+                    <label>평균가 (Wine-Searcher / Manual)<input id="winePrice" placeholder="예: KRW 62,000"></label>
+                    <label style="grid-column:1 / -1">이미지 URL<input id="wineImage" type="url" placeholder="자동 조회 후 마음에 들면 그대로 저장"></label>
+                  </div>
+                </div>
+              </div>
+              <datalist id="wineNameOptions"></datalist>
+              <datalist id="wineVintageOptions"></datalist>
+              <datalist id="wineVarietalOptions"></datalist>
+              <datalist id="wineRegionOptions"></datalist>
               <details class="details-panel" open>
                 <summary><strong>Step 3. 구조 평가</strong><span>와인의 골격을 빠르게 잡는 구간</span></summary>
                 <div class="review-section" style="margin-top:0;padding:0;border:none;background:transparent">
