@@ -836,7 +836,7 @@ function getSelectedLabelFile() {
 }
 
 async function analyzeWineLabelWithVision(file) {
-  const imageDataUrl = await readFileAsDataUrl(file);
+  const imageDataUrl = await convertImageFileToJpegDataUrl(file);
   const response = await fetch("/functions/label-vision", {
     method: "POST",
     headers: {
@@ -885,12 +885,35 @@ async function analyzeWineLabelWithVision(file) {
   };
 }
 
-function readFileAsDataUrl(file) {
+async function convertImageFileToJpegDataUrl(file) {
+  const image = await loadBrowserImage(file);
+  const maxEdge = 1800;
+  const scale = Math.min(1, maxEdge / Math.max(image.naturalWidth || image.width, image.naturalHeight || image.height));
+  const width = Math.max(1, Math.round((image.naturalWidth || image.width) * scale));
+  const height = Math.max(1, Math.round((image.naturalHeight || image.height) * scale));
+  const canvas = document.createElement("canvas");
+  canvas.width = width;
+  canvas.height = height;
+  const context = canvas.getContext("2d");
+  context.fillStyle = "#ffffff";
+  context.fillRect(0, 0, width, height);
+  context.drawImage(image, 0, 0, width, height);
+  return canvas.toDataURL("image/jpeg", 0.92);
+}
+
+function loadBrowserImage(file) {
   return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload = () => resolve(reader.result);
-    reader.onerror = reject;
-    reader.readAsDataURL(file);
+    const objectUrl = URL.createObjectURL(file);
+    const image = new Image();
+    image.onload = () => {
+      URL.revokeObjectURL(objectUrl);
+      resolve(image);
+    };
+    image.onerror = (error) => {
+      URL.revokeObjectURL(objectUrl);
+      reject(error);
+    };
+    image.src = objectUrl;
   });
 }
 
