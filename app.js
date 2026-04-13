@@ -1222,8 +1222,8 @@ function updateAdminAccess() {
     tasteSubmitButton.disabled = disabled;
   }
 
-  el.fetchImageCandidates.disabled = disabled;
-  el.fetchPriceData.disabled = disabled;
+  el.fetchImageCandidates.disabled = false;
+  el.fetchPriceData.disabled = false;
   el.cancelEditButton.disabled = disabled;
   el.deletePersonaButton.disabled = disabled || el.tastePersona.value === "__new__" || !state.personas.length;
 }
