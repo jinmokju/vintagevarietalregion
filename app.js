@@ -1029,10 +1029,12 @@ function renderPersonas() {
     ? personas.map(renderPersonaCard).join("")
     : '<div class="empty-state">아직 등록된 persona가 없습니다. 관리자 계정으로 직접 key in 해주세요.</div>';
   attachTasteTabs();
+  attachPersonaActions();
 }
 
 function renderPersonaCard(persona) {
   const summary = buildPersonaSummaryLines(persona);
+  const insights = getPersonaReviewInsights(persona.id);
   return `<article class="persona-card">
     <div class="persona-header">
       <div class="persona-top">
@@ -1057,6 +1059,35 @@ function renderPersonaCard(persona) {
         <p>${summary.white}</p>
       </div>
     </div>
+    <div class="persona-review-shell">
+      <div class="persona-review-stats">
+        <div class="persona-review-stat">
+          <span>평균 점수</span>
+          <strong>${insights.averageLabel}</strong>
+        </div>
+        <div class="persona-review-stat">
+          <span>리뷰 수</span>
+          <strong>${insights.reviewCount}</strong>
+        </div>
+        <div class="persona-review-stat">
+          <span>Top Score</span>
+          <strong>${insights.topScoreLabel}</strong>
+        </div>
+      </div>
+      <div class="persona-review-grid">
+        <div class="persona-review-panel">
+          <span class="persona-character-label">Top 5 Wines</span>
+          ${renderPersonaReviewLinks(insights.topReviews, "아직 점수가 있는 리뷰가 없습니다.")}
+        </div>
+        <div class="persona-review-panel">
+          <span class="persona-character-label">Recent Reviews</span>
+          ${renderPersonaReviewLinks(insights.recentReviews, "아직 최근 리뷰가 없습니다.")}
+        </div>
+      </div>
+      <div class="button-row">
+        <button type="button" class="review-action" data-action="focus-persona-reviews" data-persona-id="${persona.id}">${persona.name} 리뷰만 보기</button>
+      </div>
+    </div>
     <div class="taste-tabs">
       <button type="button" class="tab-button active" data-tab="${persona.id}-red">Red</button>
       <button type="button" class="tab-button" data-tab="${persona.id}-white">White</button>
@@ -1072,11 +1103,23 @@ function renderPersonaCard(persona) {
   </article>`;
 }
 
-function renderFavoritePills(taste) {
+function renderFavoritePills(taste, emptyLabel = "아직 입력 전") {
   const items = (taste.favoritePairs || [])
     .map((pair) => [pair?.varietal, pair?.region].filter(Boolean).join(" - "))
     .filter(Boolean);
-  return items.length ? items.map((item) => `<span class="pill">${item}</span>`).join("") : '<span class="pill">아직 입력 전</span>';
+  return items.length ? items.map((item) => `<span class="pill">${item}</span>`).join("") : `<span class="pill">${emptyLabel}</span>`;
+}
+
+function renderPersonaReviewLinks(items, emptyMessage) {
+  if (!items.length) {
+    return `<div class="empty-state compact">${emptyMessage}</div>`;
+  }
+  return `<div class="persona-review-list">${items.map((item) => `
+    <button type="button" class="persona-review-link" data-action="jump-to-review" data-persona-id="${item.personaId}" data-wine-id="${item.wineId}" data-review-id="${item.reviewId}">
+      <strong>${item.wineName}</strong>
+      <span>${item.scoreLabel}${item.createdAt ? ` · ${item.createdAt}` : ""}</span>
+    </button>
+  `).join("")}</div>`;
 }
 
 function renderTasteTracks(taste, mode) {
@@ -1096,6 +1139,29 @@ function attachTasteTabs() {
       card.querySelectorAll(".taste-panel").forEach((panel) => panel.classList.remove("active"));
       button.classList.add("active");
       card.querySelector(`#${panelId}`).classList.add("active");
+    });
+  });
+}
+
+function attachPersonaActions() {
+  document.querySelectorAll("[data-action='focus-persona-reviews']").forEach((button) => {
+    button.addEventListener("click", () => {
+      state.selectedPersona = button.dataset.personaId;
+      state.selectedType = "All";
+      renderAll();
+      document.getElementById("library")?.scrollIntoView({ behavior: "smooth", block: "start" });
+    });
+  });
+
+  document.querySelectorAll("[data-action='jump-to-review']").forEach((button) => {
+    button.addEventListener("click", () => {
+      state.selectedPersona = button.dataset.personaId;
+      state.selectedType = "All";
+      renderAll();
+      const targetId = `review-${button.dataset.wineId}-${button.dataset.reviewId}`;
+      requestAnimationFrame(() => {
+        document.getElementById(targetId)?.scrollIntoView({ behavior: "smooth", block: "center" });
+      });
     });
   });
 }
@@ -1150,7 +1216,7 @@ function renderWineCard(wine) {
   const reviewMarkup = visibleReviews.map((review) => renderReviewSnippet(wine, review)).join("");
   const typeClass = `type-${String(wine.type || "red").toLowerCase()}`;
 
-  return `<article class="wine-card ${typeClass}"><img class="wine-image" src="${wine.image || makePlaceholderImage(wine.name, "#8a3650", "#f5d2c6")}" alt="${wine.name} 이미지"><div class="row"><div><h3>${wine.name}</h3><div class="muted">${[wine.producer, wine.vintage, wine.varietal, wine.region].filter(Boolean).join(" · ")}</div></div><span class="type-badge ${typeClass}">${wine.type}</span></div><div class="chip-row" style="margin-top:10px"><span class="pill">${wine.varietal || "Varietal 미입력"}</span><span class="pill">${wine.region || "Region 미입력"}</span><span class="pill">${wine.reviews.length} reviews</span></div><div class="muted" style="margin-top:10px">${wine.averagePrice ? `Wine-Searcher / Manual 가격 메모: ${wine.averagePrice}` : "아직 평균가 메모가 없습니다."}</div>${reviewMarkup}</article>`;
+  return `<article class="wine-card ${typeClass}" id="wine-${wine.id}"><img class="wine-image" src="${wine.image || makePlaceholderImage(wine.name, "#8a3650", "#f5d2c6")}" alt="${wine.name} 이미지"><div class="row"><div><h3>${wine.name}</h3><div class="muted">${[wine.producer, wine.vintage, wine.varietal, wine.region].filter(Boolean).join(" · ")}</div></div><span class="type-badge ${typeClass}">${wine.type}</span></div><div class="chip-row" style="margin-top:10px"><span class="pill">${wine.varietal || "Varietal 미입력"}</span><span class="pill">${wine.region || "Region 미입력"}</span><span class="pill">${wine.reviews.length} reviews</span></div><div class="muted" style="margin-top:10px">${wine.averagePrice ? `Wine-Searcher / Manual 가격 메모: ${wine.averagePrice}` : "아직 평균가 메모가 없습니다."}</div>${reviewMarkup}</article>`;
 }
 
 function renderReviewSnippet(wine, review) {
@@ -1165,7 +1231,40 @@ function renderReviewSnippet(wine, review) {
     ? `<span class="score-pill">${review.overallScore} pts</span>`
     : "";
 
-  return `<div class="review-snippet"><div class="row" style="align-items:center"><div><strong>${persona ? persona.name : review.personaId}</strong><div class="review-meta">${review.createdAt}</div></div>${actionButtons}</div><div class="review-stack"><div class="review-score">${scoreMarkup}<div class="review-copy">${review.summary || review.note}</div></div>${structureMarkup}${aromaMarkup}</div></div>`;
+  return `<div class="review-snippet" id="review-${wine.id}-${review.id}"><div class="row" style="align-items:center"><div><strong>${persona ? persona.name : review.personaId}</strong><div class="review-meta">${review.createdAt}</div></div>${actionButtons}</div><div class="review-stack"><div class="review-score">${scoreMarkup}<div class="review-copy">${review.summary || review.note}</div></div>${structureMarkup}${aromaMarkup}</div></div>`;
+}
+
+function getPersonaReviewInsights(personaId) {
+  const reviews = state.wines.flatMap((wine) => wine.reviews
+    .filter((review) => review.personaId === personaId)
+    .map((review) => ({
+      personaId,
+      wineId: wine.id,
+      wineName: wine.name,
+      reviewId: review.id,
+      score: Number(review.overallScore),
+      scoreLabel: Number.isFinite(Number(review.overallScore)) ? `${Number(review.overallScore)} pts` : "점수 없음",
+      createdAt: review.createdAt || ""
+    })));
+
+  const scoredReviews = reviews.filter((review) => Number.isFinite(review.score));
+  const average = scoredReviews.length
+    ? scoredReviews.reduce((sum, review) => sum + review.score, 0) / scoredReviews.length
+    : null;
+  const topReviews = [...scoredReviews]
+    .sort((a, b) => (b.score - a.score) || String(b.createdAt).localeCompare(String(a.createdAt)))
+    .slice(0, 5);
+  const recentReviews = [...reviews]
+    .sort((a, b) => String(b.createdAt).localeCompare(String(a.createdAt)))
+    .slice(0, 5);
+
+  return {
+    reviewCount: reviews.length,
+    averageLabel: average === null ? "-" : average.toFixed(1),
+    topScoreLabel: topReviews[0] ? `${topReviews[0].score} pts` : "-",
+    topReviews,
+    recentReviews
+  };
 }
 
 function attachReviewActions() {
