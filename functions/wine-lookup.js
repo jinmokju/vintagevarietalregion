@@ -1,6 +1,33 @@
 const DEFAULT_OPENVERSE_ENDPOINT = "https://api.openverse.org/v1/images/";
 const WIKIMEDIA_ENDPOINT = "https://commons.wikimedia.org/w/api.php";
 
+const OFFICIAL_PRODUCER_DOMAINS = {
+  lopezdeheredia: ["https://www.lopezdeheredia.com"],
+  lopezdelheredia: ["https://www.lopezdeheredia.com"],
+  vinaltondonia: ["https://www.lopezdeheredia.com"],
+  viinatondonia: ["https://www.lopezdeheredia.com"],
+  kumeuriver: ["https://kumeuriver.co.nz"],
+  domainedujac: ["https://www.dujac.com"],
+  domainedelacote: ["https://www.domainedelacote.com"],
+  realmcellars: ["https://www.realmcellars.com"],
+  opusone: ["https://www.opusonewinery.com"],
+  sassicaia: ["https://www.tenutasanguido.com"],
+  sanguido: ["https://www.tenutasanguido.com"],
+  giacomoconterno: ["https://www.giacomoconterno.it"],
+  guigal: ["https://www.guigal.com"],
+  egguigal: ["https://www.guigal.com"],
+  closapalta: ["https://www.lapostollewines.com"],
+  lapostolle: ["https://www.lapostollewines.com"]
+};
+
+const IMPORTER_DOMAINS = {
+  lopezdeheredia: ["https://www.winebow.com"],
+  lopezdelheredia: ["https://www.winebow.com"],
+  kumeuriver: ["https://www.winebow.com"],
+  domainedujac: ["https://www.winebow.com"],
+  domainedelacote: ["https://www.vineyardbrands.com"]
+};
+
 export async function onRequestGet(context) {
   const { request, env } = context;
   const url = new URL(request.url);
@@ -25,7 +52,7 @@ export async function onRequestGet(context) {
   try {
     const imageResult = lookupMode === "price"
       ? { image_url: "", image_source: "", matched_query: "", image_candidates: [] }
-      : await lookupImageCandidates(candidateQueries, env);
+      : await lookupImageCandidates(queryParts, candidateQueries, env);
     const priceResult = lookupMode === "image"
       ? { average_price: "", matched_query: "" }
       : await lookupWinePrice(candidateQueries, env);
@@ -34,8 +61,8 @@ export async function onRequestGet(context) {
     if (lookupMode !== "price") {
       notes.push(
         imageResult.image_candidates.length
-          ? `${imageResult.image_candidates.length}개의 이미지 후보를 찾았습니다. 검색 결과 페이지는 자동 제외했습니다.`
-          : "이미지 후보를 찾지 못했습니다."
+          ? `${imageResult.image_candidates.length}개의 이미지 후보를 찾았습니다. 공식 와이너리, 수입사, 공개 이미지 순으로 정렬했습니다.`
+          : "공식 와이너리, 수입사, 공개 이미지 fallback까지 확인했지만 이미지 후보를 찾지 못했습니다."
       );
     }
 
@@ -43,7 +70,7 @@ export async function onRequestGet(context) {
       if (priceResult.average_price) {
         notes.push(`가격 메모를 찾았습니다${priceResult.matched_query ? ` (${priceResult.matched_query})` : ""}.`);
       } else if (env.WINE_SEARCHER_API_ENDPOINT && env.WINE_SEARCHER_API_KEY) {
-        notes.push("가격 API 응답에서는 평균가를 찾지 못했습니다.");
+        notes.push("가격 API 응답은 받았지만 평균가를 찾지 못했습니다.");
       } else {
         notes.push("가격은 수동 입력 또는 Wine-Searcher API 연결이 필요합니다.");
       }
@@ -95,20 +122,44 @@ function buildCandidateQueries(parts) {
   return [...base, ...normalized];
 }
 
-async function lookupImageCandidates(queries, env) {
+async function lookupImageCandidates(parts, queries, env) {
   const candidates = [];
+  const officialDomains = resolveMappedDomains(parts.producer, env.PRODUCER_DOMAIN_MAP_JSON, OFFICIAL_PRODUCER_DOMAINS);
+  const importerDomains = resolveMappedDomains(parts.producer, env.IMPORTER_DOMAIN_MAP_JSON, IMPORTER_DOMAINS);
 
-  for (const query of queries) {
-    const openverse = await lookupOpenverseImages(query, env);
-    mergeCandidates(candidates, openverse, query);
-    if (candidates.length >= 6) {
-      break;
+  if (officialDomains.length) {
+    for (const domain of officialDomains) {
+      const officialCandidates = await lookupMappedDomainCandidates(domain, parts, queries, "Official winery");
+      mergeCandidates(candidates, officialCandidates);
+      if (candidates.length >= 6) {
+        break;
+      }
     }
+  }
 
-    const wikimedia = await lookupWikimediaImages(query);
-    mergeCandidates(candidates, wikimedia, query);
-    if (candidates.length >= 6) {
-      break;
+  if (candidates.length < 6 && importerDomains.length) {
+    for (const domain of importerDomains) {
+      const importerCandidates = await lookupMappedDomainCandidates(domain, parts, queries, "Importer");
+      mergeCandidates(candidates, importerCandidates);
+      if (candidates.length >= 6) {
+        break;
+      }
+    }
+  }
+
+  if (candidates.length < 6) {
+    for (const query of queries) {
+      const openverse = await lookupOpenverseImages(query, env);
+      mergeCandidates(candidates, openverse.map((item) => ({ ...item, matched_query: query })));
+      if (candidates.length >= 6) {
+        break;
+      }
+
+      const wikimedia = await lookupWikimediaImages(query);
+      mergeCandidates(candidates, wikimedia.map((item) => ({ ...item, matched_query: query })));
+      if (candidates.length >= 6) {
+        break;
+      }
     }
   }
 
@@ -120,7 +171,193 @@ async function lookupImageCandidates(queries, env) {
   };
 }
 
-function mergeCandidates(target, incoming, query) {
+function resolveMappedDomains(producer, envJson, builtinMap) {
+  const key = normalizeProducerKey(producer);
+  const envMap = parseJsonMap(envJson);
+  const domains = [
+    ...(envMap[key] || []),
+    ...(builtinMap[key] || [])
+  ];
+  return [...new Set(domains.filter(Boolean))];
+}
+
+function parseJsonMap(value) {
+  if (!value) {
+    return {};
+  }
+  try {
+    const parsed = JSON.parse(value);
+    return typeof parsed === "object" && parsed ? parsed : {};
+  } catch (_error) {
+    return {};
+  }
+}
+
+function normalizeProducerKey(value) {
+  return removeDiacritics(String(value || ""))
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "");
+}
+
+async function lookupMappedDomainCandidates(domain, parts, queries, sourceLabel) {
+  const baseUrl = safeCreateUrl(domain, domain);
+  const html = await fetchText(baseUrl.toString());
+  if (!html) {
+    return [];
+  }
+
+  const links = extractInternalLinks(html, baseUrl)
+    .map((href) => ({ href, score: scorePageUrl(href, parts, queries[0]) }))
+    .filter((item) => item.score > 0)
+    .sort((a, b) => b.score - a.score)
+    .slice(0, 10);
+
+  const pageUrls = [baseUrl.toString(), ...links.map((item) => item.href)];
+  const candidates = [];
+
+  for (const pageUrl of pageUrls) {
+    const pageHtml = pageUrl === baseUrl.toString() ? html : await fetchText(pageUrl);
+    if (!pageHtml) {
+      continue;
+    }
+
+    const pageCandidates = extractImageCandidatesFromHtml(pageHtml, pageUrl, parts, sourceLabel);
+    mergeCandidates(candidates, pageCandidates);
+    if (candidates.length >= 4) {
+      break;
+    }
+  }
+
+  return candidates;
+}
+
+async function fetchText(url) {
+  try {
+    const response = await fetch(url, {
+      headers: {
+        "User-Agent": "VVR/1.0",
+        Accept: "text/html,application/xhtml+xml"
+      }
+    });
+    if (!response.ok) {
+      return "";
+    }
+    const contentType = response.headers.get("content-type") || "";
+    if (!/html|xml/i.test(contentType)) {
+      return "";
+    }
+    return await response.text();
+  } catch (_error) {
+    return "";
+  }
+}
+
+function extractInternalLinks(html, baseUrl) {
+  const links = [];
+  const regex = /href=["']([^"'#]+)["']/gi;
+  let match;
+  while ((match = regex.exec(html))) {
+    const raw = match[1].trim();
+    if (!raw || raw.startsWith("mailto:") || raw.startsWith("tel:") || raw.startsWith("javascript:")) {
+      continue;
+    }
+    try {
+      const resolved = new URL(raw, baseUrl).toString();
+      const parsed = new URL(resolved);
+      if (parsed.hostname !== baseUrl.hostname) {
+        continue;
+      }
+      links.push(resolved);
+    } catch (_error) {
+      continue;
+    }
+  }
+  return [...new Set(links)];
+}
+
+function scorePageUrl(url, parts, query) {
+  const haystack = removeDiacritics(String(url || "")).toLowerCase();
+  let score = scoreCandidate(haystack, query) * 2;
+  if (parts.name && haystack.includes(removeDiacritics(parts.name).toLowerCase().replace(/\s+/g, "-"))) {
+    score += 6;
+  }
+  if (parts.vintage && haystack.includes(parts.vintage)) {
+    score += 3;
+  }
+  if (/(wine|wines|product|products|shop|bottle|vintage|collection|portfolio)/i.test(haystack)) {
+    score += 2;
+  }
+  if (/(news|blog|visit|club|event|press|contact)/i.test(haystack)) {
+    score -= 3;
+  }
+  return score;
+}
+
+function extractImageCandidatesFromHtml(html, pageUrl, parts, sourceLabel) {
+  const rawCandidates = [];
+
+  const metaPatterns = [
+    /<meta[^>]+property=["']og:image["'][^>]+content=["']([^"']+)["'][^>]*>/gi,
+    /<meta[^>]+name=["']twitter:image["'][^>]+content=["']([^"']+)["'][^>]*>/gi
+  ];
+
+  for (const pattern of metaPatterns) {
+    let match;
+    while ((match = pattern.exec(html))) {
+      rawCandidates.push({ image_url: resolveUrl(match[1], pageUrl), context: pageUrl, image_source: sourceLabel });
+    }
+  }
+
+  const imgRegex = /<img[^>]+src=["']([^"']+)["'][^>]*>/gi;
+  let imgMatch;
+  while ((imgMatch = imgRegex.exec(html))) {
+    const tag = imgMatch[0];
+    const src = resolveUrl(imgMatch[1], pageUrl);
+    const altMatch = tag.match(/alt=["']([^"']*)["']/i);
+    rawCandidates.push({
+      image_url: src,
+      context: `${pageUrl} ${altMatch?.[1] || ""}`,
+      image_source: sourceLabel
+    });
+  }
+
+  return rawCandidates
+    .filter((candidate) => isUsableImageUrl(candidate.image_url))
+    .map((candidate) => ({
+      ...candidate,
+      score: scoreOfficialCandidate(candidate.context, candidate.image_url, parts)
+    }))
+    .filter((candidate) => candidate.score > 0)
+    .sort((a, b) => b.score - a.score)
+    .slice(0, 4)
+    .map(({ image_url, image_source }) => ({ image_url, image_source, matched_query: pageUrl }));
+}
+
+function scoreOfficialCandidate(context, imageUrl, parts) {
+  const haystack = removeDiacritics(`${context} ${imageUrl}`).toLowerCase();
+  const tokens = [parts.producer, parts.name, parts.vintage, parts.region, parts.varietal]
+    .flatMap((value) => tokenizeQuery(value))
+    .filter(Boolean);
+
+  let score = tokens.reduce((sum, token) => sum + (haystack.includes(token) ? 2 : 0), 0);
+  if (/(bottle|wine|product|label|cuvee|reserve|reserva|gran reserva|rioja|champagne)/i.test(haystack)) {
+    score += 4;
+  }
+  if (/(logo|icon|sprite|banner|hero|team|avatar|map|background)/i.test(haystack)) {
+    score -= 6;
+  }
+  return score;
+}
+
+function resolveUrl(value, baseUrl) {
+  try {
+    return new URL(value, baseUrl).toString();
+  } catch (_error) {
+    return "";
+  }
+}
+
+function mergeCandidates(target, incoming) {
   (incoming || []).forEach((candidate) => {
     const imageUrl = String(candidate?.image_url || "").trim();
     if (!isUsableImageUrl(imageUrl)) {
@@ -132,7 +369,7 @@ function mergeCandidates(target, incoming, query) {
     target.push({
       image_url: imageUrl,
       image_source: candidate.image_source || "",
-      matched_query: query
+      matched_query: candidate.matched_query || ""
     });
   });
 }
@@ -158,7 +395,7 @@ async function lookupOpenverseImages(query, env) {
     return results
       .map((item) => ({
         image_url: item?.thumbnail || item?.url || "",
-        image_source: item?.source || "Openverse",
+        image_source: "Public image (Openverse)",
         score: scoreCandidate([item?.title, item?.creator, item?.foreign_landing_url].filter(Boolean).join(" "), query)
       }))
       .filter((item) => item.image_url)
@@ -196,7 +433,7 @@ async function lookupWikimediaImages(query) {
     return pages
       .map((page) => ({
         image_url: page?.imageinfo?.[0]?.thumburl || page?.imageinfo?.[0]?.url || "",
-        image_source: "Wikimedia Commons",
+        image_source: "Public image (Wikimedia Commons)",
         score: scoreCandidate([page?.title, page?.imageinfo?.[0]?.descriptionurl].filter(Boolean).join(" "), query)
       }))
       .filter((item) => item.image_url)
@@ -259,7 +496,11 @@ function isUsableImageUrl(url) {
     return /\.(jpg|jpeg|png|webp|gif|avif)$/i.test(path) ||
       host.includes("openverse") ||
       host.includes("wikimedia") ||
-      host.includes("commons.wikimedia");
+      host.includes("commons.wikimedia") ||
+      host.includes("cloudfront") ||
+      host.includes("shopify") ||
+      host.includes("wordpress") ||
+      host.includes("cdn");
   } catch (_error) {
     return false;
   }

@@ -253,6 +253,10 @@ const el = {
   wineRegion: document.getElementById("wineRegion"),
   winePrice: document.getElementById("winePrice"),
   wineImage: document.getElementById("wineImage"),
+  wineImageLibrary: document.getElementById("wineImageLibrary"),
+  wineImageCamera: document.getElementById("wineImageCamera"),
+  uploadFallbackPanel: document.getElementById("uploadFallbackPanel"),
+  uploadFallbackNote: document.getElementById("uploadFallbackNote"),
   wineImagePreview: document.getElementById("wineImagePreview"),
   imagePreviewCard: document.getElementById("imagePreviewCard"),
   imagePreviewPlaceholder: document.getElementById("imagePreviewPlaceholder"),
@@ -433,7 +437,8 @@ function normalizeLocalWine(wine) {
 }
 
 function sanitizeStoredImage(value) {
-  return isUsableImageUrl(value || "") ? value : "";
+  const image = String(value || "").trim();
+  return isUsableImageUrl(image) && !isPlaceholderImage(image) ? image : "";
 }
 
 function normalizeReview(review, wineType) {
@@ -670,6 +675,8 @@ function bindEvents() {
   el.fetchImageCandidates.addEventListener("click", handleImageLookup);
   el.fetchPriceData.addEventListener("click", handlePriceLookup);
   el.wineImage.addEventListener("input", syncImagePreview);
+  el.wineImageLibrary?.addEventListener("change", (event) => handleImageUpload(event, "?? ??? ???"));
+  el.wineImageCamera?.addEventListener("change", (event) => handleImageUpload(event, "??? ?? ???"));
   el.clearImageButton.addEventListener("click", clearImageField);
   el.authForm.addEventListener("submit", handleLogin);
   el.signupButton.addEventListener("click", handleSignup);
@@ -1766,49 +1773,38 @@ async function handlePersonaDelete() {
 async function handleImageLookup() {
   const query = buildWineLookupQuery();
   if (!query.primary) {
-    el.fetchStatus.textContent = "와인명 또는 검색 키워드를 먼저 입력해주세요.";
+    el.fetchStatus.textContent = "????? Producer? ?? ??????.";
     return;
   }
 
-  const existingWine = findClosestExistingWine();
   state.imageCandidates = [];
-
-  if (existingWine?.image && isUsableImageUrl(existingWine.image)) {
-    state.imageCandidates.push({
-      image_url: existingWine.image,
-      image_source: "기존 등록 와인",
-      matched_query: existingWine.name
-    });
-  }
-
-  el.fetchStatus.textContent = state.imageCandidates.length
-    ? `기존 와인 후보를 먼저 불러왔고, 외부 이미지 후보를 추가로 찾는 중입니다...`
-    : "이미지 후보를 조회 중...";
+  renderImageCandidates();
+  setUploadFallbackVisible(false);
+  el.fetchStatus.textContent = "?? ???? ???? ?? ??, ??? ???, ??? ?? ??? ??? ???? ???? ????.";
 
   try {
     const data = await requestWineLookup("image", query);
     const incomingCandidates = Array.isArray(data.image_candidates) ? data.image_candidates : [];
-    state.imageCandidates = mergeImageCandidates(state.imageCandidates, incomingCandidates);
+    state.imageCandidates = mergeImageCandidates([], incomingCandidates);
     renderImageCandidates();
 
     if (!state.imageCandidates.length) {
-      const hadInvalidStoredImage = existingWine && existingWine.image && !isUsableImageUrl(existingWine.image);
-      el.fetchStatus.textContent = hadInvalidStoredImage
-        ? "이미지 후보를 찾지 못했고, 기존 저장 이미지도 실제 이미지 URL이 아니라 제외했습니다."
-        : "이미지 후보를 찾지 못했습니다. 직접 URL 입력 또는 다른 검색어 조합을 시도해주세요.";
+      setUploadFallbackVisible(true, "?? ????, ???, ?? ??? fallback?? ?? ????? ??? ?? ?????. ??? ?? ?????.");
+      el.fetchStatus.textContent = data.note || "??? ??? ?? ?????. ?? ??? fallback? ??????.";
       return;
     }
 
+    setUploadFallbackVisible(false);
     if (!el.wineImage.value.trim() && state.imageCandidates[0]?.image_url) {
       applyImageCandidate(state.imageCandidates[0]);
     } else {
-      el.fetchStatus.textContent = `${state.imageCandidates.length}개의 이미지 후보를 찾았습니다. 마음에 드는 이미지를 선택해주세요.`;
+      el.fetchStatus.textContent = data.note || `${state.imageCandidates.length}?? ??? ??? ?????. ??/??? ??? ?? ??????.`;
     }
   } catch (error) {
-    el.fetchStatus.textContent = `이미지 후보 조회 실패: ${error.message || "Cloudflare Function 또는 API 설정을 확인해주세요."}`;
+    setUploadFallbackVisible(true, "?? ?? ? ??? ?? ??? fallback? ?????. ?? ????? ??? ???? ?? ?? ? ????.");
+    el.fetchStatus.textContent = `??? ?? ?? ??: ${error.message || "Cloudflare Function ?? API ??? ??????."}`;
   }
 }
-
 async function handlePriceLookup() {
   const query = buildWineLookupQuery();
   if (!query.primary) {
@@ -1907,6 +1903,12 @@ function findClosestExistingWine() {
 
 function clearImageField() {
   el.wineImage.value = "";
+  if (el.wineImageLibrary) {
+    el.wineImageLibrary.value = "";
+  }
+  if (el.wineImageCamera) {
+    el.wineImageCamera.value = "";
+  }
   syncImagePreview();
 }
 
@@ -1930,15 +1932,15 @@ function renderImageCandidates() {
   el.imageCandidateGrid.innerHTML = state.imageCandidates.length
     ? state.imageCandidates.map((candidate, index) => `
       <div class="candidate-card">
-        <img src="${escapeHtml(candidate.image_url)}" alt="와인 이미지 후보 ${index + 1}">
+        <img src="${escapeHtml(candidate.image_url)}" alt="?? ??? ?? ${index + 1}">
         <div class="candidate-meta">
           <strong>${escapeHtml(candidate.image_source || "Image candidate")}</strong>
           <span>${escapeHtml(candidate.matched_query || "")}</span>
         </div>
-        <button class="ghost-button" type="button" data-image-candidate="${index}" style="color:var(--text); border-color:var(--line); background:var(--surface-strong)">이 이미지 사용</button>
+        <button class="ghost-button" type="button" data-image-candidate="${index}" style="color:var(--text); border-color:var(--line); background:var(--surface-strong)">? ??? ??</button>
       </div>
     `).join("")
-    : '<div class="empty-state">아직 불러온 이미지 후보가 없습니다.</div>';
+    : '<div class="empty-state">?? ????, ???, ?? ??? ?? ??? ??? ?? ????. ?? ??? ??? ????.</div>';
 
   el.imageCandidateGrid.querySelectorAll("[data-image-candidate]").forEach((button) => {
     button.addEventListener("click", () => {
@@ -1949,17 +1951,20 @@ function renderImageCandidates() {
     });
   });
 }
-
 function applyImageCandidate(candidate) {
   if (!candidate?.image_url || !isUsableImageUrl(candidate.image_url)) {
-    el.fetchStatus.textContent = "선택한 후보가 실제 이미지 URL이 아니어서 적용하지 않았습니다.";
+    el.fetchStatus.textContent = "??? ??? ?? ??? URL? ???? ???? ?????.";
     return;
   }
   el.wineImage.value = candidate.image_url;
   syncImagePreview(candidate.image_source || "");
-  el.fetchStatus.textContent = `이미지 후보를 적용했습니다${candidate.image_source ? ` (${candidate.image_source})` : ""}.`;
+  setUploadFallbackVisible(false);
+  el.fetchStatus.textContent = `??? ??? ??????${candidate.image_source ? ` (${candidate.image_source})` : ""}.`;
 }
 
+function isPlaceholderImage(url) {
+  return String(url || "").startsWith("data:image/svg+xml") && String(url || "").includes("Vintage%20Varietal%20Region");
+}
 function isUsableImageUrl(url) {
   if (!url) {
     return false;
@@ -1996,6 +2001,45 @@ function isUsableImageUrl(url) {
   }
 }
 
+function setUploadFallbackVisible(visible, note = "") {
+  if (el.uploadFallbackPanel) {
+    el.uploadFallbackPanel.hidden = !visible;
+  }
+  if (el.uploadFallbackNote) {
+    el.uploadFallbackNote.textContent = note || "?? ????, ???, ?? ??? fallback?? ? ??? ? ??? ?? ?? ???? ???.";
+  }
+}
+
+async function handleImageUpload(event, sourceLabel) {
+  const file = event.target.files?.[0];
+  if (!file) {
+    return;
+  }
+
+  try {
+    const dataUrl = await readFileAsDataUrl(file);
+    el.wineImage.value = dataUrl;
+    state.imageCandidates = [];
+    renderImageCandidates();
+    syncImagePreview(sourceLabel);
+    setUploadFallbackVisible(true, "?? ???? ? ?? ??? ?? fallback ???? ??????. ??? ???? ???.");
+    el.fetchStatus.textContent = `${sourceLabel} ???? ??????.`;
+  } catch (_error) {
+    el.fetchStatus.textContent = `${sourceLabel} ?? ? ??? ??????. ?? ???? ?? ??????.`;
+  } finally {
+    event.target.value = "";
+  }
+}
+
+function readFileAsDataUrl(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(String(reader.result || ""));
+    reader.onerror = () => reject(reader.error || new Error("file-read-failed"));
+    reader.readAsDataURL(file);
+  });
+}
+
 function syncImagePreview(sourceLabel = "") {
   const imageUrl = el.wineImage.value.trim();
   if (!imageUrl || !isUsableImageUrl(imageUrl)) {
@@ -2005,8 +2049,8 @@ function syncImagePreview(sourceLabel = "") {
     }
     el.wineImagePreview.removeAttribute("src");
     el.imagePreviewCaption.textContent = imageUrl
-      ? "검색 결과 페이지나 잘못된 URL은 미리보기에 표시하지 않습니다. 이미지 후보에서 선택해주세요."
-      : "입력된 이미지 URL이나 자동 조회 결과를 여기서 바로 확인할 수 있습니다.";
+      ? "??? ?? ?? ???? ??? ????? ???? ?????. ?? ?? ?? ???? ??????."
+      : "???? ?? ??? ?? ???? ???? ??? ??? ? ????.";
     return;
   }
 
@@ -2016,10 +2060,9 @@ function syncImagePreview(sourceLabel = "") {
   }
   el.wineImagePreview.src = imageUrl;
   el.imagePreviewCaption.textContent = sourceLabel
-    ? `자동 조회 출처: ${sourceLabel}`
-    : "직접 입력한 이미지 URL 미리보기입니다.";
+    ? `??? ??? ??: ${sourceLabel}`
+    : "??? ??? ???????.";
 }
-
 async function persistPersona(persona) {
   if (!state.supabase) {
     return;

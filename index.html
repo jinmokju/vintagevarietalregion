@@ -187,7 +187,7 @@
                     <label>Varietal<input id="wineVarietal" list="wineVarietalOptions" placeholder="타입별 품종 선택 또는 직접 입력"></label>
                     <label>Region<input id="wineRegion" list="wineRegionOptions" placeholder="기존 지역 선택 또는 직접 입력"></label>
                     <label>평균가 (Wine-Searcher / Manual)<input id="winePrice" placeholder="예: KRW 62,000"></label>
-                    <label style="grid-column:1 / -1">이미지 URL<input id="wineImage" type="text" inputmode="url" placeholder="자동 조회 후 마음에 들면 그대로 저장"></label>
+                    <input id="wineImage" type="hidden">
                   </div>
                 </div>
               </div>
@@ -202,14 +202,34 @@
                       <div class="section-kicker">Step 2</div>
                       <h3>Image & Price Assist</h3>
                     </div>
-                    <div class="summary-meta">생산자, 와인명, 빈티지, 품종, 지역을 함께 반영해 더 정교하게 자동 조회합니다.</div>
+                    <div class="summary-meta">공식 와이너리/수입사/상품 페이지를 먼저 찾고, 없으면 공개 이미지 소스로 보조 탐색합니다.</div>
                   </div>
                   <div class="button-row">
                     <button class="ghost-button" id="fetchImageCandidates" type="button" style="color:var(--text); border-color:var(--line); background:var(--surface-strong)">이미지 후보 찾기</button>
                     <button class="ghost-button" id="fetchPriceData" type="button" style="color:var(--text); border-color:var(--line); background:var(--surface-strong)">가격 조회</button>
                   </div>
-                  <div class="muted" id="fetchStatus">이미지는 후보를 먼저 보여주고, 가격은 별도로 조회해 잘못된 자동 입력을 줄입니다.</div>
+                  <div class="muted" id="fetchStatus">이미지는 공식 와이너리, 수입사, 공개 이미지 fallback 순으로 찾고, 끝까지 안 나오면 그때 직접 업로드를 여는 흐름입니다.</div>
                   <div class="candidate-grid" id="imageCandidateGrid"></div>
+                  <div class="form-card" id="uploadFallbackPanel" hidden>
+                    <div class="form-card-head">
+                      <div>
+                        <div class="section-kicker">Fallback</div>
+                        <h3>Manual Image Upload</h3>
+                      </div>
+                      <div class="summary-meta">자동 탐색이 끝까지 실패했을 때만 여는 마지막 수단</div>
+                    </div>
+                    <div class="muted" id="uploadFallbackNote">공식 와이너리, 수입사, 공개 이미지 fallback까지 다 돌아도 못 찾았을 때만 직접 업로드를 여세요.</div>
+                    <div class="button-row">
+                      <label class="ghost-button" style="color:var(--text); border-color:var(--line); background:var(--surface-strong); cursor:pointer">
+                        사진 보관함
+                        <input id="wineImageLibrary" type="file" accept="image/*" hidden>
+                      </label>
+                      <label class="ghost-button" style="color:var(--text); border-color:var(--line); background:var(--surface-strong); cursor:pointer">
+                        카메라 촬영
+                        <input id="wineImageCamera" type="file" accept="image/*" capture="environment" hidden>
+                      </label>
+                    </div>
+                  </div>
                 </div>
                 <div class="form-card">
                   <div class="form-card-head">
