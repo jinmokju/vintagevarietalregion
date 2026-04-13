@@ -38,6 +38,10 @@
     .score-pill{display:inline-flex;align-items:center;justify-content:center;min-width:64px;padding:8px 12px;border-radius:999px;background:linear-gradient(135deg,var(--accent),var(--accent-soft));color:var(--white);font-weight:800}
     .review-detail-grid{display:grid;gap:10px}
     .review-detail-block{display:grid;gap:8px;padding:12px;border-radius:16px;border:1px solid var(--line);background:rgba(255,255,255,.2)}
+    .candidate-grid{display:grid;gap:12px;margin-top:12px}
+    .candidate-card{display:grid;gap:10px;padding:12px;border-radius:16px;border:1px solid var(--line);background:rgba(255,255,255,.22)}
+    .candidate-card img{width:100%;aspect-ratio:4/3;object-fit:cover;border-radius:14px;background:linear-gradient(135deg,#dcb8bf,#f4ddd2)}
+    .candidate-meta{display:grid;gap:4px;font-size:.84rem;color:var(--muted)}
     .review-detail-block h4{margin:0;font-size:.88rem}
     .review-copy{line-height:1.7}
     .wine-card{position:relative;overflow:hidden}
@@ -183,7 +187,7 @@
                     <label>Varietal<input id="wineVarietal" list="wineVarietalOptions" placeholder="타입별 품종 선택 또는 직접 입력"></label>
                     <label>Region<input id="wineRegion" list="wineRegionOptions" placeholder="기존 지역 선택 또는 직접 입력"></label>
                     <label>평균가 (Wine-Searcher / Manual)<input id="winePrice" placeholder="예: KRW 62,000"></label>
-                    <label style="grid-column:1 / -1">이미지 URL<input id="wineImage" type="url" placeholder="자동 조회 후 마음에 들면 그대로 저장"></label>
+                    <label style="grid-column:1 / -1">이미지 URL<input id="wineImage" type="text" inputmode="url" placeholder="자동 조회 후 마음에 들면 그대로 저장"></label>
                   </div>
                 </div>
               </div>
@@ -201,9 +205,11 @@
                     <div class="summary-meta">생산자, 와인명, 빈티지, 품종, 지역을 함께 반영해 더 정교하게 자동 조회합니다.</div>
                   </div>
                   <div class="button-row">
-                    <button class="ghost-button" id="fetchWineData" type="button" style="color:var(--text); border-color:var(--line); background:var(--surface-strong)">이미지/가격 자동 조회</button>
+                    <button class="ghost-button" id="fetchImageCandidates" type="button" style="color:var(--text); border-color:var(--line); background:var(--surface-strong)">이미지 후보 찾기</button>
+                    <button class="ghost-button" id="fetchPriceData" type="button" style="color:var(--text); border-color:var(--line); background:var(--surface-strong)">가격 조회</button>
                   </div>
-                  <div class="muted" id="fetchStatus">입력 정보가 많을수록 이미지와 가격 후보 정확도가 올라갑니다.</div>
+                  <div class="muted" id="fetchStatus">이미지는 후보를 먼저 보여주고, 가격은 별도로 조회해 잘못된 자동 입력을 줄입니다.</div>
+                  <div class="candidate-grid" id="imageCandidateGrid"></div>
                 </div>
                 <div class="form-card">
                   <div class="form-card-head">
