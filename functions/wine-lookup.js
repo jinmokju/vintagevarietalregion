@@ -132,66 +132,73 @@ function mergeCandidates(target, incoming, query) {
 }
 
 async function lookupOpenverseImages(query, env) {
-  const endpoint = env.OPENVERSE_API_ENDPOINT || DEFAULT_OPENVERSE_ENDPOINT;
-  const target = new URL(endpoint);
-  target.searchParams.set("q", query);
-  target.searchParams.set("page_size", "8");
-  target.searchParams.set("license_type", "commercial");
-  target.searchParams.set("mature", "false");
+  try {
+    const endpoint = safeCreateUrl(env.OPENVERSE_API_ENDPOINT || DEFAULT_OPENVERSE_ENDPOINT, DEFAULT_OPENVERSE_ENDPOINT);
+    endpoint.searchParams.set("q", query);
+    endpoint.searchParams.set("page_size", "8");
+    endpoint.searchParams.set("license_type", "commercial");
+    endpoint.searchParams.set("mature", "false");
 
-  const response = await fetch(target.toString(), {
-    headers: { "User-Agent": "VVR/1.0" }
-  });
+    const response = await fetch(endpoint.toString(), {
+      headers: { "User-Agent": "VVR/1.0" }
+    });
 
-  if (!response.ok) {
+    if (!response.ok) {
+      return [];
+    }
+
+    const payload = await response.json();
+    const results = Array.isArray(payload?.results) ? payload.results : [];
+    return results
+      .map((item) => ({
+        image_url: item?.thumbnail || item?.url || "",
+        image_source: item?.source || "Openverse",
+        score: scoreCandidate([item?.title, item?.creator, item?.foreign_landing_url].filter(Boolean).join(" "), query)
+      }))
+      .filter((item) => item.image_url)
+      .sort((a, b) => b.score - a.score)
+      .map(({ image_url, image_source }) => ({ image_url, image_source }));
+  } catch (_error) {
     return [];
   }
-
-  const payload = await response.json();
-  const results = Array.isArray(payload?.results) ? payload.results : [];
-  return results
-    .map((item) => ({
-      image_url: item?.thumbnail || item?.url || "",
-      image_source: item?.source || "Openverse",
-      score: scoreCandidate([item?.title, item?.creator, item?.foreign_landing_url].filter(Boolean).join(" "), query)
-    }))
-    .filter((item) => item.image_url)
-    .sort((a, b) => b.score - a.score)
-    .map(({ image_url, image_source }) => ({ image_url, image_source }));
 }
 
 async function lookupWikimediaImages(query) {
-  const target = new URL(WIKIMEDIA_ENDPOINT);
-  target.searchParams.set("origin", "*");
-  target.searchParams.set("action", "query");
-  target.searchParams.set("generator", "search");
-  target.searchParams.set("gsrsearch", query);
-  target.searchParams.set("gsrnamespace", "6");
-  target.searchParams.set("gsrlimit", "6");
-  target.searchParams.set("prop", "imageinfo");
-  target.searchParams.set("iiprop", "url");
-  target.searchParams.set("iiurlwidth", "640");
-  target.searchParams.set("format", "json");
+  try {
+    const target = safeCreateUrl(WIKIMEDIA_ENDPOINT, WIKIMEDIA_ENDPOINT);
+    target.searchParams.set("origin", "*");
+    target.searchParams.set("action", "query");
+    target.searchParams.set("generator", "search");
+    target.searchParams.set("gsrsearch", query);
+    target.searchParams.set("gsrnamespace", "6");
+    target.searchParams.set("gsrlimit", "6");
+    target.searchParams.set("prop", "imageinfo");
+    target.searchParams.set("iiprop", "url");
+    target.searchParams.set("iiurlwidth", "640");
+    target.searchParams.set("format", "json");
 
-  const response = await fetch(target.toString(), {
-    headers: { "User-Agent": "VVR/1.0" }
-  });
+    const response = await fetch(target.toString(), {
+      headers: { "User-Agent": "VVR/1.0" }
+    });
 
-  if (!response.ok) {
+    if (!response.ok) {
+      return [];
+    }
+
+    const payload = await response.json();
+    const pages = Object.values(payload?.query?.pages || {});
+    return pages
+      .map((page) => ({
+        image_url: page?.imageinfo?.[0]?.thumburl || page?.imageinfo?.[0]?.url || "",
+        image_source: "Wikimedia Commons",
+        score: scoreCandidate([page?.title, page?.imageinfo?.[0]?.descriptionurl].filter(Boolean).join(" "), query)
+      }))
+      .filter((item) => item.image_url)
+      .sort((a, b) => b.score - a.score)
+      .map(({ image_url, image_source }) => ({ image_url, image_source }));
+  } catch (_error) {
     return [];
   }
-
-  const payload = await response.json();
-  const pages = Object.values(payload?.query?.pages || {});
-  return pages
-    .map((page) => ({
-      image_url: page?.imageinfo?.[0]?.thumburl || page?.imageinfo?.[0]?.url || "",
-      image_source: "Wikimedia Commons",
-      score: scoreCandidate([page?.title, page?.imageinfo?.[0]?.descriptionurl].filter(Boolean).join(" "), query)
-    }))
-    .filter((item) => item.image_url)
-    .sort((a, b) => b.score - a.score)
-    .map(({ image_url, image_source }) => ({ image_url, image_source }));
 }
 
 function scoreCandidate(text, query) {
@@ -252,30 +259,42 @@ async function lookupWinePrice(queries, env) {
   }
 
   for (const query of queries) {
-    const target = new URL(env.WINE_SEARCHER_API_ENDPOINT);
-    target.searchParams.set("q", query);
+    try {
+      const target = safeCreateUrl(env.WINE_SEARCHER_API_ENDPOINT, env.WINE_SEARCHER_API_ENDPOINT);
+      target.searchParams.set("q", query);
 
-    const response = await fetch(target.toString(), {
-      headers: {
-        Authorization: `Bearer ${env.WINE_SEARCHER_API_KEY}`
+      const response = await fetch(target.toString(), {
+        headers: {
+          Authorization: `Bearer ${env.WINE_SEARCHER_API_KEY}`
+        }
+      });
+
+      if (!response.ok) {
+        continue;
       }
-    });
 
-    if (!response.ok) {
+      const payload = await response.json();
+      const averagePrice =
+        payload?.average_price ||
+        payload?.data?.average_price ||
+        payload?.results?.[0]?.average_price ||
+        "";
+
+      if (averagePrice) {
+        return { average_price: averagePrice, matched_query: query };
+      }
+    } catch (_error) {
       continue;
-    }
-
-    const payload = await response.json();
-    const averagePrice =
-      payload?.average_price ||
-      payload?.data?.average_price ||
-      payload?.results?.[0]?.average_price ||
-      "";
-
-    if (averagePrice) {
-      return { average_price: averagePrice, matched_query: query };
     }
   }
 
   return { average_price: "", matched_query: "" };
+}
+
+function safeCreateUrl(value, fallback) {
+  try {
+    return new URL(value);
+  } catch (_error) {
+    return new URL(fallback);
+  }
 }

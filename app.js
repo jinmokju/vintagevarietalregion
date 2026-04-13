@@ -1794,7 +1794,7 @@ async function handleImageLookup() {
       el.fetchStatus.textContent = `${state.imageCandidates.length}개의 이미지 후보를 찾았습니다. 마음에 드는 이미지를 선택해주세요.`;
     }
   } catch (error) {
-    el.fetchStatus.textContent = "자동 조회에 실패했습니다. Cloudflare Function 또는 API 설정을 확인해주세요.";
+    el.fetchStatus.textContent = `이미지 후보 조회 실패: ${error.message || "Cloudflare Function 또는 API 설정을 확인해주세요."}`;
   }
 }
 
@@ -1822,7 +1822,7 @@ async function handlePriceLookup() {
     }
     el.fetchStatus.textContent = "평균가를 찾지 못했습니다. Wine-Searcher API 또는 수동 입력을 확인해주세요.";
   } catch (error) {
-    el.fetchStatus.textContent = "가격 조회에 실패했습니다. Cloudflare Function 또는 API 설정을 확인해주세요.";
+    el.fetchStatus.textContent = `가격 조회 실패: ${error.message || "Cloudflare Function 또는 API 설정을 확인해주세요."}`;
   }
 }
 
@@ -1857,7 +1857,11 @@ async function requestWineLookup(mode, query) {
   params.set("type", el.wineType.value.trim());
 
   const response = await fetch(`/functions/wine-lookup?${params.toString()}`);
-  return response.json();
+  const data = await response.json().catch(() => ({}));
+  if (!response.ok) {
+    throw new Error(data.note || data.error || `${mode} lookup failed`);
+  }
+  return data;
 }
 
 function findClosestExistingWine() {
