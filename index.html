@@ -172,7 +172,7 @@
                       <div class="section-kicker">Step 1</div>
                       <h3>Smart Fill Studio</h3>
                     </div>
-                    <div class="summary-meta">사진함 선택 또는 촬영 후 OCR 자동 채우기</div>
+                    <div class="summary-meta">사진함 선택 또는 촬영 후 Vision 자동 채우기</div>
                   </div>
                   <div class="form-grid">
                     <div class="form-card" style="padding:14px">
@@ -186,17 +186,17 @@
                       <input id="labelCameraInput" type="file" accept="image/*" capture="environment" hidden>
                     </div>
                     <div class="button-row" style="align-items:end;justify-content:flex-end">
-                      <button class="ghost-button" id="runOcrButton" type="button" style="color:var(--text); border-color:var(--line); background:var(--surface-strong)">라벨 OCR로 자동 입력</button>
+                      <button class="ghost-button" id="runOcrButton" type="button" style="color:var(--text); border-color:var(--line); background:var(--surface-strong)">라벨 Vision으로 자동 입력</button>
                       <button class="ghost-button" id="fetchWineData" type="button" style="color:var(--text); border-color:var(--line); background:var(--surface-strong)">이미지/가격 자동 조회</button>
                     </div>
                   </div>
-                  <div class="muted" id="fetchStatus">Cloudflare Function을 통해 자동 조회를 시도합니다.</div>
+                  <div class="muted" id="fetchStatus">Cloudflare Function을 통해 이미지, 가격, Vision 분석을 연결합니다.</div>
                   <div class="image-preview" id="labelPreviewCard" hidden style="margin-top:6px">
                     <div class="image-preview-head">
                       <strong>업로드한 라벨 미리보기</strong>
                     </div>
                     <img id="labelPreviewImage" alt="업로드한 와인 라벨 미리보기">
-                    <div class="image-caption" id="ocrStatus">라벨 사진을 올리면 기존 와인 매칭과 주요 정보 추출을 먼저 시도합니다.</div>
+                    <div class="image-caption" id="ocrStatus">라벨 사진을 올리면 Vision이 producer, vintage, varietal, region 후보를 먼저 구조화합니다.</div>
                   </div>
                 </div>
                 <div class="form-card">
@@ -328,7 +328,6 @@
     </main>
   </div>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
   <script src="./supabase-config.js"></script>
   <script src="./app.js"></script>
 </body>

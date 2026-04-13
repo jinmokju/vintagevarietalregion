@@ -817,22 +817,15 @@ async function handleLabelOcr() {
     el.ocrStatus.textContent = "먼저 라벨 사진을 업로드해주세요.";
     return;
   }
-  if (!window.Tesseract) {
-    el.ocrStatus.textContent = "OCR 라이브러리를 불러오지 못했습니다. 새로고침 후 다시 시도해주세요.";
-    return;
-  }
 
   el.runOcrButton.disabled = true;
-  el.ocrStatus.textContent = "라벨 전처리와 OCR을 준비하는 중...";
+  el.ocrStatus.textContent = "OpenAI Vision으로 라벨을 분석하는 중...";
   try {
-    const ocrText = await runEnhancedLabelOcr(file, (status) => {
-      el.ocrStatus.textContent = status;
-    });
-    const parsed = parseLabelOcrText(ocrText);
+    const parsed = await analyzeWineLabelWithVision(file);
     applyOcrSuggestion(parsed);
   } catch (error) {
     console.error(error);
-    el.ocrStatus.textContent = "라벨 OCR에 실패했습니다. 사진을 더 밝고 정면으로 다시 찍어보면 정확도가 올라갑니다.";
+    el.ocrStatus.textContent = "Vision 라벨 분석에 실패했습니다. Cloudflare 환경변수나 API 연결을 확인해주세요.";
   } finally {
     el.runOcrButton.disabled = false;
   }
@@ -842,141 +835,75 @@ function getSelectedLabelFile() {
   return el.labelImageInput.files?.[0] || el.labelCameraInput?.files?.[0] || null;
 }
 
-async function runEnhancedLabelOcr(file, updateStatus) {
-  const variants = await createOcrImageVariants(file);
-  const outputs = [];
-
-  for (let index = 0; index < variants.length; index += 1) {
-    const variant = variants[index];
-    const passNumber = index + 1;
-    const result = await window.Tesseract.recognize(variant.dataUrl, "eng", {
-      logger: (message) => {
-        if (message.status === "recognizing text" && typeof message.progress === "number") {
-          updateStatus(`${variant.label} OCR 분석 중... ${Math.round(message.progress * 100)}%`);
-        }
+async function analyzeWineLabelWithVision(file) {
+  const imageDataUrl = await readFileAsDataUrl(file);
+  const response = await fetch("/functions/label-vision", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({
+      image_data_url: imageDataUrl,
+      wine_type_hint: el.wineType.value || "Red",
+      candidates: {
+        wines: state.wines.map((wine) => ({
+          id: wine.id,
+          name: wine.name,
+          producer: wine.producer || "",
+          vintage: wine.vintage || "",
+          type: wine.type || "",
+          varietal: wine.varietal || "",
+          region: wine.region || ""
+        })),
+        varietals: getAllKnownVarietals(),
+        regions: getAllKnownRegions(),
+        producers: getAllKnownProducers()
       }
-    });
-    outputs.push(result.data?.text || "");
-    updateStatus(`${passNumber}/${variants.length} OCR 패스를 완료했습니다.`);
+    })
+  });
+
+  const data = await response.json();
+  if (!response.ok) {
+    throw new Error(data?.error || "Vision label analysis failed");
   }
 
-  return mergeOcrOutputs(outputs);
-}
-
-async function createOcrImageVariants(file) {
-  const image = await loadImageFromFile(file);
-  const width = image.naturalWidth || image.width;
-  const height = image.naturalHeight || image.height;
-  const scale = width < 1600 ? 2 : 1.3;
-  const targetWidth = Math.round(width * scale);
-  const targetHeight = Math.round(height * scale);
-
-  const variants = [
-    { label: "원본", filter: "contrast(1.1) saturate(.92) brightness(1.04)", rotation: 0, crop: 1 },
-    { label: "고대비", filter: "grayscale(1) contrast(1.7) brightness(1.15)", rotation: 0, crop: 1 },
-    { label: "선명 강조", filter: "grayscale(1) contrast(2.1) brightness(1.24)", rotation: 0, crop: 1 },
-    { label: "중앙 크롭", filter: "grayscale(1) contrast(1.9) brightness(1.18)", rotation: 0, crop: 0.84 },
-    { label: "살짝 회전 보정", filter: "grayscale(1) contrast(1.9) brightness(1.2)", rotation: -1.8, crop: 1 }
-  ];
-
-  return variants.map((variant) => ({
-    label: variant.label,
-    dataUrl: drawProcessedImage(image, targetWidth, targetHeight, variant.filter, variant.rotation, variant.crop)
-  }));
-}
-
-function loadImageFromFile(file) {
-  return new Promise((resolve, reject) => {
-    const objectUrl = URL.createObjectURL(file);
-    const image = new Image();
-    image.onload = () => {
-      URL.revokeObjectURL(objectUrl);
-      resolve(image);
-    };
-    image.onerror = (error) => {
-      URL.revokeObjectURL(objectUrl);
-      reject(error);
-    };
-    image.src = objectUrl;
-  });
-}
-
-function drawProcessedImage(image, width, height, filter, rotation = 0, crop = 1) {
-  const canvas = document.createElement("canvas");
-  canvas.width = width;
-  canvas.height = height;
-  const context = canvas.getContext("2d");
-  context.filter = filter;
-  const sourceWidth = image.naturalWidth || image.width;
-  const sourceHeight = image.naturalHeight || image.height;
-  const cropWidth = sourceWidth * crop;
-  const cropHeight = sourceHeight * crop;
-  const cropX = (sourceWidth - cropWidth) / 2;
-  const cropY = (sourceHeight - cropHeight) / 2;
-
-  context.save();
-  context.translate(width / 2, height / 2);
-  context.rotate((rotation * Math.PI) / 180);
-  context.drawImage(image, cropX, cropY, cropWidth, cropHeight, -width / 2, -height / 2, width, height);
-  context.restore();
-  return canvas.toDataURL("image/png");
-}
-
-function mergeOcrOutputs(outputs) {
-  const mergedLines = [];
-  outputs.forEach((text) => {
-    String(text || "")
-      .split(/\r?\n/)
-      .map((line) => line.trim())
-      .filter(Boolean)
-      .forEach((line) => {
-        const normalized = normalizeLookupValue(line);
-        if (!normalized) {
-          return;
-        }
-        const exists = mergedLines.some((existing) => {
-          const normalizedExisting = normalizeLookupValue(existing);
-          return normalizedExisting === normalized
-            || normalizedExisting.includes(normalized)
-            || normalized.includes(normalizedExisting);
-        });
-        if (!exists) {
-          mergedLines.push(line);
-        }
-      });
-  });
-  return mergedLines.join("\n");
-}
-
-function parseLabelOcrText(rawText) {
-  const text = String(rawText || "").replace(/\r/g, "\n");
-  const collapsed = text.replace(/[^\S\n]+/g, " ");
-  const lines = collapsed
-    .split("\n")
-    .map((line) => line.trim())
-    .filter(Boolean);
-  const normalizedText = normalizeLookupValue(lines.join(" "));
-
-  const matchedWine = findBestWineFromText(normalizedText);
-  const vintageMatch = collapsed.match(/\b(19|20)\d{2}\b/);
-  const vintage = matchedWine?.vintage || (vintageMatch ? vintageMatch[0] : "");
-  const detectedVarietal = matchedWine?.varietal || detectBestKeywordMatch(normalizedText, getAllKnownVarietals());
-  const detectedRegion = matchedWine?.region || detectBestKeywordMatch(normalizedText, getAllKnownRegions());
-  const detectedProducer = matchedWine?.producer || detectBestKeywordMatch(normalizedText, getAllKnownProducers());
-  const detectedType = matchedWine?.type || inferWineType({ normalizedText, varietal: detectedVarietal, region: detectedRegion });
-  const detectedName = matchedWine?.name || deriveWineName(lines, detectedProducer, vintage);
+  const matchedWine = data.matched_wine_id
+    ? state.wines.find((wine) => wine.id === data.matched_wine_id) || null
+    : findWineByExactIdentity(data.name, data.producer, data.vintage);
 
   return {
-    text: collapsed,
-    lines,
     wine: matchedWine,
-    type: detectedType || el.wineType.value || "Red",
-    name: detectedName,
-    producer: detectedProducer,
-    vintage,
-    varietal: detectedVarietal,
-    region: detectedRegion
+    type: data.type || matchedWine?.type || el.wineType.value || "Red",
+    name: data.name || matchedWine?.name || "",
+    producer: data.producer || matchedWine?.producer || "",
+    vintage: data.vintage || matchedWine?.vintage || "",
+    varietal: data.varietal || matchedWine?.varietal || "",
+    region: data.region || matchedWine?.region || "",
+    rawText: data.raw_text || "",
+    confidence: data.confidence || "medium",
+    notes: Array.isArray(data.notes) ? data.notes : []
   };
+}
+
+function readFileAsDataUrl(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result);
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+}
+
+function findWineByExactIdentity(name, producer, vintage) {
+  const normalizedName = normalizeLookupValue(name || "");
+  const normalizedProducer = normalizeLookupValue(producer || "");
+  const vintageValue = String(vintage || "").trim();
+  return state.wines.find((wine) => {
+    const sameName = normalizedName && normalizeLookupValue(wine.name) === normalizedName;
+    const sameProducer = !normalizedProducer || normalizeLookupValue(wine.producer || "") === normalizedProducer;
+    const sameVintage = !vintageValue || String(wine.vintage || "") === vintageValue;
+    return sameName && sameProducer && sameVintage;
+  }) || null;
 }
 
 function applyOcrSuggestion(parsed) {
@@ -1002,7 +929,7 @@ function applyOcrSuggestion(parsed) {
   if (parsed.wine) {
     summary.push(`기존 와인 '${parsed.wine.name}'와 매칭했습니다.`);
   } else {
-    summary.push("OCR로 읽은 후보 값을 폼에 채웠습니다.");
+    summary.push("Vision이 읽은 후보 값을 폼에 채웠습니다.");
   }
   if (parsed.producer) {
     summary.push(`Producer: ${parsed.producer}`);
@@ -1016,8 +943,14 @@ function applyOcrSuggestion(parsed) {
   if (parsed.region) {
     summary.push(`Region: ${parsed.region}`);
   }
+  if (parsed.confidence) {
+    summary.push(`Confidence: ${parsed.confidence}`);
+  }
+  if (parsed.notes?.length) {
+    summary.push(parsed.notes.join(" "));
+  }
   if (!parsed.producer && !parsed.name && !parsed.varietal && !parsed.region && !parsed.vintage) {
-    summary.push("정확한 값을 거의 찾지 못했습니다. OCR 원문을 보고 일부 수동 보정이 필요합니다.");
+    summary.push("정확한 값을 거의 찾지 못했습니다. 라벨 사진을 더 정면으로 찍거나 수동 입력이 필요합니다.");
   }
   el.ocrStatus.textContent = summary.join(" ");
 }
