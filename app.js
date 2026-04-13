@@ -419,7 +419,7 @@ function normalizeWineRow(row, reviews) {
     varietal: row.varietal,
     region: row.region,
     averagePrice: row.average_price,
-    image: row.image_url || makePlaceholderImage(row.name, "#8a3650", "#f5d2c6"),
+    image: sanitizeStoredImage(row.image_url),
     reviews: (reviews || []).map((review) => normalizeReview(review, row.type))
   };
 }
@@ -427,8 +427,13 @@ function normalizeWineRow(row, reviews) {
 function normalizeLocalWine(wine) {
   return {
     ...wine,
+    image: sanitizeStoredImage(wine.image),
     reviews: (wine.reviews || []).map((review) => normalizeReview(review, wine.type))
   };
+}
+
+function sanitizeStoredImage(value) {
+  return isUsableImageUrl(value || "") ? value : "";
 }
 
 function normalizeReview(review, wineType) {
@@ -1787,7 +1792,10 @@ async function handleImageLookup() {
     renderImageCandidates();
 
     if (!state.imageCandidates.length) {
-      el.fetchStatus.textContent = "이미지 후보를 찾지 못했습니다. 직접 URL 입력 또는 기존 와인 재사용을 권장합니다.";
+      const hadInvalidStoredImage = existingWine && existingWine.image && !isUsableImageUrl(existingWine.image);
+      el.fetchStatus.textContent = hadInvalidStoredImage
+        ? "이미지 후보를 찾지 못했고, 기존 저장 이미지도 실제 이미지 URL이 아니라 제외했습니다."
+        : "이미지 후보를 찾지 못했습니다. 직접 URL 입력 또는 다른 검색어 조합을 시도해주세요.";
       return;
     }
 

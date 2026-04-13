@@ -82,11 +82,17 @@ function buildCandidateQueries(parts) {
     [parts.name]
   ];
 
-  return [...new Set(
+  const base = [...new Set(
     ordered
       .map((items) => items.map((item) => String(item || "").trim()).filter(Boolean).join(" "))
       .filter(Boolean)
   )];
+
+  const normalized = base
+    .map((query) => removeDiacritics(query))
+    .filter((query) => query && !base.includes(query));
+
+  return [...base, ...normalized];
 }
 
 async function lookupImageCandidates(queries, env) {
@@ -210,10 +216,16 @@ function scoreCandidate(text, query) {
 }
 
 function tokenizeQuery(query) {
-  return String(query || "")
+  return removeDiacritics(String(query || ""))
     .toLowerCase()
     .split(/[^a-z0-9]+/)
     .filter((token) => token && token.length > 1);
+}
+
+function removeDiacritics(value) {
+  return String(value || "")
+    .normalize("NFKD")
+    .replace(/[\u0300-\u036f]/g, "");
 }
 
 function isUsableImageUrl(url) {
