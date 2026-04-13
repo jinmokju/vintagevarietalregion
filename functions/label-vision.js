@@ -1,4 +1,5 @@
 const OPENAI_RESPONSES_URL = "https://api.openai.com/v1/responses";
+const OPENAI_FILES_URL = "https://api.openai.com/v1/files";
 const DEFAULT_MODEL = "gpt-4.1-mini";
 
 export async function onRequestPost(context) {
@@ -25,6 +26,7 @@ export async function onRequestPost(context) {
 
   const candidates = sanitizeCandidates(body?.candidates);
   const wineTypeHint = String(body?.wine_type_hint || "Red");
+  const upload = await uploadVisionFile(imageDataUrl, env.OPENAI_API_KEY);
 
   const prompt = [
     "You are extracting wine label information from a single bottle label image.",
@@ -105,7 +107,7 @@ export async function onRequestPost(context) {
             },
             {
               type: "input_image",
-              image_url: imageDataUrl,
+              file_id: upload.file_id,
               detail: "high"
             }
           ]
@@ -136,6 +138,60 @@ export async function onRequestPost(context) {
   }
 
   return Response.json(parsed);
+}
+
+async function uploadVisionFile(imageDataUrl, apiKey) {
+  const parsed = parseDataUrl(imageDataUrl);
+  if (!parsed) {
+    throw new Error("Image upload payload could not be parsed.");
+  }
+
+  const form = new FormData();
+  form.append("purpose", "vision");
+  form.append(
+    "file",
+    new File([parsed.bytes], `label.${parsed.extension}`, { type: parsed.mimeType })
+  );
+
+  const response = await fetch(OPENAI_FILES_URL, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${apiKey}`
+    },
+    body: form
+  });
+
+  const payload = await response.json();
+  if (!response.ok) {
+    throw new Error(payload?.error?.message || "OpenAI file upload failed.");
+  }
+
+  return { file_id: payload.id };
+}
+
+function parseDataUrl(dataUrl) {
+  const match = String(dataUrl || "").match(/^data:(image\/[a-zA-Z0-9.+-]+);base64,(.+)$/);
+  if (!match) {
+    return null;
+  }
+
+  const mimeType = match[1];
+  const base64 = match[2];
+  const binary = atob(base64);
+  const bytes = new Uint8Array(binary.length);
+  for (let index = 0; index < binary.length; index += 1) {
+    bytes[index] = binary.charCodeAt(index);
+  }
+
+  const extension = mimeType.includes("png")
+    ? "png"
+    : mimeType.includes("webp")
+      ? "webp"
+      : mimeType.includes("gif")
+        ? "gif"
+        : "jpg";
+
+  return { mimeType, bytes, extension };
 }
 
 function sanitizeCandidates(candidates) {
