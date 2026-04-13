@@ -1207,12 +1207,15 @@ function updateAuthUi() {
 }
 function updateAdminAccess() {
   const disabled = !state.isAdmin;
-  [...el.reviewForm.elements, ...el.tasteForm.elements].forEach((field) => {
-    if (field === el.cancelEditButton) {
-      return;
-    }
-    field.disabled = disabled;
-  });
+  const reviewSubmitButton = el.reviewSubmitLabel;
+  const tasteSubmitButton = el.tasteForm?.querySelector('button[type="submit"]');
+
+  if (reviewSubmitButton) {
+    reviewSubmitButton.disabled = disabled;
+  }
+  if (tasteSubmitButton) {
+    tasteSubmitButton.disabled = disabled;
+  }
 
   el.fetchImageCandidates.disabled = disabled;
   el.fetchPriceData.disabled = disabled;
