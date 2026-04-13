@@ -260,6 +260,7 @@ const el = {
   ocrStatus: document.getElementById("ocrStatus"),
   wineImagePreview: document.getElementById("wineImagePreview"),
   imagePreviewCard: document.getElementById("imagePreviewCard"),
+  imagePreviewPlaceholder: document.getElementById("imagePreviewPlaceholder"),
   imagePreviewCaption: document.getElementById("imagePreviewCaption"),
   clearImageButton: document.getElementById("clearImageButton"),
   reviewStructureEditor: document.getElementById("reviewStructureEditor"),
@@ -809,16 +810,12 @@ async function handleLabelOcr() {
   }
 
   el.runOcrButton.disabled = true;
-  el.ocrStatus.textContent = "OCR로 라벨 텍스트를 읽는 중...";
+  el.ocrStatus.textContent = "라벨 전처리와 OCR을 준비하는 중...";
   try {
-    const result = await window.Tesseract.recognize(file, "eng", {
-      logger: (message) => {
-        if (message.status === "recognizing text" && typeof message.progress === "number") {
-          el.ocrStatus.textContent = `OCR 분석 중... ${Math.round(message.progress * 100)}%`;
-        }
-      }
+    const ocrText = await runEnhancedLabelOcr(file, (status) => {
+      el.ocrStatus.textContent = status;
     });
-    const parsed = parseLabelOcrText(result.data?.text || "");
+    const parsed = parseLabelOcrText(ocrText);
     applyOcrSuggestion(parsed);
   } catch (error) {
     console.error(error);
@@ -826,6 +823,99 @@ async function handleLabelOcr() {
   } finally {
     el.runOcrButton.disabled = false;
   }
+}
+
+async function runEnhancedLabelOcr(file, updateStatus) {
+  const variants = await createOcrImageVariants(file);
+  const outputs = [];
+
+  for (let index = 0; index < variants.length; index += 1) {
+    const variant = variants[index];
+    const passNumber = index + 1;
+    const result = await window.Tesseract.recognize(variant.dataUrl, "eng", {
+      logger: (message) => {
+        if (message.status === "recognizing text" && typeof message.progress === "number") {
+          updateStatus(`${variant.label} OCR 분석 중... ${Math.round(message.progress * 100)}%`);
+        }
+      }
+    });
+    outputs.push(result.data?.text || "");
+    updateStatus(`${passNumber}/${variants.length} OCR 패스를 완료했습니다.`);
+  }
+
+  return mergeOcrOutputs(outputs);
+}
+
+async function createOcrImageVariants(file) {
+  const image = await loadImageFromFile(file);
+  const width = image.naturalWidth || image.width;
+  const height = image.naturalHeight || image.height;
+  const scale = width < 1600 ? 2 : 1.3;
+  const targetWidth = Math.round(width * scale);
+  const targetHeight = Math.round(height * scale);
+
+  const variants = [
+    { label: "원본", filter: "contrast(1.1) saturate(.92) brightness(1.04)" },
+    { label: "고대비", filter: "grayscale(1) contrast(1.7) brightness(1.15)" },
+    { label: "선명 강조", filter: "grayscale(1) contrast(2.1) brightness(1.24)" }
+  ];
+
+  return variants.map((variant) => ({
+    label: variant.label,
+    dataUrl: drawProcessedImage(image, targetWidth, targetHeight, variant.filter)
+  }));
+}
+
+function loadImageFromFile(file) {
+  return new Promise((resolve, reject) => {
+    const objectUrl = URL.createObjectURL(file);
+    const image = new Image();
+    image.onload = () => {
+      URL.revokeObjectURL(objectUrl);
+      resolve(image);
+    };
+    image.onerror = (error) => {
+      URL.revokeObjectURL(objectUrl);
+      reject(error);
+    };
+    image.src = objectUrl;
+  });
+}
+
+function drawProcessedImage(image, width, height, filter) {
+  const canvas = document.createElement("canvas");
+  canvas.width = width;
+  canvas.height = height;
+  const context = canvas.getContext("2d");
+  context.filter = filter;
+  context.drawImage(image, 0, 0, width, height);
+  return canvas.toDataURL("image/png");
+}
+
+function mergeOcrOutputs(outputs) {
+  const mergedLines = [];
+  outputs.forEach((text) => {
+    String(text || "")
+      .split(/\r?\n/)
+      .map((line) => line.trim())
+      .filter(Boolean)
+      .forEach((line) => {
+        const normalized = normalizeLookupValue(line);
+        if (!normalized) {
+          return;
+        }
+        const exists = mergedLines.some((existing) => {
+          const normalizedExisting = normalizeLookupValue(existing);
+          return normalizedExisting === normalized
+            || normalizedExisting.includes(normalized)
+            || normalized.includes(normalizedExisting);
+        });
+        if (!exists) {
+          mergedLines.push(line);
+        }
+      });
+  });
+  return mergedLines.join("\n");
 }
 
 function parseLabelOcrText(rawText) {
@@ -913,6 +1003,8 @@ function findBestWineFromText(normalizedText) {
     const normalizedVarietal = normalizeLookupValue(wine.varietal || "");
     const normalizedRegion = normalizeLookupValue(wine.region || "");
     const normalizedVintage = normalizeLookupValue(wine.vintage || "");
+    const nameTokens = splitLookupTokens(wine.name);
+    const producerTokens = splitLookupTokens(wine.producer || "");
 
     if (normalizedName && normalizedText.includes(normalizedName)) {
       score += 8;
@@ -929,6 +1021,11 @@ function findBestWineFromText(normalizedText) {
     if (normalizedRegion && normalizedText.includes(normalizedRegion)) {
       score += 2;
     }
+    score += countTokenMatches(normalizedText, nameTokens) * 1.2;
+    score += countTokenMatches(normalizedText, producerTokens) * 1.1;
+    if (wine.vintage && normalizedText.includes(String(wine.vintage))) {
+      score += 3;
+    }
 
     if (score > bestScore) {
       bestScore = score;
@@ -936,7 +1033,7 @@ function findBestWineFromText(normalizedText) {
     }
   });
 
-  return bestScore >= 8 ? bestWine : null;
+  return bestScore >= 6 ? bestWine : null;
 }
 
 function getAllKnownVarietals() {
@@ -955,8 +1052,14 @@ function detectBestKeywordMatch(normalizedText, candidates) {
   const ranked = (candidates || [])
     .filter(Boolean)
     .map((value) => ({ value, normalized: normalizeLookupValue(value) }))
-    .filter((entry) => entry.normalized && normalizedText.includes(entry.normalized))
-    .sort((left, right) => right.normalized.length - left.normalized.length);
+    .map((entry) => ({
+      ...entry,
+      score: normalizedText.includes(entry.normalized)
+        ? entry.normalized.length + 4
+        : countTokenMatches(normalizedText, splitLookupTokens(entry.value))
+    }))
+    .filter((entry) => entry.normalized && entry.score > 0)
+    .sort((left, right) => right.score - left.score || right.normalized.length - left.normalized.length);
   return ranked[0]?.value || "";
 }
 
@@ -997,6 +1100,19 @@ function deriveWineName(lines, producer, vintage) {
   const candidates = cleaned.filter((line) => normalizeLookupValue(line) !== producerNormalized);
   const joined = candidates.slice(0, 2).join(" ");
   return joined || cleaned[0] || vintage || "";
+}
+
+function splitLookupTokens(value) {
+  return String(value || "")
+    .toLowerCase()
+    .normalize("NFKD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .split(/[^a-z0-9]+/)
+    .filter((token) => token && token.length > 2);
+}
+
+function countTokenMatches(normalizedText, tokens) {
+  return (tokens || []).reduce((count, token) => count + (normalizedText.includes(token) ? 1 : 0), 0);
 }
 
 function normalizeLookupValue(value) {
@@ -1873,12 +1989,18 @@ function syncImagePreview(sourceLabel = "") {
   const imageUrl = el.wineImage.value.trim();
   if (!imageUrl) {
     el.imagePreviewCard.hidden = true;
+    if (el.imagePreviewPlaceholder) {
+      el.imagePreviewPlaceholder.hidden = false;
+    }
     el.wineImagePreview.removeAttribute("src");
     el.imagePreviewCaption.textContent = "입력된 이미지 URL이나 자동 조회 결과를 여기서 바로 확인할 수 있습니다.";
     return;
   }
 
   el.imagePreviewCard.hidden = false;
+  if (el.imagePreviewPlaceholder) {
+    el.imagePreviewPlaceholder.hidden = true;
+  }
   el.wineImagePreview.src = imageUrl;
   el.imagePreviewCaption.textContent = sourceLabel
     ? `자동 조회 출처: ${sourceLabel}`
