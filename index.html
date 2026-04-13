@@ -65,17 +65,19 @@
     .persona-copy{display:grid;gap:4px}
     .persona-copy strong{font-size:1.08rem}
     .persona-character{display:grid;gap:10px;padding:16px 18px;border-radius:20px;border:1px solid var(--line);background:linear-gradient(135deg,rgba(166,61,83,.1),rgba(255,255,255,.34))}
+    .persona-character-hero{margin-top:14px}
     .persona-character-kicker{display:inline-flex;width:max-content;padding:7px 11px;border-radius:999px;background:rgba(255,255,255,.54);border:1px solid var(--line);font-size:.74rem;font-weight:800;letter-spacing:.04em;text-transform:uppercase;color:var(--accent)}
-    .persona-character p,.persona-character-block p{margin:0;line-height:1.68;color:var(--text)}
-    .persona-character-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin-top:14px}
-    .persona-character-block{display:grid;gap:8px;padding:14px 16px;border-radius:18px;border:1px solid var(--line);background:rgba(255,255,255,.24)}
+    .persona-character p,.persona-character-block p,.persona-favorite-block p{margin:0;line-height:1.68;color:var(--text)}
+    .persona-character-grid,.persona-favorite-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin-top:14px}
+    .persona-character-block,.persona-favorite-block{display:grid;gap:8px;padding:14px 16px;border-radius:18px;border:1px solid var(--line);background:rgba(255,255,255,.24)}
     .persona-character-label{font-size:.76rem;font-weight:800;letter-spacing:.04em;text-transform:uppercase;color:var(--accent)}
     .persona-favorites{margin-top:2px;margin-bottom:2px}
+    .persona-favorite-block .pill{background:rgba(166,61,83,.1)}
     .persona-preview-card{background:linear-gradient(135deg,rgba(166,61,83,.08),rgba(255,255,255,.4))}
     .persona-preview-card #personaSummaryPreview{line-height:1.75}
     .persona-preview-card #personaSummaryPreview strong{display:block;color:var(--text);margin-bottom:4px}
     .persona-preview-card #personaSummaryPreview span{display:block;margin-top:4px}
-    @media (max-width:720px){.persona-character-grid{grid-template-columns:1fr}}
+    @media (max-width:720px){.persona-character-grid,.persona-favorite-grid{grid-template-columns:1fr}}
   </style>
 
 </head>
