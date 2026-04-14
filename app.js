@@ -450,10 +450,11 @@ async function hydrateData() {
   }
 
   try {
-    const [personasResult, winesResult, reviewsResult] = await Promise.all([
+    const [personasResult, winesResult, reviewsResult, commentsResult] = await Promise.all([
       state.supabase.from("personas").select("*").order("display_order"),
       state.supabase.from("wines").select("*").order("created_at", { ascending: false }),
-      state.supabase.from("reviews").select("*").order("created_at", { ascending: false })
+      state.supabase.from("reviews").select("*").order("created_at", { ascending: false }),
+      state.supabase.from("comments").select("*").order("created_at", { ascending: true })
     ]);
 
     if (!personasResult.error && personasResult.data?.length) {
@@ -461,7 +462,8 @@ async function hydrateData() {
     }
 
     if (!winesResult.error && winesResult.data?.length) {
-      const reviewsByWine = groupReviewsByWine(reviewsResult.data || []);
+      const commentsByReview = groupCommentsByReview(commentsResult.data || []);
+      const reviewsByWine = groupReviewsByWine(reviewsResult.data || [], commentsByReview);
       state.wines = winesResult.data.map((row) => normalizeWineRow(row, reviewsByWine[row.id] || []));
     }
   } catch (error) {
@@ -469,7 +471,18 @@ async function hydrateData() {
   }
 }
 
-function groupReviewsByWine(rows) {
+function groupCommentsByReview(rows) {
+  return rows.reduce((accumulator, row) => {
+    const reviewKey = String(row.review_id);
+    if (!accumulator[reviewKey]) {
+      accumulator[reviewKey] = [];
+    }
+    accumulator[reviewKey].push(normalizeComment(row));
+    return accumulator;
+  }, {});
+}
+
+function groupReviewsByWine(rows, commentsByReview = {}) {
   return rows.reduce((accumulator, row) => {
     if (!accumulator[row.wine_id]) {
       accumulator[row.wine_id] = [];
@@ -484,6 +497,7 @@ function groupReviewsByWine(rows) {
       primaryAromas: row.primary_aromas,
       secondaryAromas: row.secondary_aromas,
       tertiaryAromas: row.tertiary_aromas,
+      comments: commentsByReview[String(row.id)] || [],
       createdAt: (row.created_at || new Date().toISOString()).slice(0, 10)
     });
     return accumulator;
@@ -545,7 +559,18 @@ function normalizeReview(review, wineType) {
     primaryAromas: normalizeAromaList(review.primaryAromas || review.primary_aromas),
     secondaryAromas: normalizeAromaList(review.secondaryAromas || review.secondary_aromas),
     tertiaryAromas: normalizeAromaList(review.tertiaryAromas || review.tertiary_aromas),
+    comments: (review.comments || []).map(normalizeComment),
     createdAt: review.createdAt || (review.created_at ? String(review.created_at).slice(0, 10) : new Date().toISOString().slice(0, 10))
+  };
+}
+
+function normalizeComment(comment) {
+  return {
+    id: comment.id || `comment-${cryptoRandomId()}`,
+    authorName: comment.authorName || comment.author_name || "Guest",
+    body: comment.body || "",
+    createdAt: comment.createdAt
+      || (comment.created_at ? String(comment.created_at).slice(0, 10) : new Date().toISOString().slice(0, 10))
   };
 }
 
@@ -1311,8 +1336,9 @@ function renderWineCard(wine) {
   const priceLine = wine.averagePrice
     ? `Wine-Searcher / Manual &#xAC00;&#xACA9; &#xBA54;&#xBAA8;: ${wine.averagePrice}`
     : "&#xC544;&#xC9C1; &#xD3C9;&#xADE0;&#xAC00; &#xBA54;&#xBAA8;&#xAC00; &#xC5C6;&#xC2B5;&#xB2C8;&#xB2E4;.";
+  const wineActions = `<div class="button-row" style="margin-top:12px"><button type="button" class="review-action" data-action="write-review-for-wine" data-wine-id="${wine.id}">&#xC774; &#xC640;&#xC778;&#xC5D0; &#xB2E4;&#xB978; &#xD398;&#xB974;&#xC18C;&#xB098; &#xB9AC;&#xBDF0; &#xC4F0;&#xAE30;</button></div>`;
 
-  return `<article class="wine-card ${typeClass}" id="wine-${wine.id}"><img class="wine-image" src="${wine.image || makePlaceholderImage(wine.name, "#8a3650", "#f5d2c6")}" alt="${wine.name} &#xC774;&#xBBF8;&#xC9C0;"><div class="row"><div><h3>${wine.name}</h3><div class="muted">${metaLine}</div></div><span class="type-badge ${typeClass}">${wine.type}</span></div><div class="chip-row" style="margin-top:10px"><span class="pill">${varietalLabel}</span><span class="pill">${regionLabel}</span><span class="pill">${wine.reviews.length} reviews</span></div><div class="muted" style="margin-top:10px">${priceLine}</div>${reviewMarkup}</article>`;
+  return `<article class="wine-card ${typeClass}" id="wine-${wine.id}"><img class="wine-image" src="${wine.image || makePlaceholderImage(wine.name, "#8a3650", "#f5d2c6")}" alt="${wine.name} &#xC774;&#xBBF8;&#xC9C0;"><div class="row"><div><h3>${wine.name}</h3><div class="muted">${metaLine}</div></div><span class="type-badge ${typeClass}">${wine.type}</span></div><div class="chip-row" style="margin-top:10px"><span class="pill">${varietalLabel}</span><span class="pill">${regionLabel}</span><span class="pill">${wine.reviews.length} reviews</span></div><div class="muted" style="margin-top:10px">${priceLine}</div>${wineActions}${reviewMarkup}</article>`;
 }
 
 function renderReviewSnippet(wine, review) {
@@ -1326,8 +1352,42 @@ function renderReviewSnippet(wine, review) {
   const scoreMarkup = review.overallScore !== "" && review.overallScore !== null && review.overallScore !== undefined
     ? `<span class="score-pill">${review.overallScore} pts</span>`
     : "";
+  const commentMarkup = renderCommentThread(wine, review);
+  const jumpAction = `<div class="button-row" style="margin-top:10px"><button type="button" class="review-action" data-action="write-review-for-wine" data-wine-id="${wine.id}">&#xC774; &#xC640;&#xC778;&#xC5D0; &#xB2E4;&#xB978; &#xD398;&#xB974;&#xC18C;&#xB098; &#xB9AC;&#xBDF0; &#xC4F0;&#xAE30;</button></div>`;
 
-  return `<div class="review-snippet" id="review-${wine.id}-${review.id}"><div class="row" style="align-items:center"><div><strong>${persona ? persona.name : review.personaId}</strong><div class="review-meta">${review.createdAt}</div></div>${actionButtons}</div><div class="review-stack"><div class="review-score">${scoreMarkup}<div class="review-copy">${review.summary || review.note}</div></div>${structureMarkup}${aromaMarkup}</div></div>`;
+  return `<div class="review-snippet" id="review-${wine.id}-${review.id}"><div class="row" style="align-items:center"><div><strong>${persona ? persona.name : review.personaId}</strong><div class="review-meta">${review.createdAt}</div></div>${actionButtons}</div><div class="review-stack"><div class="review-score">${scoreMarkup}<div class="review-copy">${review.summary || review.note}</div></div>${structureMarkup}${aromaMarkup}${jumpAction}${commentMarkup}</div></div>`;
+}
+
+function renderCommentThread(wine, review) {
+  const comments = (review.comments || []).map((comment) => `
+    <div class="review-card" style="padding:10px 12px">
+      <div class="row" style="align-items:center">
+        <strong>${escapeHtml(comment.authorName)}</strong>
+        <span class="review-meta">${comment.createdAt}</span>
+      </div>
+      <div>${escapeHtml(comment.body)}</div>
+    </div>
+  `).join("");
+
+  const empty = '<div class="empty-state compact">&#xC544;&#xC9C1; &#xB313;&#xAE00;&#xC774; &#xC5C6;&#xC2B5;&#xB2C8;&#xB2E4;.</div>';
+  return `
+    <div class="form-card" style="margin-top:14px;padding:14px">
+      <div class="row" style="align-items:center">
+        <strong>&#xB9AC;&#xBDF0; &#xB313;&#xAE00;</strong>
+        <span class="review-meta">${(review.comments || []).length} comments</span>
+      </div>
+      <div class="review-grid" style="grid-template-columns:1fr;gap:10px;margin-top:8px">${comments || empty}</div>
+      <form class="comment-form" data-review-id="${review.id}" data-wine-id="${wine.id}" style="display:grid;gap:10px;margin-top:12px">
+        <div class="form-grid">
+          <label>&#xC774;&#xB984;<input name="authorName" type="text" maxlength="40" placeholder="&#xC774;&#xB984; &#xB610;&#xB294; &#xB2C9;&#xB124;&#xC784;" required></label>
+          <label style="grid-column:span 1 / auto">&#xB313;&#xAE00;<input name="body" type="text" maxlength="240" placeholder="&#xC774; &#xB9AC;&#xBDF0;&#xC5D0; &#xB300;&#xD55C; &#xC9E7;&#xC740; &#xCF54;&#xBA58;&#xD2B8;&#xB97C; &#xB0A8;&#xAE30;&#xC138;&#xC694;" required></label>
+        </div>
+        <div class="button-row">
+          <button type="submit" class="review-action">&#xB313;&#xAE00; &#xB0A8;&#xAE30;&#xAE30;</button>
+        </div>
+      </form>
+    </div>
+  `;
 }
 
 function getPersonaReviewInsights(personaId) {
@@ -1365,12 +1425,20 @@ function getPersonaReviewInsights(personaId) {
 }
 
 function attachReviewActions() {
+  document.querySelectorAll("[data-action='write-review-for-wine']").forEach((button) => {
+    button.addEventListener("click", () => startReviewForWine(button.dataset.wineId));
+  });
+
   document.querySelectorAll("[data-action='edit-review']").forEach((button) => {
     button.addEventListener("click", () => startReviewEdit(button.dataset.wineId, button.dataset.reviewId));
   });
 
   document.querySelectorAll("[data-action='delete-review']").forEach((button) => {
     button.addEventListener("click", () => handleReviewDelete(button.dataset.wineId, button.dataset.reviewId));
+  });
+
+  document.querySelectorAll(".comment-form").forEach((form) => {
+    form.addEventListener("submit", handleCommentSubmit);
   });
 }
 
@@ -1829,6 +1897,34 @@ function startReviewEdit(wineId, reviewId) {
   el.cancelEditButton.hidden = false;
   syncImagePreview();
   renderImageCandidates();
+  syncReviewEditor();
+  populateReviewInputs();
+  el.reviewForm.scrollIntoView({ behavior: "smooth", block: "start" });
+}
+
+function startReviewForWine(wineId) {
+  const wine = state.wines.find((item) => item.id === wineId);
+  if (!wine) {
+    return;
+  }
+
+  resetReviewForm();
+  el.wineName.value = wine.name || "";
+  el.wineType.value = wine.type || "Red";
+  el.wineProducer.value = wine.producer || "";
+  el.wineVintage.value = wine.vintage || "";
+  el.wineVarietal.value = wine.varietal || "";
+  el.wineRegion.value = wine.region || "";
+  el.winePrice.value = wine.averagePrice || "";
+  el.wineImage.value = isUsableImageUrl(wine.image || "") ? wine.image : "";
+
+  const reviewedPersonaIds = new Set(wine.reviews.map((review) => review.personaId));
+  const nextPersona = state.personas.find((persona) => !reviewedPersonaIds.has(persona.id)) || state.personas[0];
+  if (nextPersona) {
+    el.reviewPersona.value = nextPersona.id;
+  }
+
+  syncImagePreview();
   syncReviewEditor();
   populateReviewInputs();
   el.reviewForm.scrollIntoView({ behavior: "smooth", block: "start" });
@@ -2633,6 +2729,26 @@ async function persistReviewDelete(wineId, reviewId, deleteWineToo) {
   }
 }
 
+async function persistCommentCreate(reviewId, comment) {
+  if (!state.supabase || !/^\d+$/.test(String(reviewId))) {
+    return null;
+  }
+
+  const { data, error } = await state.supabase.from("comments").insert({
+    review_id: Number(reviewId),
+    author_name: comment.authorName,
+    body: comment.body,
+    created_at: comment.createdAt
+  }).select("id").single();
+
+  if (error) {
+    console.error(error);
+    return null;
+  }
+
+  return data;
+}
+
 function escapeHtml(value) {
   return String(value).replace(/[&<>"]/g, (char) => ({
     "&": "&amp;",
@@ -2680,4 +2796,39 @@ function decodeURIComponentSafe(value) {
   } catch (_error) {
     return String(value || "");
   }
+}
+
+async function handleCommentSubmit(event) {
+  event.preventDefault();
+  const form = event.currentTarget;
+  const wine = state.wines.find((item) => item.id === form.dataset.wineId);
+  const review = wine?.reviews.find((item) => String(item.id) === String(form.dataset.reviewId));
+  if (!wine || !review) {
+    return;
+  }
+
+  const authorInput = form.elements.namedItem("authorName");
+  const bodyInput = form.elements.namedItem("body");
+  const authorName = String(authorInput?.value || "").trim();
+  const body = String(bodyInput?.value || "").trim();
+  if (!authorName || !body) {
+    return;
+  }
+
+  const comment = normalizeComment({
+    id: `comment-${cryptoRandomId()}`,
+    authorName,
+    body,
+    createdAt: new Date().toISOString().slice(0, 10)
+  });
+  review.comments = review.comments || [];
+  review.comments.push(comment);
+
+  const persisted = await persistCommentCreate(review.id, comment);
+  if (persisted?.id) {
+    comment.id = persisted.id;
+  }
+
+  saveLocal();
+  renderWines();
 }

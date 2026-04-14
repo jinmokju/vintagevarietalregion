@@ -37,6 +37,14 @@ create table if not exists reviews (
   created_at date default current_date
 );
 
+create table if not exists comments (
+  id bigint generated always as identity primary key,
+  review_id bigint references reviews(id) on delete cascade,
+  author_name text not null,
+  body text not null,
+  created_at timestamptz default now()
+);
+
 alter table reviews add column if not exists summary text;
 alter table reviews add column if not exists overall_score integer;
 alter table reviews add column if not exists structure jsonb default '{}'::jsonb;
@@ -47,6 +55,7 @@ alter table reviews add column if not exists tertiary_aromas text[] default '{}'
 alter table personas enable row level security;
 alter table wines enable row level security;
 alter table reviews enable row level security;
+alter table comments enable row level security;
 
 drop policy if exists personas_public_read on personas;
 create policy personas_public_read on personas
@@ -62,6 +71,16 @@ drop policy if exists reviews_public_read on reviews;
 create policy reviews_public_read on reviews
 for select
 using (true);
+
+drop policy if exists comments_public_read on comments;
+create policy comments_public_read on comments
+for select
+using (true);
+
+drop policy if exists comments_public_insert on comments;
+create policy comments_public_insert on comments
+for insert
+with check (true);
 
 drop policy if exists personas_admin_write on personas;
 create policy personas_admin_write on personas
@@ -80,3 +99,8 @@ create policy reviews_admin_write on reviews
 for all
 using ((auth.jwt() ->> 'email') = 'jinmokju@gmail.com')
 with check ((auth.jwt() ->> 'email') = 'jinmokju@gmail.com');
+
+drop policy if exists comments_admin_delete on comments;
+create policy comments_admin_delete on comments
+for delete
+using ((auth.jwt() ->> 'email') = 'jinmokju@gmail.com');
