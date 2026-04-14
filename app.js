@@ -1871,11 +1871,13 @@ async function handleTasteSave(event) {
 
   const personaName = el.personaNameInput.value.trim();
   const selectedPersonaId = el.tastePersona.value !== "__new__" ? el.tastePersona.value : "";
-  const rawId = selectedPersonaId || slugifyPersonaId(personaName) || `persona-${cryptoRandomId()}`;
   if (!personaName) {
     alert("Persona Name\ub97c \uc785\ub825\ud574\uc8fc\uc138\uc694.");
     return;
   }
+
+  const existingByName = state.personas.find((item) => item.name.trim().toLowerCase() === personaName.toLowerCase());
+  const rawId = selectedPersonaId || existingByName?.id || slugifyPersonaId(personaName) || `persona-${cryptoRandomId()}`;
 
   let persona = state.personas.find((item) => item.id === rawId);
   if (!persona) {
@@ -1916,11 +1918,19 @@ async function handleTasteSave(event) {
   persona.role = persona.summary;
   persona.focus = "";
 
-  await persistPersona(persona);
+  try {
+    await persistPersona(persona);
+  } catch (error) {
+    console.error(error);
+    el.authStatus.innerHTML = `&#xD398;&#xB974;&#xC18C;&#xB098; &#xC800;&#xC7A5; &#xC911; &#xC624;&#xB958;&#xAC00; &#xC788;&#xC5C8;&#xC9C0;&#xB9CC; &#xB85C;&#xCEEC; &#xB370;&#xC774;&#xD130;&#xB294; &#xACC4;&#xC18D; &#xC720;&#xC9C0;&#xD569;&#xB2C8;&#xB2E4;.`; 
+  }
+
+  state.personas = [...state.personas];
   saveLocal();
   populatePersonaOptions();
   el.tastePersona.value = persona.id;
   el.reviewPersona.value = persona.id;
+  state.selectedPersona = persona.id;
   syncTasteEditor();
   renderAll();
   el.authStatus.innerHTML = `&#xD398;&#xB974;&#xC18C;&#xB098; <b>${escapeHtml(persona.name)}</b>&#xC758; &#xCDE8;&#xD5A5; &#xC815;&#xBCF4;&#xB97C; &#xC800;&#xC7A5;&#xD588;&#xC2B5;&#xB2C8;&#xB2E4;.`;
