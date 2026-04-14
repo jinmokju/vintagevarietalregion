@@ -217,6 +217,8 @@ const state = {
   supabase: null,
   session: null,
   isAdmin: false,
+  recoveryMode: false,
+  recoveryError: "",
   reviewFormMode: "create",
   editingWineId: null,
   editingReviewId: null,
@@ -296,7 +298,15 @@ const el = {
   authStatus: document.getElementById("authStatus"),
   loginButton: document.getElementById("loginButton"),
   signupButton: document.getElementById("signupButton"),
+  passwordResetButton: document.getElementById("passwordResetButton"),
   logoutButton: document.getElementById("logoutButton"),
+  passwordRecoveryPanel: document.getElementById("passwordRecoveryPanel"),
+  passwordRecoveryForm: document.getElementById("passwordRecoveryForm"),
+  passwordRecoveryHelp: document.getElementById("passwordRecoveryHelp"),
+  passwordRecoverySubmit: document.getElementById("passwordRecoverySubmit"),
+  passwordRecoveryCancel: document.getElementById("passwordRecoveryCancel"),
+  newPassword: document.getElementById("newPassword"),
+  confirmPassword: document.getElementById("confirmPassword"),
   authBadge: document.getElementById("authBadge"),
   authHelp: document.getElementById("authHelp"),
   reviewSubmitLabel: document.getElementById("reviewSubmitLabel"),
@@ -309,6 +319,7 @@ init();
 async function init() {
   hydrateTheme();
   await initializeSupabase();
+  await bootstrapRecoveryFlow();
   bindEvents();
   await hydrateData();
   populatePersonaOptions();
@@ -373,14 +384,57 @@ async function refreshSession() {
   state.session = data.session || null;
   state.isAdmin = isAdminEmail(state.session?.user?.email);
 
-  state.supabase.auth.onAuthStateChange((_event, session) => {
+  state.supabase.auth.onAuthStateChange((event, session) => {
     state.session = session || null;
     state.isAdmin = isAdminEmail(state.session?.user?.email);
+    if (event === "PASSWORD_RECOVERY") {
+      state.recoveryMode = true;
+      state.recoveryError = "";
+    }
+    if (event === "USER_UPDATED") {
+      state.recoveryMode = false;
+      state.recoveryError = "";
+    }
     updateAuthUi();
     renderAll();
   });
 
   updateAuthUi();
+}
+
+async function bootstrapRecoveryFlow() {
+  const hash = window.location.hash.startsWith("#") ? window.location.hash.slice(1) : "";
+  if (!hash) {
+    return;
+  }
+
+  const params = new URLSearchParams(hash);
+  const errorCode = params.get("error_code");
+  const errorDescription = params.get("error_description");
+  const accessToken = params.get("access_token");
+  const refreshToken = params.get("refresh_token");
+  const type = params.get("type");
+
+  if (errorCode) {
+    state.recoveryMode = false;
+    state.recoveryError = decodeURIComponentSafe(errorDescription || errorCode);
+    clearAuthHash();
+    return;
+  }
+
+  if (!state.supabase) {
+    return;
+  }
+
+  if (type === "recovery" && accessToken && refreshToken) {
+    const { error } = await state.supabase.auth.setSession({
+      access_token: accessToken,
+      refresh_token: refreshToken
+    });
+    state.recoveryMode = !error;
+    state.recoveryError = error ? error.message : "";
+    clearAuthHash();
+  }
 }
 
 function isAdminEmail(email) {
@@ -726,7 +780,10 @@ function bindEvents() {
   el.clearImageButton.addEventListener("click", clearImageField);
   el.authForm.addEventListener("submit", handleLogin);
   el.signupButton.addEventListener("click", handleSignup);
+  el.passwordResetButton.addEventListener("click", handlePasswordResetRequest);
   el.logoutButton.addEventListener("click", handleLogout);
+  el.passwordRecoveryForm.addEventListener("submit", handlePasswordRecoverySubmit);
+  el.passwordRecoveryCancel.addEventListener("click", cancelPasswordRecovery);
   el.cancelEditButton.addEventListener("click", resetReviewForm);
   el.deletePersonaButton.addEventListener("click", handlePersonaDelete);
 }
@@ -1381,6 +1438,8 @@ function updateAuthUi() {
     el.logoutButton.hidden = true;
     el.loginButton.disabled = true;
     el.signupButton.disabled = true;
+    el.passwordResetButton.disabled = true;
+    updatePasswordRecoveryUi();
     updateStorageStatus();
     return;
   }
@@ -1388,6 +1447,7 @@ function updateAuthUi() {
   const email = state.session?.user?.email || "";
   el.loginButton.disabled = false;
   el.signupButton.disabled = false;
+  el.passwordResetButton.disabled = false;
 
   if (state.isAdmin) {
     el.authBadge.textContent = "Admin Verified";
@@ -1395,18 +1455,40 @@ function updateAuthUi() {
     el.authHelp.innerHTML = "&#xC774;&#xBA54;&#xC77C; &#xAE30;&#xBC18; &#xAD00;&#xB9AC;&#xC790; &#xC778;&#xC99D;&#xC774; &#xD1B5;&#xACFC;&#xB418;&#xC5B4; &#xB9AC;&#xBDF0; &#xC218;&#xC815;/&#xC0AD;&#xC81C;&#xC640; taste &#xC800;&#xC7A5;&#xC774; &#xAC00;&#xB2A5;&#xD569;&#xB2C8;&#xB2E4;.";
     el.logoutButton.hidden = false;
   } else if (state.session) {
-    el.authBadge.textContent = "Viewer Session";
-    el.authStatus.innerHTML = `${email} &#xACC4;&#xC815;&#xC73C;&#xB85C; &#xB85C;&#xADF8;&#xC778;&#xB428;`;
-    el.authHelp.innerHTML = "&#xD604;&#xC7AC; &#xACC4;&#xC815;&#xC740; &#xAD00;&#xB9AC;&#xC790; &#xD5C8;&#xC6A9; &#xBAA9;&#xB85D;&#xC5D0; &#xC5C6;&#xC5B4; &#xC77D;&#xAE30; &#xC804;&#xC6A9;&#xC785;&#xB2C8;&#xB2E4;.";
+    el.authBadge.textContent = state.recoveryMode ? "Password Recovery" : "Viewer Session";
+    el.authStatus.innerHTML = state.recoveryMode
+      ? "재설정 링크가 확인되었습니다. 아래에서 새 비밀번호를 저장해 주세요."
+      : `${email} &#xACC4;&#xC815;&#xC73C;&#xB85C; &#xB85C;&#xADF8;&#xC778;&#xB428;`;
+    el.authHelp.innerHTML = state.recoveryMode
+      ? "새 비밀번호를 저장한 뒤 같은 이메일로 다시 로그인하면 됩니다."
+      : "&#xD604;&#xC7AC; &#xACC4;&#xC815;&#xC740; &#xAD00;&#xB9AC;&#xC790; &#xD5C8;&#xC6A9; &#xBAA9;&#xB85D;&#xC5D0; &#xC5C6;&#xC5B4; &#xC77D;&#xAE30; &#xC804;&#xC6A9;&#xC785;&#xB2C8;&#xB2E4;.";
     el.logoutButton.hidden = false;
   } else {
     el.authBadge.textContent = "Admin Locked";
-    el.authStatus.innerHTML = "&#xC544;&#xC9C1; &#xB85C;&#xADF8;&#xC778;&#xB418;&#xC9C0; &#xC54A;&#xC558;&#xC2B5;&#xB2C8;&#xB2E4;.";
+    el.authStatus.innerHTML = state.recoveryError
+      ? `재설정 링크를 처리하지 못했습니다: ${escapeHtml(state.recoveryError)}`
+      : "&#xC544;&#xC9C1; &#xB85C;&#xADF8;&#xC778;&#xB418;&#xC9C0; &#xC54A;&#xC558;&#xC2B5;&#xB2C8;&#xB2E4;.";
     el.authHelp.innerHTML = `&#xAD00;&#xB9AC;&#xC790; &#xC774;&#xBA54;&#xC77C;(${ADMIN_EMAILS.join(", ")})&#xB85C; &#xB85C;&#xADF8;&#xC778;&#xD558;&#xBA74; &#xD3B8;&#xC9D1; &#xAD8C;&#xD55C;&#xC774; &#xC5F4;&#xB9BD;&#xB2C8;&#xB2E4;.`;
     el.logoutButton.hidden = true;
   }
 
+  updatePasswordRecoveryUi();
   updateStorageStatus();
+}
+
+function updatePasswordRecoveryUi() {
+  if (!el.passwordRecoveryPanel) {
+    return;
+  }
+
+  el.passwordRecoveryPanel.hidden = !state.recoveryMode;
+  if (state.recoveryMode) {
+    el.passwordRecoveryHelp.textContent = "재설정 링크가 확인되었습니다. 아래에서 새 비밀번호를 입력하고 바로 저장하세요.";
+  } else if (state.recoveryError) {
+    el.passwordRecoveryHelp.textContent = `재설정 링크를 처리하지 못했습니다: ${state.recoveryError}`;
+  } else {
+    el.passwordRecoveryHelp.textContent = "재설정 링크로 들어오면 여기서 새 비밀번호를 바로 저장할 수 있습니다.";
+  }
 }
 function updateAdminAccess() {
   const disabled = !state.isAdmin;
@@ -1636,6 +1718,70 @@ async function handleSignup() {
   el.authStatus.textContent = error
     ? `\uACC4\uC815 \uC0DD\uC131 \uC2E4\uD328: ${error.message}`
     : "\uACC4\uC815 \uC0DD\uC131 \uC694\uCCAD\uC774 \uC644\uB8CC\uB410\uC2B5\uB2C8\uB2E4. \uBA54\uC77C \uC778\uC99D\uC774 \uCF1C\uC838 \uC788\uB2E4\uBA74 \uC778\uC99D \uD6C4 \uB2E4\uC2DC \uB85C\uADF8\uC778\uD574 \uC8FC\uC138\uC694.";
+}
+
+async function handlePasswordResetRequest() {
+  if (!state.supabase) {
+    return;
+  }
+
+  const email = el.adminEmail.value.trim();
+  if (!email) {
+    el.authStatus.textContent = "비밀번호 재설정 메일을 보내려면 이메일을 먼저 입력해 주세요.";
+    return;
+  }
+
+  el.authStatus.textContent = "비밀번호 재설정 메일 전송 중...";
+  const redirectTo = `${window.location.origin}${window.location.pathname}`;
+  const { error } = await state.supabase.auth.resetPasswordForEmail(email, { redirectTo });
+  el.authStatus.textContent = error
+    ? `재설정 메일 전송 실패: ${error.message}`
+    : "비밀번호 재설정 메일을 보냈습니다. 메일을 받은 뒤 바로 링크를 눌러 새 비밀번호를 설정해 주세요.";
+}
+
+async function handlePasswordRecoverySubmit(event) {
+  event.preventDefault();
+  if (!state.supabase || !state.recoveryMode) {
+    el.authStatus.textContent = "재설정 링크를 다시 열어 비밀번호 변경을 진행해 주세요.";
+    return;
+  }
+
+  const password = el.newPassword.value.trim();
+  const confirm = el.confirmPassword.value.trim();
+  if (!password || !confirm) {
+    el.authStatus.textContent = "새 비밀번호와 확인 값을 모두 입력해 주세요.";
+    return;
+  }
+  if (password.length < 6) {
+    el.authStatus.textContent = "새 비밀번호는 6자 이상으로 입력해 주세요.";
+    return;
+  }
+  if (password !== confirm) {
+    el.authStatus.textContent = "새 비밀번호와 확인 값이 서로 다릅니다.";
+    return;
+  }
+
+  el.authStatus.textContent = "새 비밀번호 저장 중...";
+  const { error } = await state.supabase.auth.updateUser({ password });
+  if (error) {
+    el.authStatus.textContent = `비밀번호 변경 실패: ${error.message}`;
+    return;
+  }
+
+  state.recoveryMode = false;
+  state.recoveryError = "";
+  el.newPassword.value = "";
+  el.confirmPassword.value = "";
+  updatePasswordRecoveryUi();
+  el.authStatus.textContent = "비밀번호가 변경되었습니다. 이제 새 비밀번호로 로그인하시면 됩니다.";
+}
+
+function cancelPasswordRecovery() {
+  state.recoveryMode = false;
+  state.recoveryError = "";
+  el.newPassword.value = "";
+  el.confirmPassword.value = "";
+  updatePasswordRecoveryUi();
 }
 
 async function handleLogout() {
@@ -2519,4 +2665,19 @@ function slugifyPersonaId(value) {
     .replace(/^-+|-+$/g, "");
 
   return normalized || "";
+}
+
+function clearAuthHash() {
+  if (!window.location.hash) {
+    return;
+  }
+  window.history.replaceState({}, document.title, `${window.location.pathname}${window.location.search}`);
+}
+
+function decodeURIComponentSafe(value) {
+  try {
+    return decodeURIComponent(String(value || "").replace(/\+/g, " "));
+  } catch (_error) {
+    return String(value || "");
+  }
 }

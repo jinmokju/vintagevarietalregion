@@ -184,9 +184,22 @@
             <div class="button-row">
               <button class="primary-button" id="loginButton" type="submit" form="authForm">로그인</button>
               <button class="ghost-button" id="signupButton" type="button" style="color:var(--text); border-color:var(--line); background:var(--surface-strong)">관리자 계정 만들기</button>
+              <button class="ghost-button" id="passwordResetButton" type="button" style="color:var(--text); border-color:var(--line); background:var(--surface-strong)">비밀번호 재설정 메일</button>
               <button class="ghost-button" id="logoutButton" type="button" style="color:var(--text); border-color:var(--line); background:var(--surface-strong)" hidden>로그아웃</button>
             </div>
             <div class="auth-status" id="authStatus">아직 로그인되지 않았습니다.</div>
+            <div class="auth-pane" id="passwordRecoveryPanel" hidden style="padding:16px; margin-top:8px">
+              <strong>새 비밀번호 설정</strong>
+              <div class="muted" id="passwordRecoveryHelp">재설정 링크로 들어오면 여기서 새 비밀번호를 바로 저장할 수 있습니다.</div>
+              <form id="passwordRecoveryForm" class="form-grid" style="margin-top:10px">
+                <label>새 비밀번호<input id="newPassword" type="password" placeholder="새 비밀번호"></label>
+                <label>새 비밀번호 확인<input id="confirmPassword" type="password" placeholder="새 비밀번호 다시 입력"></label>
+              </form>
+              <div class="button-row">
+                <button class="primary-button" id="passwordRecoverySubmit" type="submit" form="passwordRecoveryForm">비밀번호 변경</button>
+                <button class="ghost-button" id="passwordRecoveryCancel" type="button" style="color:var(--text); border-color:var(--line); background:var(--surface-strong)">취소</button>
+              </div>
+            </div>
           </div>
           <div class="auth-pane">
             <strong>운영 메모</strong>
