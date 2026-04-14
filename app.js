@@ -278,6 +278,7 @@ const el = {
   tastePersona: document.getElementById("tastePersona"),
   tasteMode: document.getElementById("tasteMode"),
   personaNameInput: document.getElementById("personaNameInput"),
+  personaSummaryInput: document.getElementById("personaSummaryInput"),
   personaSummaryPreview: document.getElementById("personaSummaryPreview"),
   favVarietyOne: document.getElementById("favVarietyOne"),
   favRegionOne: document.getElementById("favRegionOne"),
@@ -404,12 +405,12 @@ function normalizePersonaRow(row) {
     name: row.name,
     role: row.role,
     focus: row.focus,
+    summary: row.role || "",
     tastes: {
       red: normalizeTaste(row.red_taste),
       white: normalizeTaste(row.white_taste)
     }
   };
-  persona.summary = buildPersonaCharacterSummary(persona);
   return persona;
 }
 
@@ -679,6 +680,7 @@ function bindEvents() {
   el.tastePersona.addEventListener("change", syncTasteEditor);
   el.tasteMode.addEventListener("change", syncTasteEditor);
   el.personaNameInput?.addEventListener("input", refreshPersonaSummaryPreview);
+  el.personaSummaryInput?.addEventListener("input", refreshPersonaSummaryPreview);
   el.favVarietyOne?.addEventListener("input", refreshPersonaSummaryPreview);
   el.favRegionOne?.addEventListener("input", refreshPersonaSummaryPreview);
   el.favVarietyTwo?.addEventListener("input", refreshPersonaSummaryPreview);
@@ -1046,7 +1048,7 @@ function renderPersonaCard(persona) {
       </div>
     </div>
     <div class="persona-character">
-      <div class="persona-character-kicker">Character</div>
+      <div class="persona-character-kicker">Favorite Sets</div>
       <p>${summary.deck}</p>
     </div>
     <div class="persona-character-grid">
@@ -1090,10 +1092,12 @@ function renderPersonaCard(persona) {
       <button type="button" class="tab-button" data-tab="${persona.id}-white">White</button>
     </div>
     <div class="taste-panel active" id="${persona.id}-red">
+      <div class="persona-character-label">Red Preference Map</div>
       <div class="taste-summary persona-favorites">${renderFavoritePills(persona.tastes.red)}</div>
       ${renderTasteTracks(persona.tastes.red, "red")}
     </div>
     <div class="taste-panel" id="${persona.id}-white">
+      <div class="persona-character-label">White Preference Map</div>
       <div class="taste-summary persona-favorites">${renderFavoritePills(persona.tastes.white)}</div>
       ${renderTasteTracks(persona.tastes.white, "white")}
     </div>
@@ -1394,6 +1398,7 @@ function syncTasteEditor() {
   const mode = el.tasteMode.value;
   const taste = persona.tastes[mode];
   el.personaNameInput.value = persona.name || "";
+  el.personaSummaryInput.value = persona.summary || "";
   el.favVarietyOne.value = taste.favoritePairs?.[0]?.varietal || "";
   el.favRegionOne.value = taste.favoritePairs?.[0]?.region || "";
   el.favVarietyTwo.value = taste.favoritePairs?.[1]?.varietal || "";
@@ -1466,7 +1471,8 @@ function refreshPersonaSummaryPreview() {
   const taste = persona.tastes[mode];
   const summary = buildPersonaSummaryLines({
     ...persona,
-    name: el.personaNameInput.value.trim() || persona.name || "이 페르소나",
+    name: el.personaNameInput.value.trim() || persona.name || "\uc774 \ud398\ub974\uc18c\ub098",
+    summary: el.personaSummaryInput.value.trim(),
     tastes: {
       ...persona.tastes,
       [mode]: {
@@ -1483,7 +1489,7 @@ function refreshPersonaSummaryPreview() {
       }
     }
   });
-  el.personaSummaryPreview.innerHTML = `<strong>${summary.headline}</strong><br><span>${summary.deck}</span><br><span><b>Red</b> ${summary.red}</span><br><span><b>White</b> ${summary.white}</span>`;
+  el.personaSummaryPreview.innerHTML = `<strong>${summary.headline}</strong><br><span>${summary.deck}</span><br><span><b>Red Character</b> ${summary.red}</span><br><span><b>White Character</b> ${summary.white}</span>`;
 }
 
 function scalePosition(value) {
@@ -1859,7 +1865,7 @@ async function handleReviewDelete(wineId, reviewId) {
 async function handleTasteSave(event) {
   event.preventDefault();
   if (!state.isAdmin) {
-    alert("관리자 로그인 후 저장할 수 있습니다.");
+    alert("\uad00\ub9ac\uc790 \ub85c\uadf8\uc778 \ud6c4\uc5d0 \uc800\uc7a5\ud560 \uc218 \uc788\uc2b5\ub2c8\ub2e4.");
     return;
   }
 
@@ -1867,7 +1873,7 @@ async function handleTasteSave(event) {
   const selectedPersonaId = el.tastePersona.value !== "__new__" ? el.tastePersona.value : "";
   const rawId = selectedPersonaId || slugifyPersonaId(personaName);
   if (!rawId || !personaName) {
-    alert("Persona Name을 입력해주세요.");
+    alert("Persona Name\ub97c \uc785\ub825\ud574\uc8fc\uc138\uc694.");
     return;
   }
 
@@ -1888,6 +1894,7 @@ async function handleTasteSave(event) {
   }
 
   persona.name = personaName;
+  persona.summary = el.personaSummaryInput.value.trim();
   const mode = el.tasteMode.value;
   persona.tastes[mode] = {
     favoritePairs: [
@@ -1906,7 +1913,6 @@ async function handleTasteSave(event) {
     body: state.tasteDraft.body,
     fruitProfile: state.tasteDraft.fruitProfile
   };
-  persona.summary = buildPersonaCharacterSummary(persona);
   persona.role = persona.summary;
   persona.focus = "";
 
@@ -2265,8 +2271,21 @@ async function persistPersona(persona) {
   });
 }
 
+function buildFavoriteDeck(redFavorites, whiteFavorites) {
+  const parts = [];
+  if (redFavorites.length) {
+    parts.push(`Red favorites: ${redFavorites.join(", ")}`);
+  }
+  if (whiteFavorites.length) {
+    parts.push(`White favorites: ${whiteFavorites.join(", ")}`);
+  }
+  return parts.length ? parts.join(" / ") : "\uc544\uc9c1 favorite \uc138\ud2b8\uac00 \uc5c6\uc2b5\ub2c8\ub2e4.";
+}
+
 function buildPersonaCharacterSummary(persona) {
-  return buildPersonaSummaryLines(persona).deck;
+  const red = normalizeTaste(persona?.tastes?.red || {});
+  const white = normalizeTaste(persona?.tastes?.white || {});
+  return buildFavoriteDeck(formatFavoritePairs(red.favoritePairs), formatFavoritePairs(white.favoritePairs));
 }
 
 function describeTasteVector(taste, mode) {
@@ -2285,63 +2304,81 @@ function describeTasteVector(taste, mode) {
 }
 
 function buildPersonaSummaryLines(persona) {
-  const name = persona?.name || "새 페르소나";
   const red = normalizeTaste(persona?.tastes?.red || {});
   const white = normalizeTaste(persona?.tastes?.white || {});
   const redFavorites = formatFavoritePairs(red.favoritePairs);
   const whiteFavorites = formatFavoritePairs(white.favoritePairs);
-  const headline = buildPersonaHeadline(red, white);
-  const deckParts = [];
-  if (redFavorites.length || whiteFavorites.length) {
-    const favoriteCopy = [
-      redFavorites.length ? `Red favorites: ${redFavorites.join(", ")}` : "",
-      whiteFavorites.length ? `White favorites: ${whiteFavorites.join(", ")}` : ""
-    ].filter(Boolean).join(" / ");
-    deckParts.push(favoriteCopy);
-  }
-  deckParts.push(`${name}는 ${headline}.`);
+  const headline = (persona?.summary || persona?.role || "").trim() || "\ud55c \uc904 \uc18c\uac1c\ub97c \uc785\ub825\ud574 \uc8fc\uc138\uc694.";
   return {
     headline,
-    deck: deckParts.join(" "),
+    deck: buildFavoriteDeck(redFavorites, whiteFavorites),
     red: buildModeSummary(red, "red", redFavorites),
     white: buildModeSummary(white, "white", whiteFavorites)
   };
 }
 
 function buildPersonaHeadline(red, white) {
-  const acidForward = red.acidity <= 3 || white.acidity <= 3;
-  const oakQuiet = red.oak >= 6 && white.oak >= 6;
-  const denseBody = red.body <= 3 || white.body <= 3;
-
-  if (acidForward && oakQuiet) {
-    return "\uc0b0\ub3c4\uc5d4 \uc608\ubbfc\ud558\uace0, \uc624\ud06c\uc5d4 \ub0c9\uc815\ud55c \ud0c0\uc785";
-  }
-  if (acidForward && denseBody) {
-    return "\uc120\uba85\ud55c \uc0b0\ub3c4\uc640 \uc874\uc7ac\uac10 \uc788\ub294 \ubc14\ub514\uc5d0 \uc57d\ud55c \ud0c0\uc785";
-  }
-  if (oakQuiet) {
-    return "\uc624\ud06c\ub294 \ube7c\uace0 \uacb0\ub9cc \ub0a8\uae30\ub294 \ucde8\ud5a5";
-  }
-  if (denseBody) {
-    return "\ud798 \uc788\ub294 \ud55c \ubcd1\uc774\uba74 \ubc14\ub85c \uc124\ub4dd\ub418\ub294 \ud0c0\uc785";
-  }
-  return "\uade0\ud615 \uc88b\uc740 \ubcd1 \uc55e\uc5d0\uc11c \uc624\ub798 \uba38\ubb34\ub294 \ud0c0\uc785";
+  return "";
 }
 
 function buildModeSummary(taste, mode, favorites) {
-  const favoriteLine = favorites.length ? `${favorites.join(", ")}\uc5d0 \ud2b9\ud788 \ubc18\uc751\ud558\uace0, ` : "";
+  const favoriteLead = favorites.length ? `${favorites.join(", ")} \ucabd\uc5d0 \ud2b9\ud788 \ubc18\uc751\ud569\ub2c8\ub2e4. ` : "";
 
   if (mode === "white") {
-    const acidityLine = taste.acidity <= 3 ? "\uc0b0\ub3c4\ub294 \ub610\ub835\ud560\uc218\ub85d \uc88b\uace0" : taste.acidity >= 6 ? "\uc0b0\ub3c4\ub294 \ubd80\ub4dc\ub7fd\uac8c \uac00\ub77c\uc549\uc740 \ucabd\uc744 \ud3b8\uc548\ud574\ud558\uace0" : "\uc0b0\ub3c4\ub294 \ub9e4\ub054\ud558\uac8c \uc815\ub3c8\ub41c \ucabd\uc744 \uc120\ud638\ud558\uace0";
-    const bodyLine = taste.body <= 3 ? "\ubc14\ub514\ub294 \uc81c\ubc95 \ucc28\uc624\ub974\ub294 \uc2a4\ud0c0\uc77c\uc744 \uc88b\uc544\ud569\ub2c8\ub2e4" : taste.body >= 6 ? "\ubc14\ub514\ub294 \uac00\ubccd\uace0 \uc2ac\ub9bc\ud55c \ud3b8\uc744 \uc88b\uc544\ud569\ub2c8\ub2e4" : "\ubc14\ub514\ub294 \uc911\uac04 \ubc00\ub3c4\uba74 \ucda9\ubd84\ud569\ub2c8\ub2e4";
-    const oakLine = taste.oak <= 3 ? "\uc624\ud06c\ub294 \ud5a5\uc744 \ubcf4\ud0dc\ub294 \uc5ed\ud560\uae4c\uc9c0 \ud5c8\uc6a9\ud569\ub2c8\ub2e4" : taste.oak >= 6 ? "\uc624\ud06c\ub294 \ucd5c\ub300\ud55c \ub4a4\ub85c \ubb3c\ub7ec\ub098\uae38 \ubc14\ub78d\ub2c8\ub2e4" : "\uc624\ud06c\ub294 \ud2f0 \ub098\uc9c0 \uc54a\uac8c \uc815\ub9ac\ub418\uae38 \ubc14\ub78d\ub2c8\ub2e4";
-    return `${favoriteLine}${describeFruitPreference(taste, mode)}. ${acidityLine} ${bodyLine}. ${oakLine}.`;
+    const fruitLine = taste.fruitDriven <= 3
+      ? "\uacfc\uc2e4\uc758 \uc120\uba85\ud568\uc774 \uba3c\uc800 \uc0b4\uc544\ub098\ub294 \ud654\uc774\ud2b8\ub97c \ud3b8\ud558\uac8c \ubd05\ub2c8\ub2e4"
+      : taste.fruitDriven >= 6
+        ? "\uacfc\uc2e4\ubcf4\ub2e4 \ubbf8\ub124\ub784\uacfc \uc9c1\uc120\uc801\uc778 \uacb0\uc774 \ub4dc\ub7ec\ub098\ub294 \ud654\uc774\ud2b8\ub97c \uc120\ud638\ud569\ub2c8\ub2e4"
+        : "\uacfc\uc2e4\uacfc \ubbf8\ub124\ub784\uc774 \uade0\ud615\uc744 \uc774\ub8e8\ub294 \ud654\uc774\ud2b8\uc5d0 \uc190\uc774 \uac11\ub2c8\ub2e4";
+    const profileLine = taste.fruitProfile <= 2
+      ? "\uc5f4\ub300 \uacfc\uc2e4 \ub258\uc559\uc2a4\uac00 \ub3c4\ub294 \ucabd\uc774 \ub354 \ucde8\ud5a5\uc5d0 \uac00\uae5d\uc2b5\ub2c8\ub2e4"
+      : taste.fruitProfile >= 6
+        ? "\uc2dc\ud2b8\ub7ec\uc2a4\uc640 \uc0b0\ub73b\ud55c \uacb0\uc774 \ub610\ub837\ud55c \ucabd\uc774 \ub354 \ub9de\uc2b5\ub2c8\ub2e4"
+        : "\uc5f4\ub300 \uacfc\uc2e4\uacfc \uc2dc\ud2b8\ub7ec\uc2a4\uac00 \ud3ec\uac1c\ub294 \uad6c\uac04\ub3c4 \uc790\uc5f0\uc2a4\ub7fd\uac8c \ubc1b\uc544\ub4e4\uc785\ub2c8\ub2e4";
+    const acidityLine = taste.acidity <= 3
+      ? "\uc0b0\ub3c4\ub294 \ub610\ub837\ud560\uc218\ub85d \uc88b\uace0"
+      : taste.acidity >= 6
+        ? "\uc0b0\ub3c4\ub294 \ubd80\ub4dc\ub7fd\uac8c \ub0b4\ub824\uc549\uc544\ub3c4 \uad1c\ucc2e\uace0"
+        : "\uc0b0\ub3c4\ub294 \uacfc\ud558\uc9c0 \uc54a\uac8c \uc815\ub9ac\ub3fc \uc788\uc73c\uba74 \ucda9\ubd84\ud558\uace0";
+    const bodyLine = taste.body <= 3
+      ? "\uc9c8\uac10\uc740 \uc5b4\ub290 \uc815\ub3c4 \ucc28\uc624\ub974\ub294 \ud3b8\uc744 \uc120\ud638\ud569\ub2c8\ub2e4"
+      : taste.body >= 6
+        ? "\ubc14\ub514\ub294 \uac00\ubccd\uace0 \uc2ac\ub9bc\ud55c \ucabd\uc774 \ub354 \ud3b8\ud569\ub2c8\ub2e4"
+        : "\ubc14\ub514\ub294 \uc911\uac04 \ubc00\ub3c4 \uc815\ub3c4\uba74 \uc548\uc815\uc801\uc785\ub2c8\ub2e4";
+    const oakLine = taste.oak <= 3
+      ? "\uc624\ud06c\ub294 \ud5a5\uc744 \ubcf4\ud0dc\ub294 \uc815\ub3c4\uae4c\uc9c0\ub294 \ubc1b\uc544\ub4e4\uc785\ub2c8\ub2e4"
+      : taste.oak >= 6
+        ? "\uc624\ud06c\ub294 \ucd5c\ub300\ud55c \ub4a4\ub85c \ube60\uc9c0\uae38 \ubc14\ub78d\ub2c8\ub2e4"
+        : "\uc624\ud06c\ub294 \uc874\uc7ac\ud558\ub418 \uc804\uba74\uc5d0 \ub098\uc11c\uc9c0 \uc54a\uae38 \ubc14\ub78d\ub2c8\ub2e4";
+    return `${favoriteLead}${fruitLine}. ${profileLine}. ${acidityLine} ${bodyLine}. ${oakLine}.`;
   }
 
-  const acidityLine = taste.acidity <= 3 ? "\uc0b0\ub3c4\uac10\uc774 \uc0b4\uc544 \uc788\uc5b4\uc57c \uc640\uc778\uc774 \uacf3\uac8c \uc11c\uace0" : taste.acidity >= 6 ? "\uc0b0\ub3c4\ub294 \ub0ae\uc544\ub3c4 \uc9c8\uac10\uc774 \ubd80\ub4dc\ub7ec\uc6b0\uba74 \uad1c\ucc2e\uace0" : "\uc0b0\ub3c4\ub294 \uacfc\ud558\uc9c0 \uc54a\uac8c \uade0\ud615\ub9cc \uc7a1\ud788\uba74 \ub418\uace0";
-  const bodyLine = taste.body <= 3 ? "\ubc14\ub514\ub294 \ub18d\ubc00\ud558\uace0 \uc874\uc7ac\uac10 \uc788\ub294 \ucabd\uc5d0 \ub9c8\uc74c\uc774 \uac11\ub2c8\ub2e4" : taste.body >= 6 ? "\ubc14\ub514\ub294 \uac00\ubccd\uace0 \ub0a0\ub835\ud55c \ucabd\uc774 \ub354 \ud3b8\ud569\ub2c8\ub2e4" : "\ubc14\ub514\ub294 \uc911\uac04 \uc815\ub3c4\uc758 \ubc00\ub3c4\uac00 \uac00\uc7a5 \uc548\uc815\uc801\uc785\ub2c8\ub2e4";
-  const oakLine = taste.oak <= 3 ? "\uc624\ud06c \ud130\uce58\ub3c4 \uce90\ub9ad\ud130\ub77c\uba74 \uae30\uaebc\uc774 \ubc1b\uc544\ub4e4\uc785\ub2c8\ub2e4" : taste.oak >= 6 ? "\uc624\ud06c\ub294 \uc808\uc81c\ub420\uc218\ub85d \uc88b\uc2b5\ub2c8\ub2e4" : "\uc624\ud06c\ub294 \uc874\uc7ac\ud558\ub418 \uc55e\uc5d0 \ub098\uc11c\uc9c0 \uc54a\uae38 \ubc14\ub78d\ub2c8\ub2e4";
-  return `${favoriteLine}${describeFruitPreference(taste, mode)}. ${acidityLine} ${bodyLine}. ${oakLine}.`;
+  const fruitLine = taste.fruitDriven <= 3
+    ? "\uacfc\uc2e4\uc774 \uc55e\uc5d0 \uc11c\ub294 \ub808\ub4dc\uc5d0 \ub354 \ube68\ub9ac \ubc18\uc751\ud569\ub2c8\ub2e4"
+    : taste.fruitDriven >= 6
+      ? "\uc138\uc774\ubcf4\ub9ac\uc640 \uc5b4\uc2dc \ud1a4\uc774 \uc0b4\uc544 \uc788\ub294 \ub808\ub4dc\uc5d0 \ub354 \ub04c\ub9bd\ub2c8\ub2e4"
+      : "\uacfc\uc2e4\uacfc \uc138\uc774\ubcf4\ub9ac\uac00 \ub9de\ubb3c\ub9ac\ub294 \ub808\ub4dc\ub97c \uc88b\uac8c \ubd05\ub2c8\ub2e4";
+  const profileLine = taste.fruitProfile <= 2
+    ? "\ub2e4\ud06c \ud504\ub8e8\ud2b8 \uacb0\uc774 \uc9d9\uc5b4\uc9c8\uc218\ub85d \ub9cc\uc871\ub3c4\uac00 \uc62c\ub77c\uac11\ub2c8\ub2e4"
+    : taste.fruitProfile >= 6
+      ? "\ub808\ub4dc \ud504\ub8e8\ud2b8\uc758 \uc120\uba85\ud568\uc774 \ub3c4\ub4dc\ub77c\uc9c8\uc218\ub85d \ucde8\ud5a5\uc5d0 \uac00\uae5d\uc2b5\ub2c8\ub2e4"
+      : "\ub808\ub4dc\uc640 \ub2e4\ud06c \ud504\ub8e8\ud2b8\uac00 \uad50\ucc28\ud558\ub294 \uc9c0\uc810\ub3c4 \ucda9\ubd84\ud788 \ub9e4\ub825\uc801\uc785\ub2c8\ub2e4";
+  const acidityLine = taste.acidity <= 3
+    ? "\uc0b0\ub3c4\ub294 \uc640\uc778\uc744 \uacf3\uac8c \uc138\uc6cc\uc8fc\ub294 \ud3b8\uc774 \uc88b\uace0"
+    : taste.acidity >= 6
+      ? "\uc0b0\ub3c4\uac00 \ub0ae\uc544\ub3c4 \uc9c8\uac10\uc774 \ub9e4\ub048\ud558\uba74 \ud3b8\uc548\ud558\uac8c \ubd05\ub2c8\ub2e4"
+      : "\uc0b0\ub3c4\ub294 \uade0\ud615\ub9cc \uc7a1\ud600 \uc788\uc73c\uba74 \ucda9\ubd84\ud558\uace0";
+  const bodyLine = taste.body <= 3
+    ? "\ubc14\ub514\ub294 \uc874\uc7ac\uac10\uc774 \uc788\ub294 \ucabd\uc5d0 \ub9c8\uc74c\uc774 \uac11\ub2c8\ub2e4"
+    : taste.body >= 6
+      ? "\ubc14\ub514\ub294 \uc9c0\ub098\uce58\uac8c \ubb34\uac81\uc9c0 \uc54a\uc740 \ucabd\uc774 \ub354 \ud3b8\ud569\ub2c8\ub2e4"
+      : "\ubc14\ub514\ub294 \uc911\uac04 \uc774\uc0c1\uc758 \ubc00\ub3c4\uac00 \uac00\uc7a5 \uc548\uc815\uc801\uc785\ub2c8\ub2e4";
+  const oakLine = taste.oak <= 3
+    ? "\uc624\ud06c \ud130\uce58\ub294 \uce90\ub9ad\ud130\ub85c \ubc1b\uc544\ub4e4\uc774\ub294 \ud3b8\uc774\uace0"
+    : taste.oak >= 6
+      ? "\uc624\ud06c\ub294 \uc808\uc81c\ub420\uc218\ub85d \ub354 \uc88b\uc2b5\ub2c8\ub2e4"
+      : "\uc624\ud06c\ub294 \uc874\uc7ac\ud558\ub418 \uc55e\uc5d0 \ub098\uc11c\uc9c0 \uc54a\uae38 \ubc14\ub78d\ub2c8\ub2e4";
+  return `${favoriteLead}${fruitLine}. ${profileLine}. ${acidityLine} ${bodyLine}. ${oakLine}.`;
 }
 
 function describeFruitPreference(taste, mode) {
