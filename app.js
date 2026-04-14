@@ -1372,7 +1372,7 @@ function renderReviewSnippet(wine, review) {
   const commentMarkup = renderCommentThread(wine, review);
   const jumpAction = `<div class="button-row" style="margin-top:10px"><button type="button" class="review-action" data-action="write-review-for-wine" data-wine-id="${wine.id}">&#xC774; &#xC640;&#xC778;&#xC5D0; &#xB9AC;&#xBDF0; &#xC4F0;&#xAE30;</button></div>`;
 
-  return `<div class="review-snippet" id="review-${wine.id}-${review.id}"><div class="row" style="align-items:center"><div><strong>${persona ? persona.name : review.personaId}</strong><div class="review-meta">${review.createdAt}</div></div>${actionButtons}</div><div class="review-stack"><div class="review-score">${scoreMarkup}<div class="review-copy">${review.summary || review.note}</div></div>${structureMarkup}${aromaMarkup}${jumpAction}${commentMarkup}</div></div>`;
+  return `<div class="review-snippet" id="review-${wine.id}-${review.id}"><div class="row" style="align-items:flex-start"><div class="review-meta-stack"><strong>${persona ? persona.name : review.personaId}</strong><div class="review-meta">${review.createdAt}</div></div>${actionButtons}</div><div class="review-stack"><div class="review-score">${scoreMarkup}<div class="review-copy">${review.summary || review.note}</div></div>${structureMarkup}${aromaMarkup}${jumpAction}${commentMarkup}</div></div>`;
 }
 
 function renderCommentThread(wine, review) {
