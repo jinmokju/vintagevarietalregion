@@ -1871,8 +1871,8 @@ async function handleTasteSave(event) {
 
   const personaName = el.personaNameInput.value.trim();
   const selectedPersonaId = el.tastePersona.value !== "__new__" ? el.tastePersona.value : "";
-  const rawId = selectedPersonaId || slugifyPersonaId(personaName);
-  if (!rawId || !personaName) {
+  const rawId = selectedPersonaId || slugifyPersonaId(personaName) || `persona-${cryptoRandomId()}`;
+  if (!personaName) {
     alert("Persona Name\ub97c \uc785\ub825\ud574\uc8fc\uc138\uc694.");
     return;
   }
@@ -1923,6 +1923,7 @@ async function handleTasteSave(event) {
   el.reviewPersona.value = persona.id;
   syncTasteEditor();
   renderAll();
+  el.authStatus.innerHTML = `&#xD398;&#xB974;&#xC18C;&#xB098; <b>${escapeHtml(persona.name)}</b>&#xC758; &#xCDE8;&#xD5A5; &#xC815;&#xBCF4;&#xB97C; &#xC800;&#xC7A5;&#xD588;&#xC2B5;&#xB2C8;&#xB2E4;.`;
 }
 
 async function handlePersonaDelete() {
@@ -2499,9 +2500,13 @@ function cryptoRandomId() {
 }
 
 function slugifyPersonaId(value) {
-  return value
-    .toLowerCase()
+  const normalized = String(value || "")
     .trim()
-    .replace(/[^a-z0-9]+/g, "-")
+    .normalize("NFKD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .replace(/[^\p{Letter}\p{Number}]+/gu, "-")
     .replace(/^-+|-+$/g, "");
+
+  return normalized || "";
 }
