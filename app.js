@@ -1339,7 +1339,7 @@ function renderWineCard(wine) {
   const wineActions = `<div class="button-row"><button type="button" class="review-action" data-action="write-review-for-wine" data-wine-id="${wine.id}">&#xC774; &#xC640;&#xC778;&#xC5D0; &#xB9AC;&#xBDF0; &#xC4F0;&#xAE30;</button></div>`;
   const reviewShell = visibleReviews.length
     ? `<div class="review-stack-title"><strong>&#xB9AC;&#xBDF0; &amp; &#xB313;&#xAE00;</strong><span>${visibleReviews.length} review${visibleReviews.length > 1 ? "s" : ""}</span></div>${reviewMarkup}`
-    : '<div class="review-empty">&#xC544;&#xC9C1; &#xB4F1;&#xB85D;&#xB41C; &#xB9AC;&#xBDF0;&#xAC00; &#xC5C6;&#xC2B5;&#xB2C8;&#xB2E4;. &#xCCAB; &#xB9AC;&#xBDF0;&#xB97C; &#xBC14;&#xB85C; &#xB0A8;&#xACA8;&#xBCF4;&#xC138;&#xC694;.</div>';
+    : `<div class="review-empty review-empty-rich"><strong>&#xC544;&#xC9C1; &#xCCAB; &#xB9AC;&#xBDF0;&#xAC00; &#xC5C6;&#xC2B5;&#xB2C8;&#xB2E4;</strong><span>&#xC774; &#xC640;&#xC778;&#xC758; &#xCCAB; &#xC778;&#xC0C1;&#xC744; &#xB0A8;&#xAE30;&#xBA74; &#xB2E4;&#xC74C; &#xC0AC;&#xB78C;&#xC774; &#xBE60;&#xB974;&#xAC8C; &#xCC38;&#xACE0;&#xD560; &#xC218; &#xC788;&#xC2B5;&#xB2C8;&#xB2E4;.</span><button type="button" class="review-action" data-action="write-review-for-wine" data-wine-id="${wine.id}">&#xCCAB; &#xB9AC;&#xBDF0; &#xC4F0;&#xAE30;</button></div>`;
 
   return `<article class="wine-card ${typeClass}" id="wine-${wine.id}">
     <div class="wine-card-inner">
@@ -1460,6 +1460,9 @@ function attachReviewActions() {
 }
 
 function renderRecentReviews() {
+  if (!el.recentGrid) {
+    return;
+  }
   const reviews = state.wines
     .flatMap((wine) => wine.reviews.map((review) => ({ ...review, wineName: wine.name, wineType: wine.type })))
     .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
@@ -1475,7 +1478,7 @@ function renderRecentReviews() {
 
 function renderReviewStructureSnapshot(review, type) {
   const fields = getStructureFields(type);
-  return `<div class="review-detail-grid">${fields.map((field) => `<div class="review-detail-block"><h4>${field.label}</h4><div class="taste-scale">${renderSegments(review.structure?.[field.key] || 4)}</div><div class="taste-poles"><span>${field.left}</span><span>${field.right}</span></div></div>`).join("")}</div>`;
+  return `<div class="review-section-shell"><div class="review-stack-title"><strong>&#xAD6C;&#xC870; &#xD3C9;&#xAC00;</strong><span>${fields.length} axes</span></div><div class="review-detail-grid">${fields.map((field) => `<div class="review-detail-block"><h4>${field.label}</h4><div class="taste-scale">${renderSegments(review.structure?.[field.key] || 4)}</div><div class="taste-poles"><span>${field.left}</span><span>${field.right}</span></div></div>`).join("")}</div></div>`;
 }
 
 function renderAromaSummary(review) {
@@ -1489,7 +1492,7 @@ function renderAromaSummary(review) {
     return "";
   }
 
-  return `<div class="review-detail-grid">${groups.map((group) => `<div class="review-detail-block"><h4>${group.label} Aromas</h4><div class="selected-aromas">${group.values.map((value) => `<span class="pill">${value}</span>`).join("")}</div></div>`).join("")}</div>`;
+  return `<div class="review-section-shell"><div class="review-stack-title"><strong>&#xD5A5;&#xBBF8; &#xD504;&#xB85C;&#xD30C;&#xC77C;</strong><span>${groups.length} layers</span></div><div class="review-detail-grid">${groups.map((group) => `<div class="review-detail-block aroma-detail-block"><h4>${group.label} Aromas</h4><div class="selected-aromas">${group.values.map((value) => `<span class="pill">${value}</span>`).join("")}</div></div>`).join("")}</div></div>`;
 }
 
 function updateMetrics() {
@@ -1502,6 +1505,9 @@ function updateMetrics() {
 }
 
 function updateStorageStatus() {
+  if (!el.storageStatus || !el.storageNote) {
+    return;
+  }
   if (state.supabase) {
     el.storageStatus.textContent = "Supabase Connected";
     el.storageNote.innerHTML = state.isAdmin
@@ -1587,10 +1593,18 @@ function updateAdminAccess() {
     tasteSubmitButton.disabled = disabled;
   }
 
-  el.fetchImageCandidates.disabled = false;
-  el.fetchPriceData.disabled = false;
-  el.cancelEditButton.disabled = disabled;
-  el.deletePersonaButton.disabled = disabled || el.tastePersona.value === "__new__" || !state.personas.length;
+  if (el.fetchImageCandidates) {
+    el.fetchImageCandidates.disabled = false;
+  }
+  if (el.fetchPriceData) {
+    el.fetchPriceData.disabled = false;
+  }
+  if (el.cancelEditButton) {
+    el.cancelEditButton.disabled = disabled;
+  }
+  if (el.deletePersonaButton) {
+    el.deletePersonaButton.disabled = disabled || el.tastePersona.value === "__new__" || !state.personas.length;
+  }
 }
 
 function syncTasteEditor() {
