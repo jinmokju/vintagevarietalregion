@@ -1336,9 +1336,26 @@ function renderWineCard(wine) {
   const priceLine = wine.averagePrice
     ? `Wine-Searcher / Manual &#xAC00;&#xACA9; &#xBA54;&#xBAA8;: ${wine.averagePrice}`
     : "&#xC544;&#xC9C1; &#xD3C9;&#xADE0;&#xAC00; &#xBA54;&#xBAA8;&#xAC00; &#xC5C6;&#xC2B5;&#xB2C8;&#xB2E4;.";
-  const wineActions = `<div class="button-row" style="margin-top:12px"><button type="button" class="review-action" data-action="write-review-for-wine" data-wine-id="${wine.id}">&#xC774; &#xC640;&#xC778;&#xC5D0; &#xB2E4;&#xB978; &#xD398;&#xB974;&#xC18C;&#xB098; &#xB9AC;&#xBDF0; &#xC4F0;&#xAE30;</button></div>`;
+  const wineActions = `<div class="button-row"><button type="button" class="review-action" data-action="write-review-for-wine" data-wine-id="${wine.id}">&#xC774; &#xC640;&#xC778;&#xC5D0; &#xB9AC;&#xBDF0; &#xC4F0;&#xAE30;</button></div>`;
+  const reviewShell = visibleReviews.length
+    ? `<div class="review-stack-title"><strong>&#xB9AC;&#xBDF0; &amp; &#xB313;&#xAE00;</strong><span>${visibleReviews.length} review${visibleReviews.length > 1 ? "s" : ""}</span></div>${reviewMarkup}`
+    : '<div class="review-empty">&#xC544;&#xC9C1; &#xB4F1;&#xB85D;&#xB41C; &#xB9AC;&#xBDF0;&#xAC00; &#xC5C6;&#xC2B5;&#xB2C8;&#xB2E4;. &#xCCAB; &#xB9AC;&#xBDF0;&#xB97C; &#xBC14;&#xB85C; &#xB0A8;&#xACA8;&#xBCF4;&#xC138;&#xC694;.</div>';
 
-  return `<article class="wine-card ${typeClass}" id="wine-${wine.id}"><img class="wine-image" src="${wine.image || makePlaceholderImage(wine.name, "#8a3650", "#f5d2c6")}" alt="${wine.name} &#xC774;&#xBBF8;&#xC9C0;"><div class="row"><div><h3>${wine.name}</h3><div class="muted">${metaLine}</div></div><span class="type-badge ${typeClass}">${wine.type}</span></div><div class="chip-row" style="margin-top:10px"><span class="pill">${varietalLabel}</span><span class="pill">${regionLabel}</span><span class="pill">${wine.reviews.length} reviews</span></div><div class="muted" style="margin-top:10px">${priceLine}</div>${wineActions}${reviewMarkup}</article>`;
+  return `<article class="wine-card ${typeClass}" id="wine-${wine.id}">
+    <div class="wine-card-inner">
+      <div class="wine-image-wrap"><img class="wine-image" src="${wine.image || makePlaceholderImage(wine.name, "#8a3650", "#f5d2c6")}" alt="${wine.name} &#xC774;&#xBBF8;&#xC9C0;"></div>
+      <div class="wine-card-top">
+        <div class="wine-card-copy"><h3>${wine.name}</h3><div class="muted">${metaLine}</div></div>
+        <span class="type-badge ${typeClass}">${wine.type}</span>
+      </div>
+      <div class="wine-meta-pills"><span class="pill">${varietalLabel}</span><span class="pill">${regionLabel}</span><span class="pill">${wine.reviews.length} reviews</span></div>
+      <div class="muted">${priceLine}</div>
+      <div class="wine-card-footer">
+        ${wineActions}
+        ${reviewShell}
+      </div>
+    </div>
+  </article>`;
 }
 
 function renderReviewSnippet(wine, review) {
@@ -1353,14 +1370,14 @@ function renderReviewSnippet(wine, review) {
     ? `<span class="score-pill">${review.overallScore} pts</span>`
     : "";
   const commentMarkup = renderCommentThread(wine, review);
-  const jumpAction = `<div class="button-row" style="margin-top:10px"><button type="button" class="review-action" data-action="write-review-for-wine" data-wine-id="${wine.id}">&#xC774; &#xC640;&#xC778;&#xC5D0; &#xB2E4;&#xB978; &#xD398;&#xB974;&#xC18C;&#xB098; &#xB9AC;&#xBDF0; &#xC4F0;&#xAE30;</button></div>`;
+  const jumpAction = `<div class="button-row" style="margin-top:10px"><button type="button" class="review-action" data-action="write-review-for-wine" data-wine-id="${wine.id}">&#xC774; &#xC640;&#xC778;&#xC5D0; &#xB9AC;&#xBDF0; &#xC4F0;&#xAE30;</button></div>`;
 
   return `<div class="review-snippet" id="review-${wine.id}-${review.id}"><div class="row" style="align-items:center"><div><strong>${persona ? persona.name : review.personaId}</strong><div class="review-meta">${review.createdAt}</div></div>${actionButtons}</div><div class="review-stack"><div class="review-score">${scoreMarkup}<div class="review-copy">${review.summary || review.note}</div></div>${structureMarkup}${aromaMarkup}${jumpAction}${commentMarkup}</div></div>`;
 }
 
 function renderCommentThread(wine, review) {
   const comments = (review.comments || []).map((comment) => `
-    <div class="review-card" style="padding:10px 12px">
+    <div class="comment-item">
       <div class="row" style="align-items:center">
         <strong>${escapeHtml(comment.authorName)}</strong>
         <span class="review-meta">${comment.createdAt}</span>
@@ -1371,12 +1388,12 @@ function renderCommentThread(wine, review) {
 
   const empty = '<div class="empty-state compact">&#xC544;&#xC9C1; &#xB313;&#xAE00;&#xC774; &#xC5C6;&#xC2B5;&#xB2C8;&#xB2E4;.</div>';
   return `
-    <div class="form-card" style="margin-top:14px;padding:14px">
+    <div class="comment-thread-card" style="margin-top:14px">
       <div class="row" style="align-items:center">
         <strong>&#xB9AC;&#xBDF0; &#xB313;&#xAE00;</strong>
         <span class="review-meta">${(review.comments || []).length} comments</span>
       </div>
-      <div class="review-grid" style="grid-template-columns:1fr;gap:10px;margin-top:8px">${comments || empty}</div>
+      <div class="comment-list">${comments || empty}</div>
       <form class="comment-form" data-review-id="${review.id}" data-wine-id="${wine.id}" style="display:grid;gap:10px;margin-top:12px">
         <div class="form-grid">
           <label>&#xC774;&#xB984;<input name="authorName" type="text" maxlength="40" placeholder="&#xC774;&#xB984; &#xB610;&#xB294; &#xB2C9;&#xB124;&#xC784;" required></label>
