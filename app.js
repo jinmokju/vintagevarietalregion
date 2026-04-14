@@ -279,7 +279,6 @@ const el = {
   tasteMode: document.getElementById("tasteMode"),
   personaNameInput: document.getElementById("personaNameInput"),
   personaSummaryInput: document.getElementById("personaSummaryInput"),
-  personaSummaryPreview: document.getElementById("personaSummaryPreview"),
   favVarietyOne: document.getElementById("favVarietyOne"),
   favRegionOne: document.getElementById("favRegionOne"),
   favVarietyTwo: document.getElementById("favVarietyTwo"),
@@ -717,12 +716,6 @@ function bindEvents() {
   el.wineVarietal.addEventListener("blur", populateReviewInputs);
   el.tastePersona.addEventListener("change", syncTasteEditor);
   el.tasteMode.addEventListener("change", syncTasteEditor);
-  el.personaNameInput?.addEventListener("input", refreshPersonaSummaryPreview);
-  el.personaSummaryInput?.addEventListener("input", refreshPersonaSummaryPreview);
-  el.favVarietyOne?.addEventListener("input", refreshPersonaSummaryPreview);
-  el.favRegionOne?.addEventListener("input", refreshPersonaSummaryPreview);
-  el.favVarietyTwo?.addEventListener("input", refreshPersonaSummaryPreview);
-  el.favRegionTwo?.addEventListener("input", refreshPersonaSummaryPreview);
   el.reviewForm.addEventListener("submit", handleReviewSave);
   el.tasteForm.addEventListener("submit", handleTasteSave);
   el.fetchImageCandidates.addEventListener("click", handleImageLookup);
@@ -1067,7 +1060,7 @@ function renderPersonas() {
 
   el.personaGrid.innerHTML = personas.length
     ? personas.map(renderPersonaCard).join("")
-    : '<div class="empty-state">?????獄쏅챶留??癰귙룗猷??????롮쾸?椰???⑤챶猷???persona?????ル뒌?? ??????源낆┰?????????곸죩. ?????怨멸텛??????얠뺏??????傭?끆???????????????耀붾굝???????key in ????欲꼲????饔낅떽??????</div>';
+    : '<div class="empty-state">\uC544\uC9C1 \uB4F1\uB85D\uB41C persona\uAC00 \uC5C6\uC2B5\uB2C8\uB2E4. \uC544\uB798 Persona Studio\uC5D0\uC11C \uC774\uB984\uACFC \uD55C \uC904 \uC18C\uAC1C, \uCD5C\uC560 \uD488\uC885, \uCDE8\uD5A5 \uCD95\uC744 \uC785\uB825\uD574 \uC8FC\uC138\uC694.</div>';
   attachTasteTabs();
   attachPersonaActions();
 }
@@ -1091,11 +1084,11 @@ function renderPersonaCard(persona) {
     </div>
     <div class="persona-character-grid">
       <div class="persona-character-block">
-        <span class="persona-character-label">Red Character</span>
+        <span class="persona-character-label">\uB808\uB4DC \uCE90\uB9AD\uD130</span>
         <p>${summary.red}</p>
       </div>
       <div class="persona-character-block">
-        <span class="persona-character-label">White Character</span>
+        <span class="persona-character-label">\uD654\uC774\uD2B8 \uCE90\uB9AD\uD130</span>
         <p>${summary.white}</p>
       </div>
     </div>
@@ -1113,11 +1106,11 @@ function renderPersonaCard(persona) {
       </div>
       <div class="persona-review-grid">
         <div class="persona-review-panel">
-          <span class="persona-character-label">Top 5 Wines</span>
+          <span class="persona-character-label">\uC0C1\uC704 5\uAC1C \uC640\uC778</span>
           ${renderPersonaReviewLinks(insights.topReviews, "&#xC544;&#xC9C1; &#xC810;&#xC218;&#xAC00; &#xC788;&#xB294; &#xB9AC;&#xBDF0;&#xAC00; &#xC5C6;&#xC2B5;&#xB2C8;&#xB2E4;.", true)}
         </div>
         <div class="persona-review-panel">
-          <span class="persona-character-label">Recent Reviews</span>
+          <span class="persona-character-label">\uCD5C\uADFC \uB9AC\uBDF0</span>
           ${renderPersonaReviewLinks(insights.recentReviews, "&#xC544;&#xC9C1; &#xCD5C;&#xADFC; &#xB9AC;&#xBDF0;&#xAC00; &#xC5C6;&#xC2B5;&#xB2C8;&#xB2E4;.")}
         </div>
       </div>
@@ -1126,16 +1119,16 @@ function renderPersonaCard(persona) {
       </div>
     </div>
     <div class="taste-tabs">
-      <button type="button" class="tab-button active" data-tab="${persona.id}-red">Red</button>
-      <button type="button" class="tab-button" data-tab="${persona.id}-white">White</button>
+      <button type="button" class="tab-button active" data-tab="${persona.id}-red">\uB808\uB4DC</button>
+      <button type="button" class="tab-button" data-tab="${persona.id}-white">\uD654\uC774\uD2B8</button>
     </div>
     <div class="taste-panel active" id="${persona.id}-red">
-      <div class="persona-character-label">Red Preference</div>
+      <div class="persona-character-label">\uB808\uB4DC \uCDE8\uD5A5 \uB9F5</div>
       <div class="taste-summary persona-favorites">${renderFavoritePills(persona.tastes.red)}</div>
       ${renderTasteTracks(persona.tastes.red, "red")}
     </div>
     <div class="taste-panel" id="${persona.id}-white">
-      <div class="persona-character-label">White Preference</div>
+      <div class="persona-character-label">\uD654\uC774\uD2B8 \uCDE8\uD5A5 \uB9F5</div>
       <div class="taste-summary persona-favorites">${renderFavoritePills(persona.tastes.white)}</div>
       ${renderTasteTracks(persona.tastes.white, "white")}
     </div>
@@ -1450,8 +1443,6 @@ function syncTasteEditor() {
     body: taste.body,
     fruitProfile: taste.fruitProfile
   };
-  refreshPersonaSummaryPreview();
-
   const labels = getFieldLabels(mode);
   el.tasteEditor.innerHTML = labels.map((field) => `<div class="taste-track minimal editor"><div class="taste-axis-head"><strong>${field.label}</strong></div><div class="segment-picker" data-field="${field.key}"></div><div class="taste-poles"><span>${field.left}</span><span>${field.right}</span></div></div>`).join("");
   labels.forEach((field) => renderSegmentPicker(field.key));
@@ -1496,40 +1487,9 @@ function renderSegmentPicker(fieldKey) {
     button.addEventListener("click", () => {
       state.tasteDraft[fieldKey] = i;
       renderSegmentPicker(fieldKey);
-      refreshPersonaSummaryPreview();
     });
     host.appendChild(button);
   }
-}
-
-function refreshPersonaSummaryPreview() {
-  if (!el.personaSummaryPreview) {
-    return;
-  }
-  const persona = getSelectedPersonaData();
-  const mode = el.tasteMode.value;
-  const taste = persona.tastes[mode];
-  const summary = buildPersonaSummaryLines({
-    ...persona,
-    name: el.personaNameInput.value.trim() || persona.name || "\uc774 \ud398\ub974\uc18c\ub098",
-    summary: el.personaSummaryInput.value.trim(),
-    tastes: {
-      ...persona.tastes,
-      [mode]: {
-        ...taste,
-        favoritePairs: [
-          { varietal: el.favVarietyOne.value.trim(), region: el.favRegionOne.value.trim() },
-          { varietal: el.favVarietyTwo.value.trim(), region: el.favRegionTwo.value.trim() }
-        ],
-        fruitDriven: state.tasteDraft.fruitDriven,
-        oak: state.tasteDraft.oak,
-        acidity: state.tasteDraft.acidity,
-        body: state.tasteDraft.body,
-        fruitProfile: state.tasteDraft.fruitProfile
-      }
-    }
-  });
-  el.personaSummaryPreview.innerHTML = `<strong>${summary.headline}</strong><br><span>${summary.deck}</span><br><span><b>Red Character</b> ${summary.red}</span><br><span><b>White Character</b> ${summary.white}</span>`;
 }
 
 function scalePosition(value) {
@@ -2350,64 +2310,64 @@ function buildPersonaHeadline(red, white) {
 function buildModeSummary(taste, mode, favorites) {
   const favoriteLead = favorites.length
     ? (mode === "white"
-      ? `${favorites.join(", ")} 같은 스타일의 화이트에 자연스럽게 손이 갑니다. `
-      : `${favorites.join(", ")} 같은 결의 레드에 더 먼저 반응합니다. `)
+      ? `${favorites.join(", ")} 쪽에 자연스럽게 손이 가는 편입니다. `
+      : `${favorites.join(", ")} 계열에서 만족도가 확실히 올라가는 타입입니다. `)
     : "";
 
   if (mode === "white") {
     const fruitLine = taste.fruitDriven <= 3
-      ? "과실 향이 또렷하게 드러나는 화이트를 선호합니다"
+      ? "과실 향이 또렷하게 드러나는 화이트를 편하게 즐깁니다"
       : taste.fruitDriven >= 6
-        ? "과실보다는 미네랄과 선이 살아 있는 화이트를 더 좋아합니다"
-        : "과실과 미네랄이 균형을 이루는 스타일에 편안함을 느낍니다";
+        ? "과실보다 미네랄과 직선적인 인상이 살아 있는 화이트를 더 선호합니다"
+        : "과실과 미네랄이 균형을 이루는 화이트에 안정감을 느낍니다";
     const profileLine = taste.fruitProfile <= 2
-      ? "열대 과실 뉘앙스가 도는 쪽이 더 잘 맞습니다"
+      ? "열대 과실의 여운이 도는 쪽이 더 잘 맞고"
       : taste.fruitProfile >= 6
-        ? "시트러스가 선명하고 마무리가 산뜻한 쪽이 더 취향에 가깝습니다"
-        : "열대 과실과 시트러스가 함께 보이는 구간도 자연스럽게 받아들입니다";
+        ? "시트러스가 선명하게 올라오는 쪽이 더 취향에 가깝고"
+        : "열대 과실과 시트러스가 함께 보이는 스펙트럼도 무리 없이 받아들입니다";
     const acidityLine = taste.acidity <= 3
-      ? "산도는 또렷하게 살아 있을수록 좋고"
+      ? "산도는 또렷하게 살아 있어야 표정이 산다고 느끼며"
       : taste.acidity >= 6
-        ? "산도가 낮더라도 전체 인상이 매끄러우면 충분히 좋고"
-        : "산도는 과하지 않게 정돈돼 있으면 만족스럽습니다";
+        ? "산도가 낮더라도 질감과 균형이 매끄러우면 충분히 만족합니다"
+        : "산도는 과하지 않게 정돈된 정도를 가장 편안하게 봅니다";
     const bodyLine = taste.body <= 3
-      ? "질감은 어느 정도 볼륨이 느껴지는 편을 선호합니다"
+      ? "바디는 어느 정도 볼륨이 있는 편을 선호합니다"
       : taste.body >= 6
-        ? "바디는 가볍고 슬림한 쪽이 더 편합니다"
-        : "바디는 중간 밀도 정도면 안정적으로 느낍니다";
+        ? "바디는 가볍고 슬림한 쪽이 더 좋습니다"
+        : "바디는 중간 밀도 정도면 가장 안정적으로 느낍니다";
     const oakLine = taste.oak <= 3
       ? "오크는 향을 살짝 보태는 정도까지는 괜찮습니다"
       : taste.oak >= 6
-        ? "오크는 최대한 뒤로 물러나 있을수록 좋습니다"
+        ? "오크는 최대한 뒤로 빠져 있을수록 좋습니다"
         : "오크는 존재하되 전면에 나서지 않길 바랍니다";
     return `${favoriteLead}${fruitLine}. ${profileLine}. ${acidityLine} ${bodyLine}. ${oakLine}.`;
   }
 
   const fruitLine = taste.fruitDriven <= 3
-    ? "과실이 먼저 치고 나오는 레드에 더 빠르게 끌립니다"
+      ? "과실이 먼저 치고 나오는 레드에 더 빠르게 반응합니다"
     : taste.fruitDriven >= 6
       ? "세이보리와 어시 톤이 살아 있는 레드에 더 마음이 갑니다"
       : "과실과 세이보리가 함께 엮이는 레드를 편안하게 받아들입니다";
   const profileLine = taste.fruitProfile <= 2
-    ? "다크 프루트 결이 짙어질수록 만족도가 올라갑니다"
+    ? "다크 프루트 결이 짙어질수록 만족도가 올라가고"
     : taste.fruitProfile >= 6
-      ? "레드 프루트의 선명함이 살아 있는 쪽이 더 취향에 가깝습니다"
-      : "레드와 다크 프루트가 교차하는 지점도 충분히 매력적으로 느낍니다";
+      ? "레드 프루트의 선명함이 살아 있는 쪽을 더 선호하고"
+      : "레드와 다크 프루트가 교차하는 구간도 충분히 매력적으로 느낍니다";
   const acidityLine = taste.acidity <= 3
-    ? "산도는 와인의 골격을 세워주는 편이 좋고"
+    ? "산도는 와인의 골격을 세워 줄 만큼 분명해야 하며"
     : taste.acidity >= 6
-      ? "산도가 낮더라도 질감과 흐름이 맞으면 편안하게 받아들입니다"
-      : "산도는 균형만 잡혀 있어도 충분합니다";
+      ? "산도가 낮더라도 전체 질감이 매끄러우면 받아들일 수 있으며"
+      : "산도는 과하지 않게 중심을 잡아 주는 정도를 선호합니다";
   const bodyLine = taste.body <= 3
-    ? "바디는 존재감이 있는 쪽에 더 마음이 갑니다"
+    ? "바디는 어느 정도 밀도감이 느껴지는 편이 잘 맞습니다"
     : taste.body >= 6
-      ? "바디는 지나치게 무겁지 않은 쪽이 더 편합니다"
-      : "바디는 중간 이상의 밀도가 가장 안정적으로 느껴집니다";
+      ? "바디는 가볍고 날렵한 쪽이 더 편합니다"
+      : "바디는 중간 이상 정도에서 균형이 가장 좋다고 느낍니다";
   const oakLine = taste.oak <= 3
-    ? "오크 터치는 캐릭터로 받아들이는 편이고"
+    ? "오크가 약간 전면에 있어도 스타일만 맞으면 괜찮습니다"
     : taste.oak >= 6
-      ? "오크는 절제될수록 더 좋습니다"
-      : "오크는 존재하되 앞으로 너무 튀지 않길 바랍니다";
+      ? "오크는 최대한 절제된 편을 선호합니다"
+      : "오크는 존재하되 과하게 드러나지 않길 바랍니다";
   return `${favoriteLead}${fruitLine}. ${profileLine}. ${acidityLine} ${bodyLine}. ${oakLine}.`;
 }
 

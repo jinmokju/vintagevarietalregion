@@ -1,4 +1,4 @@
-﻿<!doctype html>
+<!doctype html>
 <html lang="ko">
 <head>
   <meta charset="UTF-8">
@@ -90,10 +90,6 @@
     .persona-review-link span{font-size:.82rem;color:var(--muted)}
     .persona-rank-badge{display:inline-flex;align-items:center;justify-content:center;width:max-content;padding:4px 8px;border-radius:999px;background:linear-gradient(135deg,var(--accent),var(--accent-soft));color:var(--white)!important;font-size:.74rem!important;font-weight:800}
     .empty-state.compact{padding:12px 14px;font-size:.86rem}
-    .persona-preview-card{background:linear-gradient(135deg,rgba(166,61,83,.08),rgba(255,255,255,.4))}
-    .persona-preview-card #personaSummaryPreview{line-height:1.75}
-    .persona-preview-card #personaSummaryPreview strong{display:block;color:var(--text);margin-bottom:4px}
-    .persona-preview-card #personaSummaryPreview span{display:block;margin-top:4px}
     @media (max-width:720px){.persona-character-grid,.persona-favorite-grid,.persona-review-grid,.persona-review-stats{grid-template-columns:1fr}}
   </style>
 
@@ -350,10 +346,10 @@
                   <label>모드<select id="tasteMode"><option value="red">Red Taste</option><option value="white">White Taste</option></select></label>
                   <label style="grid-column:1 / -1">Persona Name<input id="personaNameInput" placeholder="표시 이름"></label>
                   <label style="grid-column:1 / -1">한 줄 소개<input id="personaSummaryInput" placeholder="예: 산도 중심의 클래식 유럽파"></label>
-                  <label>Favorite Grape Variety 1<input id="favVarietyOne" placeholder="예: Pinot Noir"></label>
-                  <label>Favorite Region 1<input id="favRegionOne" placeholder="예: Burgundy"></label>
-                  <label>Favorite Grape Variety 2<input id="favVarietyTwo" placeholder="예: Syrah"></label>
-                  <label>Favorite Region 2<input id="favRegionTwo" placeholder="예: Northern Rhone"></label>
+                  <label>최애 품종 1<input id="favVarietyOne" placeholder="예: Pinot Noir"></label>
+                  <label>최애 지역 1<input id="favRegionOne" placeholder="예: Burgundy"></label>
+                  <label>최애 품종 2<input id="favVarietyTwo" placeholder="예: Syrah"></label>
+                  <label>최애 지역 2<input id="favRegionTwo" placeholder="예: Northern Rhone"></label>
                 </div>
                 <div class="range" id="tasteEditor"></div>
                 <div class="button-row">
