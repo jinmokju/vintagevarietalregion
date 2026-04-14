@@ -19,7 +19,7 @@ const TASTE_FIELDS = [
 const VARIETAL_OPTIONS = {
   Red: ["Pinot Noir", "Cabernet Sauvignon", "Merlot", "Syrah", "Shiraz", "Grenache", "Tempranillo", "Sangiovese", "Nebbiolo", "Barbera", "Malbec", "Zinfandel", "Primitivo", "Cabernet Franc", "Petit Verdot", "Carmenere", "Mourvedre", "Gamay", "Dolcetto", "Aglianico", "Montepulciano", "Corvina", "Nerello Mascalese", "Touriga Nacional", "Mencia", "Trousseau", "Blaufrankisch", "Bobal", "Carignan", "Cinsault", "Counoise", "Petit Sirah", "Saperavi"],
   White: ["Chardonnay", "Sauvignon Blanc", "Riesling", "Chenin Blanc", "Semillon", "Pinot Gris", "Pinot Grigio", "Gewurztraminer", "Viognier", "Albarino", "Vermentino", "Marsanne", "Roussanne", "Grenache Blanc", "Clairette", "Ugni Blanc", "Trebbiano", "Arneis", "Cortese", "Verdicchio", "Fiano", "Greco", "Garganega", "Assyrtiko", "Silvaner", "Muscadet", "Melon de Bourgogne", "Torrontes", "Savagnin", "Gruner Veltliner", "Godello", "Timorasso", "Palomino", "Welschriesling"],
-  Sparkling: ["Chardonnay", "Pinot Noir", "Pinot Meunier", "Pinot Blanc", "Pinot Gris", "Riesling", "Chenin Blanc", "Xarel-lo", "Macabeo", "Parellada", "Glera", "Lambrusco", "Sémillon", "Aligoté", "Arneis"],
+  Sparkling: ["Chardonnay", "Pinot Noir", "Pinot Meunier", "Pinot Blanc", "Pinot Gris", "Riesling", "Chenin Blanc", "Xarel-lo", "Macabeo", "Parellada", "Glera", "Lambrusco", "S챕millon", "Aligot챕", "Arneis"],
   Rose: ["Grenache", "Cinsault", "Syrah", "Mourvedre", "Pinot Noir", "Sangiovese", "Tempranillo", "Nebbiolo", "Merlot", "Cabernet Sauvignon", "Cabernet Franc", "Gamay", "Corvina", "Aglianico", "Primitivo"],
   Orange: ["Ribolla Gialla", "Pinot Grigio", "Malvasia", "Sauvignon Blanc", "Chardonnay", "Rkatsiteli", "Gewurztraminer", "Muscat", "Vitovska", "Friulano", "Fiano", "Greco", "Vermentino", "Trebbiano", "Semillon"]
 };
@@ -106,7 +106,7 @@ const AROMA_OPTIONS = {
       "Baking Spice": ["Clove", "Nutmeg", "Cinnamon", "Sweet Spice", "Ginger Spice"],
       "Lees / Autolysis": ["Brioche", "Bread Dough", "Toast", "Cream", "Butter", "Yogurt"],
       Nutty: ["Hazelnut", "Toasted Almond", "Marzipan", "Walnut"],
-      "Sweet Oak": ["Caramel", "Butterscotch", "Toffee", "Crème Brulee"],
+      "Sweet Oak": ["Caramel", "Butterscotch", "Toffee", "Cr챔me Brulee"],
       "Grainy / Roasted": ["Roasted Grain", "Oatmeal", "Shortbread"]
     },
     rose: {
@@ -188,8 +188,8 @@ const seedWines = [
     averagePrice: "KRW 165,000",
     image: makePlaceholderImage("Bloom's Field", "#b04158", "#efd8c8"),
     reviews: [
-      { id: "local-r1", personaId: "mina", note: "붉은 베리와 장미 향이 선명하고 산도가 끝까지 끌고 간다.", createdAt: "2026-04-08" },
-      { id: "local-r2", personaId: "soyeon", note: "빈티지 비교 포인트가 또렷하고 과하지 않다.", createdAt: "2026-04-09" }
+      { id: "local-r1", personaId: "mina", note: "遺됱? 踰좊━? ?λ? ?μ씠 ?좊챸?섍퀬 ?곕룄媛 ?앷퉴吏 ?뚭퀬 媛꾨떎.", createdAt: "2026-04-08" },
+      { id: "local-r2", personaId: "soyeon", note: "鍮덊떚吏 鍮꾧탳 ?ъ씤?멸? ?먮졆?섍퀬 怨쇳븯吏 ?딅떎.", createdAt: "2026-04-09" }
     ]
   },
   {
@@ -202,8 +202,8 @@ const seedWines = [
     averagePrice: "KRW 52,000",
     image: makePlaceholderImage("Kumeu River", "#d2b04c", "#fff0c5"),
     reviews: [
-      { id: "local-r3", personaId: "jun", note: "오크는 절제되어 있고 질감이 크리미하다.", createdAt: "2026-04-07" },
-      { id: "local-r4", personaId: "eun", note: "시트러스와 미네랄 균형이 좋아 입문자 추천용으로도 적합하다.", createdAt: "2026-04-10" }
+      { id: "local-r3", personaId: "jun", note: "?ㅽ겕???덉젣?섏뼱 ?덇퀬 吏덇컧???щ━誘명븯??", createdAt: "2026-04-07" },
+      { id: "local-r4", personaId: "eun", note: "?쒗듃?ъ뒪? 誘몃꽕??洹좏삎??醫뗭븘 ?낅Ц??異붿쿇?⑹쑝濡쒕룄 ?곹빀?섎떎.", createdAt: "2026-04-10" }
     ]
   }
 ];
@@ -607,13 +607,13 @@ function findMatchingAroma(category, type, candidate) {
 function addCustomAroma(category, type, groupName, rawValue) {
   const value = rawValue.trim();
   if (!value) {
-    return { ok: false, message: "향미 이름을 입력해주세요." };
+    return { ok: false, message: "?λ? ?대쫫???낅젰?댁＜?몄슂." };
   }
 
   const match = findMatchingAroma(category, type, value);
   if (match) {
     toggleAromaSelection(category, match, true);
-    return { ok: false, message: `이미 비슷한 향미 '${match}' 가 있어 그 항목을 선택했습니다.` };
+    return { ok: false, message: `?대? 鍮꾩듂???λ? '${match}' 媛 ?덉뼱 洹???ぉ???좏깮?덉뒿?덈떎.` };
   }
 
   const typeKey = getAromaTypeKey(type);
@@ -624,7 +624,7 @@ function addCustomAroma(category, type, groupName, rawValue) {
   state.customAromas[category][typeKey][groupName].sort((a, b) => a.localeCompare(b));
   saveLocal();
   toggleAromaSelection(category, value, true);
-  return { ok: true, message: `'${value}' 향미를 추가했습니다.` };
+  return { ok: true, message: `'${value}' ?λ?瑜?異붽??덉뒿?덈떎.` };
 }
 
 function loadLocal(key, fallback) {
@@ -690,8 +690,8 @@ function bindEvents() {
   el.fetchImageCandidates.addEventListener("click", handleImageLookup);
   el.fetchPriceData.addEventListener("click", handlePriceLookup);
   el.wineImage.addEventListener("input", syncImagePreview);
-  el.wineImageLibrary?.addEventListener("change", (event) => handleImageUpload(event, "사진 보관함 업로드"));
-  el.wineImageCamera?.addEventListener("change", (event) => handleImageUpload(event, "카메라 촬영 업로드"));
+  el.wineImageLibrary?.addEventListener("change", (event) => handleImageUpload(event, "?ъ쭊 蹂닿????낅줈??));
+  el.wineImageCamera?.addEventListener("change", (event) => handleImageUpload(event, "移대찓??珥ъ쁺 ?낅줈??));
   el.clearImageButton.addEventListener("click", clearImageField);
   el.authForm.addEventListener("submit", handleLogin);
   el.signupButton.addEventListener("click", handleSignup);
@@ -703,7 +703,7 @@ function bindEvents() {
 function populatePersonaOptions() {
   const reviewOptions = state.personas.length
     ? state.personas.map((persona) => `<option value="${persona.id}">${persona.name}</option>`).join("")
-    : '<option value="">Persona를 먼저 등록하세요</option>';
+    : '<option value="">Persona瑜?癒쇱? ?깅줉?섏꽭??/option>';
   const tasteOptions = ['<option value="__new__">+ New Persona</option>']
     .concat(state.personas.map((persona) => `<option value="${persona.id}">${persona.name}</option>`))
     .join("");
@@ -728,7 +728,7 @@ function populateReviewInputs() {
       wine.varietal,
       wine.region,
       `${wine.reviews.length} reviews`
-    ].filter(Boolean).join(" · ")}</option>`)
+    ].filter(Boolean).join(" 쨌 ")}</option>`)
     .join("");
   el.wineNameOptions.innerHTML = wineOptions;
 
@@ -800,17 +800,17 @@ function handleWineNameSelection() {
 function updateWineNameMeta() {
   const name = el.wineName.value.trim();
   if (!name) {
-    el.wineNameMeta.textContent = "기존에 등록된 와인을 고르면 관련 정보와 리뷰 수를 자동으로 불러옵니다.";
+    el.wineNameMeta.textContent = "湲곗〈???깅줉????몄쓣 怨좊Ⅴ硫?愿???뺣낫? 由щ럭 ?섎? ?먮룞?쇰줈 遺덈윭?듬땲??";
     return;
   }
 
   const wine = state.wines.find((item) => item.name.toLowerCase() === name.toLowerCase());
   if (!wine) {
-    el.wineNameMeta.textContent = "새 와인으로 입력됩니다. 저장 시 새 항목이 생성됩니다.";
+    el.wineNameMeta.textContent = "????몄쑝濡??낅젰?⑸땲?? ?????????ぉ???앹꽦?⑸땲??";
     return;
   }
 
-  el.wineNameMeta.textContent = `${wine.reviews.length}개 리뷰가 등록된 기존 와인입니다.${wine.producer ? ` Producer: ${wine.producer}.` : ""}`;
+  el.wineNameMeta.textContent = `${wine.reviews.length}媛?由щ럭媛 ?깅줉??湲곗〈 ??몄엯?덈떎.${wine.producer ? ` Producer: ${wine.producer}.` : ""}`;
 }
 
 function findBestWineFromText(normalizedText) {
@@ -981,12 +981,12 @@ function renderAll() {
 }
 
 function renderFilters() {
-  renderFilterGroup(el.personaFilters, "all", "전체 Persona", state.selectedPersona, (value) => {
+  renderFilterGroup(el.personaFilters, "all", "?꾩껜 Persona", state.selectedPersona, (value) => {
     state.selectedPersona = value;
     renderAll();
   });
 
-  renderFilterGroup(el.reviewerFilters, "all", "모든 리뷰어", state.selectedPersona, (value) => {
+  renderFilterGroup(el.reviewerFilters, "all", "紐⑤뱺 由щ럭??, state.selectedPersona, (value) => {
     state.selectedPersona = value;
     renderAll();
   });
@@ -1029,7 +1029,7 @@ function renderPersonas() {
 
   el.personaGrid.innerHTML = personas.length
     ? personas.map(renderPersonaCard).join("")
-    : '<div class="empty-state">아직 등록된 persona가 없습니다. 관리자 계정으로 직접 key in 해주세요.</div>';
+    : '<div class="empty-state">?꾩쭅 ?깅줉??persona媛 ?놁뒿?덈떎. 愿由ъ옄 怨꾩젙?쇰줈 吏곸젒 key in ?댁＜?몄슂.</div>';
   attachTasteTabs();
   attachPersonaActions();
 }
@@ -1543,17 +1543,17 @@ function renderAromaSelector(category, type) {
 
   selectedHost.innerHTML = values.length
     ? values.map((value) => `<span class="pill">${value}</span>`).join("")
-    : '<span class="muted">아직 선택 전</span>';
+    : '<span class="muted">?꾩쭅 ?좏깮 ??/span>';
 
   selector.innerHTML = `
     <div class="aroma-add-row">
       <select data-aroma-group="${category}">
         ${groupNames.map((groupName) => `<option value="${groupName}">${groupName}</option>`).join("")}
       </select>
-      <input type="text" data-aroma-input="${category}" placeholder="없는 향미를 직접 추가">
-      <button type="button" class="ghost-button" data-aroma-add="${category}" style="color:var(--text); border-color:var(--line); background:var(--surface-strong)">추가</button>
+      <input type="text" data-aroma-input="${category}" placeholder="?녿뒗 ?λ?瑜?吏곸젒 異붽?">
+      <button type="button" class="ghost-button" data-aroma-add="${category}" style="color:var(--text); border-color:var(--line); background:var(--surface-strong)">異붽?</button>
     </div>
-    <div class="aroma-add-status" data-aroma-status="${category}">비슷한 표현이 있으면 기존 향미를 자동으로 선택합니다.</div>
+    <div class="aroma-add-status" data-aroma-status="${category}">鍮꾩듂???쒗쁽???덉쑝硫?湲곗〈 ?λ?瑜??먮룞?쇰줈 ?좏깮?⑸땲??</div>
   ` + Object.entries(groups).map(([groupName, options]) => `
     <div class="aroma-category">
       <div class="aroma-category-head">
@@ -1610,13 +1610,13 @@ async function handleLogin(event) {
   const email = el.adminEmail.value.trim();
   const password = el.adminPassword.value.trim();
   if (!email || !password) {
-    el.authStatus.textContent = "이메일과 비밀번호를 입력해주세요.";
+    el.authStatus.textContent = "?대찓?쇨낵 鍮꾨?踰덊샇瑜??낅젰?댁＜?몄슂.";
     return;
   }
 
-  el.authStatus.textContent = "로그인 중...";
+  el.authStatus.textContent = "濡쒓렇??以?..";
   const { error } = await state.supabase.auth.signInWithPassword({ email, password });
-  el.authStatus.textContent = error ? `로그인 실패: ${error.message}` : "로그인에 성공했습니다.";
+  el.authStatus.textContent = error ? `濡쒓렇???ㅽ뙣: ${error.message}` : "濡쒓렇?몄뿉 ?깃났?덉뒿?덈떎.";
 }
 
 async function handleSignup() {
@@ -1627,15 +1627,15 @@ async function handleSignup() {
   const email = el.adminEmail.value.trim();
   const password = el.adminPassword.value.trim();
   if (!email || !password) {
-    el.authStatus.textContent = "가입용 이메일과 비밀번호를 먼저 입력해주세요.";
+    el.authStatus.textContent = "媛?낆슜 ?대찓?쇨낵 鍮꾨?踰덊샇瑜?癒쇱? ?낅젰?댁＜?몄슂.";
     return;
   }
 
-  el.authStatus.textContent = "관리자 계정 생성 중...";
+  el.authStatus.textContent = "愿由ъ옄 怨꾩젙 ?앹꽦 以?..";
   const { error } = await state.supabase.auth.signUp({ email, password });
   el.authStatus.textContent = error
-    ? `가입 실패: ${error.message}`
-    : "가입 요청이 완료됐습니다. 이메일 인증이 켜져 있다면 메일을 먼저 확인해주세요.";
+    ? `媛???ㅽ뙣: ${error.message}`
+    : "媛???붿껌???꾨즺?먯뒿?덈떎. ?대찓???몄쬆??耳쒖졇 ?덈떎硫?硫붿씪??癒쇱? ?뺤씤?댁＜?몄슂.";
 }
 
 async function handleLogout() {
@@ -1679,7 +1679,7 @@ function startReviewEdit(wineId, reviewId) {
     secondaryAromas: normalizeAromaList(review.secondaryAromas),
     tertiaryAromas: normalizeAromaList(review.tertiaryAromas)
   };
-  el.reviewSubmitLabel.textContent = "리뷰 수정 저장";
+  el.reviewSubmitLabel.textContent = "由щ럭 ?섏젙 ???;
   el.cancelEditButton.hidden = false;
   syncImagePreview();
   renderImageCandidates();
@@ -1698,9 +1698,9 @@ function resetReviewForm() {
   el.wineProducer.value = "";
   state.reviewDraft = createEmptyReviewDraft("Red");
   state.imageCandidates = [];
-  el.reviewSubmitLabel.textContent = "리뷰 저장하기";
+  el.reviewSubmitLabel.textContent = "由щ럭 ??ν븯湲?;
   el.cancelEditButton.hidden = true;
-  el.fetchStatus.textContent = "이미지는 후보를 먼저 보고 선택하고, 가격은 별도로 조회합니다.";
+  el.fetchStatus.textContent = "?대?吏???꾨낫瑜?癒쇱? 蹂닿퀬 ?좏깮?섍퀬, 媛寃⑹? 蹂꾨룄濡?議고쉶?⑸땲??";
   syncImagePreview();
   renderImageCandidates();
   syncReviewEditor();
@@ -1710,7 +1710,7 @@ function resetReviewForm() {
 async function handleReviewSave(event) {
   event.preventDefault();
   if (!state.isAdmin) {
-    alert("관리자 로그인 후 저장할 수 있습니다.");
+    alert("愿由ъ옄 濡쒓렇??????ν븷 ???덉뒿?덈떎.");
     return;
   }
 
@@ -1734,16 +1734,16 @@ async function handleReviewSave(event) {
 
   if (!payload.personaId || !payload.name || !payload.summary || !payload.overallScore) {
     if (!payload.personaId) {
-      alert("리뷰를 남기기 전에 persona를 먼저 등록해주세요.");
+      alert("由щ럭瑜??④린湲??꾩뿉 persona瑜?癒쇱? ?깅줉?댁＜?몄슂.");
     } else if (!payload.overallScore) {
-      alert("Overall score를 입력해주세요.");
+      alert("Overall score瑜??낅젰?댁＜?몄슂.");
     }
     return;
   }
 
   const numericScore = Number(payload.overallScore);
   if (Number.isNaN(numericScore) || numericScore < 0 || numericScore > 100) {
-    alert("Overall score는 0~100 사이로 입력해주세요.");
+    alert("Overall score??0~100 ?ъ씠濡??낅젰?댁＜?몄슂.");
     return;
   }
 
@@ -1844,7 +1844,7 @@ async function handleReviewDelete(wineId, reviewId) {
     return;
   }
 
-  const ok = window.confirm(`'${wine.name}' 리뷰를 삭제할까요?`);
+  const ok = window.confirm(`'${wine.name}' 由щ럭瑜???젣?좉퉴??`);
   if (!ok) {
     return;
   }
@@ -1940,7 +1940,7 @@ async function handlePersonaDelete() {
     return;
   }
 
-  const ok = window.confirm(`${persona.name} persona를 삭제할까요? 관련 리뷰도 함께 제거됩니다.`);
+  const ok = window.confirm(`${persona.name} persona瑜???젣?좉퉴?? 愿??由щ럭???④퍡 ?쒓굅?⑸땲??`);
   if (!ok) {
     return;
   }
@@ -1965,14 +1965,14 @@ async function handlePersonaDelete() {
 async function handleImageLookup() {
   const query = buildWineLookupQuery();
   if (!query.primary) {
-    el.fetchStatus.textContent = "와인명이나 Producer를 먼저 입력해주세요.";
+    el.fetchStatus.textContent = "??몃챸?대굹 Producer瑜?癒쇱? ?낅젰?댁＜?몄슂.";
     return;
   }
 
   state.imageCandidates = [];
   renderImageCandidates();
   setUploadFallbackVisible(false);
-  el.fetchStatus.textContent = "공식 와이너리 페이지를 먼저 찾고, 없으면 수입사, 그다음 공개 이미지 소스를 순서대로 확인하고 있습니다.";
+  el.fetchStatus.textContent = "怨듭떇 ??대꼫由??섏씠吏瑜?癒쇱? 李얘퀬, ?놁쑝硫??섏엯?? 洹몃떎??怨듦컻 ?대?吏 ?뚯뒪瑜??쒖꽌?濡??뺤씤?섍퀬 ?덉뒿?덈떎.";
 
   try {
     const data = await requestWineLookup("image", query);
@@ -1981,8 +1981,8 @@ async function handleImageLookup() {
     renderImageCandidates();
 
     if (!state.imageCandidates.length) {
-      setUploadFallbackVisible(true, "공식 와이너리, 수입사, 공개 이미지 fallback까지 모두 확인했지만 후보를 찾지 못했습니다. 여기서 직접 올려주세요.");
-      el.fetchStatus.textContent = data.note || "이미지 후보를 찾지 못했습니다. 아래 업로드 fallback을 이용해주세요.";
+      setUploadFallbackVisible(true, "怨듭떇 ??대꼫由? ?섏엯?? 怨듦컻 ?대?吏 fallback源뚯? 紐⑤몢 ?뺤씤?덉?留??꾨낫瑜?李얠? 紐삵뻽?듬땲?? ?ш린??吏곸젒 ?щ젮二쇱꽭??");
+      el.fetchStatus.textContent = data.note || "?대?吏 ?꾨낫瑜?李얠? 紐삵뻽?듬땲?? ?꾨옒 ?낅줈??fallback???댁슜?댁＜?몄슂.";
       return;
     }
 
@@ -1990,38 +1990,38 @@ async function handleImageLookup() {
     if (!el.wineImage.value.trim() && state.imageCandidates[0]?.image_url) {
       applyImageCandidate(state.imageCandidates[0]);
     } else {
-      el.fetchStatus.textContent = data.note || `${state.imageCandidates.length}개의 이미지 후보를 찾았습니다. 공식/수입사 소스를 우선 정렬했습니다.`;
+      el.fetchStatus.textContent = data.note || `${state.imageCandidates.length}媛쒖쓽 ?대?吏 ?꾨낫瑜?李얠븯?듬땲?? 怨듭떇/?섏엯???뚯뒪瑜??곗꽑 ?뺣젹?덉뒿?덈떎.`;
     }
   } catch (error) {
-    setUploadFallbackVisible(true, "자동 탐색 중 오류가 나서 업로드 fallback을 열었습니다. 사진 보관함이나 카메라 촬영으로 직접 넣을 수 있습니다.");
-    el.fetchStatus.textContent = `이미지 후보 조회 실패: ${error.message || "Cloudflare Function 또는 API 설정을 확인해주세요."}`;
+    setUploadFallbackVisible(true, "?먮룞 ?먯깋 以??ㅻ쪟媛 ?섏꽌 ?낅줈??fallback???댁뿀?듬땲?? ?ъ쭊 蹂닿??⑥씠??移대찓??珥ъ쁺?쇰줈 吏곸젒 ?ｌ쓣 ???덉뒿?덈떎.");
+    el.fetchStatus.textContent = `?대?吏 ?꾨낫 議고쉶 ?ㅽ뙣: ${error.message || "Cloudflare Function ?먮뒗 API ?ㅼ젙???뺤씤?댁＜?몄슂."}`;
   }
 }
 async function handlePriceLookup() {
   const query = buildWineLookupQuery();
   if (!query.primary) {
-    el.fetchStatus.textContent = "와인명 또는 검색 키워드를 먼저 입력해주세요.";
+    el.fetchStatus.textContent = "??몃챸 ?먮뒗 寃???ㅼ썙?쒕? 癒쇱? ?낅젰?댁＜?몄슂.";
     return;
   }
 
   const existingWine = findClosestExistingWine();
   if (existingWine?.averagePrice && !el.winePrice.value.trim()) {
     el.winePrice.value = existingWine.averagePrice;
-    el.fetchStatus.textContent = `기존 등록 와인 '${existingWine.name}'의 가격 메모를 먼저 재사용했습니다.`;
+    el.fetchStatus.textContent = `湲곗〈 ?깅줉 ???'${existingWine.name}'??媛寃?硫붾え瑜?癒쇱? ?ъ궗?⑺뻽?듬땲??`;
     return;
   }
 
-  el.fetchStatus.textContent = "가격 정보를 조회 중...";
+  el.fetchStatus.textContent = "媛寃??뺣낫瑜?議고쉶 以?..";
   try {
     const data = await requestWineLookup("price", query);
     if (data.average_price) {
       el.winePrice.value = data.average_price;
-      el.fetchStatus.textContent = data.note || "가격 정보를 반영했습니다.";
+      el.fetchStatus.textContent = data.note || "媛寃??뺣낫瑜?諛섏쁺?덉뒿?덈떎.";
       return;
     }
-    el.fetchStatus.textContent = "평균가를 찾지 못했습니다. Wine-Searcher API 또는 수동 입력을 확인해주세요.";
+    el.fetchStatus.textContent = "?됯퇏媛瑜?李얠? 紐삵뻽?듬땲?? Wine-Searcher API ?먮뒗 ?섎룞 ?낅젰???뺤씤?댁＜?몄슂.";
   } catch (error) {
-    el.fetchStatus.textContent = `가격 조회 실패: ${error.message || "Cloudflare Function 또는 API 설정을 확인해주세요."}`;
+    el.fetchStatus.textContent = `媛寃?議고쉶 ?ㅽ뙣: ${error.message || "Cloudflare Function ?먮뒗 API ?ㅼ젙???뺤씤?댁＜?몄슂."}`;
   }
 }
 
@@ -2124,15 +2124,15 @@ function renderImageCandidates() {
   el.imageCandidateGrid.innerHTML = state.imageCandidates.length
     ? state.imageCandidates.map((candidate, index) => `
       <div class="candidate-card">
-        <img src="${escapeHtml(candidate.image_url)}" alt="와인 이미지 후보 ${index + 1}">
+        <img src="${escapeHtml(candidate.image_url)}" alt="????대?吏 ?꾨낫 ${index + 1}">
         <div class="candidate-meta">
           <strong>${escapeHtml(candidate.image_source || "Image candidate")}</strong>
           <span>${escapeHtml(candidate.matched_query || "")}</span>
         </div>
-        <button class="ghost-button" type="button" data-image-candidate="${index}" style="color:var(--text); border-color:var(--line); background:var(--surface-strong)">이 이미지 사용</button>
+        <button class="ghost-button" type="button" data-image-candidate="${index}" style="color:var(--text); border-color:var(--line); background:var(--surface-strong)">???대?吏 ?ъ슜</button>
       </div>
     `).join("")
-    : '<div class="empty-state">공식 와이너리, 수입사, 공개 이미지 소스 순으로 후보를 찾고 있습니다. 아직 불러온 후보가 없습니다.</div>';
+    : '<div class="empty-state">怨듭떇 ??대꼫由? ?섏엯?? 怨듦컻 ?대?吏 ?뚯뒪 ?쒖쑝濡??꾨낫瑜?李얘퀬 ?덉뒿?덈떎. ?꾩쭅 遺덈윭???꾨낫媛 ?놁뒿?덈떎.</div>';
 
   el.imageCandidateGrid.querySelectorAll("[data-image-candidate]").forEach((button) => {
     button.addEventListener("click", () => {
@@ -2145,13 +2145,13 @@ function renderImageCandidates() {
 }
 function applyImageCandidate(candidate) {
   if (!candidate?.image_url || !isUsableImageUrl(candidate.image_url)) {
-    el.fetchStatus.textContent = "선택한 후보가 실제 이미지 URL이 아니라서 적용하지 않았습니다.";
+    el.fetchStatus.textContent = "?좏깮???꾨낫媛 ?ㅼ젣 ?대?吏 URL???꾨땲?쇱꽌 ?곸슜?섏? ?딆븯?듬땲??";
     return;
   }
   el.wineImage.value = candidate.image_url;
   syncImagePreview(candidate.image_source || "");
   setUploadFallbackVisible(false);
-  el.fetchStatus.textContent = `이미지 후보를 적용했습니다${candidate.image_source ? ` (${candidate.image_source})` : ""}.`;
+  el.fetchStatus.textContent = `?대?吏 ?꾨낫瑜??곸슜?덉뒿?덈떎${candidate.image_source ? ` (${candidate.image_source})` : ""}.`;
 }
 
 function isPlaceholderImage(url) {
@@ -2198,7 +2198,7 @@ function setUploadFallbackVisible(visible, note = "") {
     el.uploadFallbackPanel.hidden = !visible;
   }
   if (el.uploadFallbackNote) {
-    el.uploadFallbackNote.textContent = note || "공식 와이너리, 수입사, 공개 이미지 fallback까지 다 돌아도 못 찾았을 때만 직접 업로드를 여세요.";
+    el.uploadFallbackNote.textContent = note || "怨듭떇 ??대꼫由? ?섏엯?? 怨듦컻 ?대?吏 fallback源뚯? ???뚯븘??紐?李얠븯???뚮쭔 吏곸젒 ?낅줈?쒕? ?ъ꽭??";
   }
 }
 
@@ -2214,10 +2214,10 @@ async function handleImageUpload(event, sourceLabel) {
     state.imageCandidates = [];
     renderImageCandidates();
     syncImagePreview(sourceLabel);
-    setUploadFallbackVisible(true, "자동 탐색으로 못 찾은 경우를 위한 fallback 이미지가 적용됐습니다. 그대로 저장해도 됩니다.");
-    el.fetchStatus.textContent = `${sourceLabel} 이미지를 적용했습니다.`;
+    setUploadFallbackVisible(true, "?먮룞 ?먯깋?쇰줈 紐?李얠? 寃쎌슦瑜??꾪븳 fallback ?대?吏媛 ?곸슜?먯뒿?덈떎. 洹몃?濡???ν빐???⑸땲??");
+    el.fetchStatus.textContent = `${sourceLabel} ?대?吏瑜??곸슜?덉뒿?덈떎.`;
   } catch (_error) {
-    el.fetchStatus.textContent = `${sourceLabel} 처리 중 오류가 발생했습니다. 다른 이미지를 다시 선택해주세요.`;
+    el.fetchStatus.textContent = `${sourceLabel} 泥섎━ 以??ㅻ쪟媛 諛쒖깮?덉뒿?덈떎. ?ㅻⅨ ?대?吏瑜??ㅼ떆 ?좏깮?댁＜?몄슂.`;
   } finally {
     event.target.value = "";
   }
@@ -2241,8 +2241,8 @@ function syncImagePreview(sourceLabel = "") {
     }
     el.wineImagePreview.removeAttribute("src");
     el.imagePreviewCaption.textContent = imageUrl
-      ? "선택된 값이 실제 이미지가 아니라 미리보기를 표시하지 않았습니다. 후보 선택 또는 업로드를 이용해주세요."
-      : "자동으로 찾은 후보나 직접 업로드한 이미지를 여기서 확인할 수 있습니다.";
+      ? "?좏깮??媛믪씠 ?ㅼ젣 ?대?吏媛 ?꾨땲??誘몃━蹂닿린瑜??쒖떆?섏? ?딆븯?듬땲?? ?꾨낫 ?좏깮 ?먮뒗 ?낅줈?쒕? ?댁슜?댁＜?몄슂."
+      : "?먮룞?쇰줈 李얠? ?꾨낫??吏곸젒 ?낅줈?쒗븳 ?대?吏瑜??ш린???뺤씤?????덉뒿?덈떎.";
     return;
   }
 
@@ -2252,8 +2252,8 @@ function syncImagePreview(sourceLabel = "") {
   }
   el.wineImagePreview.src = imageUrl;
   el.imagePreviewCaption.textContent = sourceLabel
-    ? `선택된 이미지 출처: ${sourceLabel}`
-    : "선택된 이미지 미리보기입니다.";
+    ? `?좏깮???대?吏 異쒖쿂: ${sourceLabel}`
+    : "?좏깮???대?吏 誘몃━蹂닿린?낅땲??";
 }
 async function persistPersona(persona) {
   if (!state.supabase) {
@@ -2288,20 +2288,6 @@ function buildPersonaCharacterSummary(persona) {
   return buildFavoriteDeck(formatFavoritePairs(red.favoritePairs), formatFavoritePairs(white.favoritePairs));
 }
 
-function describeTasteVector(taste, mode) {
-  const acidity = taste.acidity <= 2 ? "높은 산도와 리프트가 살아 있는" : taste.acidity >= 6 ? "산도가 낮고 둥글게 흐르는" : "산도 밸런스가 안정적인";
-  const body = taste.body <= 2 ? "밀도감 있고 볼륨이 분명한" : taste.body >= 6 ? "린하고 섬세한" : "중간 밀도의";
-  const oak = taste.oak <= 2 ? "뉴 오크 터치를 어느 정도 허용하는" : taste.oak >= 6 ? "오크 개입을 절제하는" : "오크 존재감을 밸런스 안에서 보는";
-  const drive = taste.fruitDriven <= 2
-    ? "과실이 전면에 드러나는"
-    : taste.fruitDriven >= 6
-      ? (mode === "white" ? "미네랄과 리니어한 결이 두드러지는" : "세이보리와 어시 톤이 도드라지는")
-      : "과실과 비과실 요소가 균형 잡힌";
-  const profile = mode === "white"
-    ? (taste.fruitProfile <= 2 ? "열대 과실 결의" : taste.fruitProfile >= 6 ? "시트러스 결의" : "열대 과실과 시트러스가 교차하는")
-    : (taste.fruitProfile <= 2 ? "다크 프루트 결의" : taste.fruitProfile >= 6 ? "레드 프루트 결의" : "레드와 다크 프루트가 교차하는");
-  return `${acidity}, ${body}, ${oak}, ${drive} ${profile} 스타일`;
-}
 
 function buildPersonaSummaryLines(persona) {
   const red = normalizeTaste(persona?.tastes?.red || {});
@@ -2497,7 +2483,7 @@ function escapeHtml(value) {
 
 function makePlaceholderImage(title, start, end) {
   const safe = title.replace(/[&<>]/g, (char) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;" }[char]));
-  const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 600"><defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="${start}"/><stop offset="100%" stop-color="${end}"/></linearGradient></defs><rect width="800" height="600" rx="42" fill="url(#g)"/><circle cx="650" cy="120" r="110" fill="rgba(255,255,255,0.16)"/><circle cx="130" cy="520" r="160" fill="rgba(255,255,255,0.10)"/><text x="60" y="285" font-size="44" font-family="Georgia,serif" fill="white">${safe}</text><text x="60" y="340" font-size="24" font-family="sans-serif" fill="rgba(255,255,255,0.86)">VVR · Vintage Varietal Region</text></svg>`;
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 600"><defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="${start}"/><stop offset="100%" stop-color="${end}"/></linearGradient></defs><rect width="800" height="600" rx="42" fill="url(#g)"/><circle cx="650" cy="120" r="110" fill="rgba(255,255,255,0.16)"/><circle cx="130" cy="520" r="160" fill="rgba(255,255,255,0.10)"/><text x="60" y="285" font-size="44" font-family="Georgia,serif" fill="white">${safe}</text><text x="60" y="340" font-size="24" font-family="sans-serif" fill="rgba(255,255,255,0.86)">VVR 쨌 Vintage Varietal Region</text></svg>`;
   return `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(svg)}`;
 }
 
