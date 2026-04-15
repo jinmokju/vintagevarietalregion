@@ -3,7 +3,8 @@ const STORAGE_KEYS = {
   personas: "vvr-personas",
   wines: "vvr-wines",
   customAromas: "vvr-custom-aromas",
-  customVarietals: "vvr-custom-varietals"
+  customVarietals: "vvr-custom-varietals",
+  recoveryMode: "vvr-recovery-mode"
 };
 
 const ADMIN_EMAILS = ["jinmokju@gmail.com"];
@@ -388,6 +389,7 @@ async function refreshSession() {
   const { data } = await state.supabase.auth.getSession();
   state.session = data.session || null;
   state.isAdmin = isAdminEmail(state.session?.user?.email);
+  state.recoveryMode = state.recoveryMode || (sessionStorage.getItem(STORAGE_KEYS.recoveryMode) === "1" && Boolean(state.session));
 
   state.supabase.auth.onAuthStateChange((event, session) => {
     state.session = session || null;
@@ -395,10 +397,12 @@ async function refreshSession() {
     if (event === "PASSWORD_RECOVERY") {
       state.recoveryMode = true;
       state.recoveryError = "";
+      sessionStorage.setItem(STORAGE_KEYS.recoveryMode, "1");
     }
     if (event === "USER_UPDATED") {
       state.recoveryMode = false;
       state.recoveryError = "";
+      sessionStorage.removeItem(STORAGE_KEYS.recoveryMode);
     }
     updateAuthUi();
     renderAll();
@@ -432,12 +436,17 @@ async function bootstrapRecoveryFlow() {
   }
 
   if (type === "recovery" && accessToken && refreshToken) {
-    const { error } = await state.supabase.auth.setSession({
+    const { data, error } = await state.supabase.auth.setSession({
       access_token: accessToken,
       refresh_token: refreshToken
     });
     state.recoveryMode = !error;
     state.recoveryError = error ? error.message : "";
+    state.session = data?.session || state.session;
+    state.isAdmin = isAdminEmail(state.session?.user?.email);
+    if (!error) {
+      sessionStorage.setItem(STORAGE_KEYS.recoveryMode, "1");
+    }
     clearAuthHash();
   }
 }
@@ -1855,7 +1864,8 @@ async function handlePasswordResetRequest() {
 
 async function handlePasswordRecoverySubmit(event) {
   event.preventDefault();
-  if (!state.supabase || !state.recoveryMode) {
+  const recoverySessionReady = state.recoveryMode || (sessionStorage.getItem(STORAGE_KEYS.recoveryMode) === "1" && Boolean(state.session));
+  if (!state.supabase || !recoverySessionReady) {
     el.authStatus.textContent = "재설정 링크를 다시 열어 비밀번호 변경을 진행해 주세요.";
     return;
   }
@@ -1884,6 +1894,7 @@ async function handlePasswordRecoverySubmit(event) {
 
   state.recoveryMode = false;
   state.recoveryError = "";
+  sessionStorage.removeItem(STORAGE_KEYS.recoveryMode);
   el.newPassword.value = "";
   el.confirmPassword.value = "";
   updatePasswordRecoveryUi();
@@ -1893,6 +1904,7 @@ async function handlePasswordRecoverySubmit(event) {
 function cancelPasswordRecovery() {
   state.recoveryMode = false;
   state.recoveryError = "";
+  sessionStorage.removeItem(STORAGE_KEYS.recoveryMode);
   el.newPassword.value = "";
   el.confirmPassword.value = "";
   updatePasswordRecoveryUi();
