@@ -16,12 +16,14 @@ create table if not exists wines (
   type text,
   varietal text,
   region text,
+  sub_region text,
   average_price text,
   image_url text,
   created_at timestamptz default now()
 );
 
 alter table wines add column if not exists producer text;
+alter table wines add column if not exists sub_region text;
 
 create table if not exists reviews (
   id bigint generated always as identity primary key,

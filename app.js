@@ -26,6 +26,7 @@ const VARIETAL_OPTIONS = {
 
 const REVIEW_STRUCTURE_FIELDS = {
   red: [
+    { key: "sweetness", label: "Sweetness", left: "Dry", right: "Sweet" },
     { key: "acidityLevel", label: "Acidity Level", left: "High", right: "Low" },
     { key: "acidityShape", label: "Acidity Shape", left: "Racy", right: "Soft" },
     { key: "body", label: "Body", left: "High", right: "Low" },
@@ -34,6 +35,7 @@ const REVIEW_STRUCTURE_FIELDS = {
     { key: "finish", label: "Finish", left: "Long", right: "Short" }
   ],
   white: [
+    { key: "sweetness", label: "Sweetness", left: "Dry", right: "Sweet" },
     { key: "acidityLevel", label: "Acidity Level", left: "High", right: "Low" },
     { key: "acidityShape", label: "Acidity Shape", left: "Racy", right: "Soft" },
     { key: "body", label: "Body", left: "High", right: "Low" },
@@ -41,6 +43,7 @@ const REVIEW_STRUCTURE_FIELDS = {
     { key: "finish", label: "Finish", left: "Long", right: "Short" }
   ],
   sparkling: [
+    { key: "sweetness", label: "Sweetness", left: "Dry", right: "Sweet" },
     { key: "acidityLevel", label: "Acidity Level", left: "High", right: "Low" },
     { key: "acidityShape", label: "Acidity Shape", left: "Racy", right: "Soft" },
     { key: "body", label: "Body", left: "High", right: "Low" },
@@ -251,8 +254,10 @@ const el = {
   wineVintageOptions: document.getElementById("wineVintageOptions"),
   wineVarietalOptions: document.getElementById("wineVarietalOptions"),
   wineRegionOptions: document.getElementById("wineRegionOptions"),
+  wineSubRegionOptions: document.getElementById("wineSubRegionOptions"),
   wineNameMeta: document.getElementById("wineNameMeta"),
   wineRegion: document.getElementById("wineRegion"),
+  wineSubRegion: document.getElementById("wineSubRegion"),
   winePrice: document.getElementById("winePrice"),
   wineImage: document.getElementById("wineImage"),
   wineImageLibrary: document.getElementById("wineImageLibrary"),
@@ -528,6 +533,7 @@ function normalizeWineRow(row, reviews) {
     type: row.type,
     varietal: row.varietal,
     region: row.region,
+    subRegion: row.sub_region || row.subRegion || "",
     averagePrice: row.average_price,
     image: sanitizeStoredImage(row.image_url),
     reviews: (reviews || []).map((review) => normalizeReview(review, row.type))
@@ -537,6 +543,7 @@ function normalizeWineRow(row, reviews) {
 function normalizeLocalWine(wine) {
   return {
     ...wine,
+    subRegion: wine.subRegion || "",
     image: sanitizeStoredImage(wine.image),
     reviews: (wine.reviews || []).map((review) => normalizeReview(review, wine.type))
   };
@@ -793,6 +800,8 @@ function bindEvents() {
   el.wineVarietal.addEventListener("blur", persistCustomVarietalFromInput);
   el.wineVarietal.addEventListener("change", populateReviewInputs);
   el.wineVarietal.addEventListener("blur", populateReviewInputs);
+  el.wineRegion.addEventListener("change", populateReviewInputs);
+  el.wineRegion.addEventListener("blur", populateReviewInputs);
   el.tastePersona.addEventListener("change", syncTasteEditor);
   el.tasteMode.addEventListener("change", syncTasteEditor);
   el.reviewForm.addEventListener("submit", handleReviewSave);
@@ -839,9 +848,9 @@ function populateReviewInputs() {
       wine.producer,
       wine.vintage,
       wine.varietal,
-      wine.region,
+      formatRegionPath(wine.region, wine.subRegion),
       `${wine.reviews.length} reviews`
-    ].filter(Boolean).join(" ??")}</option>`)
+    ].filter(Boolean).join(" / ")}</option>`)
     .join("");
   el.wineNameOptions.innerHTML = wineOptions;
 
@@ -870,6 +879,10 @@ function populateReviewInputs() {
   });
   const regionOptions = [...new Set(regionSource.map((wine) => wine.region).filter(Boolean))].sort((a, b) => a.localeCompare(b));
   el.wineRegionOptions.innerHTML = regionOptions.map((value) => `<option value="${escapeHtml(value)}"></option>`).join("");
+  const currentRegion = el.wineRegion.value.trim().toLowerCase();
+  const subRegionSource = regionSource.filter((wine) => !currentRegion || String(wine.region || "").toLowerCase() === currentRegion);
+  const subRegionOptions = [...new Set(subRegionSource.map((wine) => wine.subRegion).filter(Boolean))].sort((a, b) => a.localeCompare(b));
+  el.wineSubRegionOptions.innerHTML = subRegionOptions.map((value) => `<option value="${escapeHtml(value)}"></option>`).join("");
   updateWineNameMeta();
 }
 
@@ -901,6 +914,7 @@ function handleWineNameSelection() {
   el.wineVintage.value = wine.vintage || "";
   el.wineVarietal.value = wine.varietal || "";
   el.wineRegion.value = wine.region || "";
+  el.wineSubRegion.value = wine.subRegion || "";
   el.winePrice.value = wine.averagePrice || "";
   el.wineImage.value = isUsableImageUrl(wine.image || "") ? wine.image : "";
   state.imageCandidates = [];
@@ -923,7 +937,7 @@ function updateWineNameMeta() {
     return;
   }
 
-  el.wineNameMeta.textContent = `${wine.reviews.length}\uAC1C \uB9AC\uBDF0\uAC00 \uB4F1\uB85D\uB41C \uAE30\uC874 \uC640\uC778\uC785\uB2C8\uB2E4.${wine.producer ? ` Producer: ${wine.producer}.` : ""}`;
+  el.wineNameMeta.textContent = `${wine.reviews.length}개 리뷰가 등록된 기존 와인입니다.${wine.producer ? ` Producer: ${wine.producer}.` : ""}${formatRegionPath(wine.region, wine.subRegion) ? ` Region: ${formatRegionPath(wine.region, wine.subRegion)}.` : ""}`;
 }
 
 function findBestWineFromText(normalizedText) {
@@ -935,7 +949,7 @@ function findBestWineFromText(normalizedText) {
     const normalizedName = normalizeLookupValue(wine.name);
     const normalizedProducer = normalizeLookupValue(wine.producer || "");
     const normalizedVarietal = normalizeLookupValue(wine.varietal || "");
-    const normalizedRegion = normalizeLookupValue(wine.region || "");
+    const normalizedRegion = normalizeLookupValue(formatRegionPath(wine.region, wine.subRegion));
     const normalizedVintage = normalizeLookupValue(wine.vintage || "");
     const nameTokens = splitLookupTokens(wine.name);
     const producerTokens = splitLookupTokens(wine.producer || "");
@@ -975,7 +989,7 @@ function getAllKnownVarietals() {
 }
 
 function getAllKnownRegions() {
-  return [...new Set(state.wines.map((wine) => wine.region).filter(Boolean))];
+  return [...new Set(state.wines.map((wine) => formatRegionPath(wine.region, wine.subRegion)).filter(Boolean))];
 }
 
 function getAllKnownProducers() {
@@ -1174,6 +1188,20 @@ function renderPersonaCard(persona) {
         <p>${summary.white}</p>
       </div>
     </div>
+    <div class="taste-tabs">
+      <button type="button" class="tab-button active" data-tab="${persona.id}-red">\uB808\uB4DC</button>
+      <button type="button" class="tab-button" data-tab="${persona.id}-white">\uD654\uC774\uD2B8</button>
+    </div>
+    <div class="taste-panel active" id="${persona.id}-red">
+      <div class="persona-character-label">\uB808\uB4DC \uCDE8\uD5A5 \uB9F5</div>
+      <div class="taste-summary persona-favorites">${renderFavoritePills(persona.tastes.red)}</div>
+      ${renderTasteTracks(persona.tastes.red, "red")}
+    </div>
+    <div class="taste-panel" id="${persona.id}-white">
+      <div class="persona-character-label">\uD654\uC774\uD2B8 \uCDE8\uD5A5 \uB9F5</div>
+      <div class="taste-summary persona-favorites">${renderFavoritePills(persona.tastes.white)}</div>
+      ${renderTasteTracks(persona.tastes.white, "white")}
+    </div>
     <div class="persona-review-shell">
       <div class="persona-review-summary">
         <div class="persona-review-stat hero">
@@ -1199,20 +1227,6 @@ function renderPersonaCard(persona) {
       <div class="button-row">
         <button type="button" class="review-action" data-action="focus-persona-reviews" data-persona-id="${persona.id}">${persona.name} &#xB9AC;&#xBDF0;&#xB9CC; &#xBCF4;&#xAE30;</button>
       </div>
-    </div>
-    <div class="taste-tabs">
-      <button type="button" class="tab-button active" data-tab="${persona.id}-red">\uB808\uB4DC</button>
-      <button type="button" class="tab-button" data-tab="${persona.id}-white">\uD654\uC774\uD2B8</button>
-    </div>
-    <div class="taste-panel active" id="${persona.id}-red">
-      <div class="persona-character-label">\uB808\uB4DC \uCDE8\uD5A5 \uB9F5</div>
-      <div class="taste-summary persona-favorites">${renderFavoritePills(persona.tastes.red)}</div>
-      ${renderTasteTracks(persona.tastes.red, "red")}
-    </div>
-    <div class="taste-panel" id="${persona.id}-white">
-      <div class="persona-character-label">\uD654\uC774\uD2B8 \uCDE8\uD5A5 \uB9F5</div>
-      <div class="taste-summary persona-favorites">${renderFavoritePills(persona.tastes.white)}</div>
-      ${renderTasteTracks(persona.tastes.white, "white")}
     </div>
   </article>`;
 }
@@ -1302,6 +1316,7 @@ function filteredWines() {
       wine.name,
       wine.varietal,
       wine.region,
+      wine.subRegion,
       ...wine.reviews.map((review) => [
         review.personaId,
         review.summary,
@@ -1330,9 +1345,9 @@ function renderWineCard(wine) {
   const visibleReviews = wine.reviews.filter((review) => state.selectedPersona === "all" || review.personaId === state.selectedPersona);
   const reviewMarkup = visibleReviews.map((review) => renderReviewSnippet(wine, review)).join("");
   const typeClass = `type-${String(wine.type || "red").toLowerCase()}`;
-  const metaLine = [wine.producer, wine.vintage, wine.varietal, wine.region].filter(Boolean).join(" / ");
+  const metaLine = [wine.producer, wine.vintage, wine.varietal, formatRegionPath(wine.region, wine.subRegion)].filter(Boolean).join(" / ");
   const varietalLabel = wine.varietal || "Varietal &#xBBF8;&#xC785;&#xB825;";
-  const regionLabel = wine.region || "Region &#xBBF8;&#xC785;&#xB825;";
+  const regionLabel = formatRegionPath(wine.region, wine.subRegion) || "Region 미입력";
   const priceLine = wine.averagePrice
     ? `Wine-Searcher / Manual &#xAC00;&#xACA9; &#xBA54;&#xBAA8;: ${wine.averagePrice}`
     : "&#xC544;&#xC9C1; &#xD3C9;&#xADE0;&#xAC00; &#xBA54;&#xBAA8;&#xAC00; &#xC5C6;&#xC2B5;&#xB2C8;&#xB2E4;.";
@@ -1497,7 +1512,7 @@ function renderAromaSummary(review) {
 
 function updateMetrics() {
   const reviewCount = state.wines.reduce((sum, wine) => sum + wine.reviews.length, 0);
-  const regionCount = new Set(state.wines.map((wine) => wine.region).filter(Boolean)).size;
+  const regionCount = new Set(state.wines.map((wine) => formatRegionPath(wine.region, wine.subRegion)).filter(Boolean)).size;
   el.personaCount.textContent = String(state.personas.length);
   el.wineCount.textContent = String(state.wines.length);
   el.reviewCount.textContent = String(reviewCount);
@@ -1913,6 +1928,7 @@ function startReviewEdit(wineId, reviewId) {
   el.wineVintage.value = wine.vintage || "";
   el.wineVarietal.value = wine.varietal || "";
   el.wineRegion.value = wine.region || "";
+  el.wineSubRegion.value = wine.subRegion || "";
   el.winePrice.value = wine.averagePrice || "";
   el.wineImage.value = isUsableImageUrl(wine.image || "") ? wine.image : "";
   state.imageCandidates = [];
@@ -1946,6 +1962,7 @@ function startReviewForWine(wineId) {
   el.wineVintage.value = wine.vintage || "";
   el.wineVarietal.value = wine.varietal || "";
   el.wineRegion.value = wine.region || "";
+  el.wineSubRegion.value = wine.subRegion || "";
   el.winePrice.value = wine.averagePrice || "";
   el.wineImage.value = isUsableImageUrl(wine.image || "") ? wine.image : "";
 
@@ -1969,6 +1986,7 @@ function resetReviewForm() {
   el.reviewPersona.value = state.personas[0]?.id || "";
   el.wineType.value = "Red";
   el.wineProducer.value = "";
+  el.wineSubRegion.value = "";
   state.reviewDraft = createEmptyReviewDraft("Red");
   state.imageCandidates = [];
   el.reviewSubmitLabel.textContent = "\uB9AC\uBDF0 \uC800\uC7A5\uD558\uAE30";
@@ -1995,6 +2013,7 @@ async function handleReviewSave(event) {
     vintage: el.wineVintage.value.trim(),
     varietal: el.wineVarietal.value.trim(),
     region: el.wineRegion.value.trim(),
+    subRegion: el.wineSubRegion.value.trim(),
     averagePrice: el.winePrice.value.trim(),
     image: el.wineImage.value.trim(),
     overallScore: el.overallScore.value.trim(),
@@ -2042,6 +2061,7 @@ async function createNewReview(payload) {
       type: payload.type,
       varietal: payload.varietal,
       region: payload.region,
+      subRegion: payload.subRegion,
       averagePrice: payload.averagePrice,
       image: payload.image || makePlaceholderImage(payload.name, "#7a1f35", "#f1ddd2"),
       reviews: []
@@ -2053,6 +2073,7 @@ async function createNewReview(payload) {
     wine.type = payload.type || wine.type;
     wine.varietal = payload.varietal || wine.varietal;
     wine.region = payload.region || wine.region;
+    wine.subRegion = payload.subRegion || wine.subRegion;
     wine.averagePrice = payload.averagePrice || wine.averagePrice;
     if (payload.image) {
       wine.image = payload.image;
@@ -2091,6 +2112,7 @@ async function updateExistingReview(payload) {
   wine.type = payload.type;
   wine.varietal = payload.varietal;
   wine.region = payload.region;
+  wine.subRegion = payload.subRegion;
   wine.averagePrice = payload.averagePrice;
   wine.image = payload.image || wine.image || makePlaceholderImage(payload.name, "#7a1f35", "#f1ddd2");
   review.personaId = payload.personaId;
@@ -2315,7 +2337,8 @@ function buildWineLookupQuery() {
     el.wineName.value,
     el.wineVintage.value,
     el.wineVarietal.value,
-    el.wineRegion.value
+    el.wineRegion.value,
+    el.wineSubRegion.value
   ]
     .map((value) => String(value || "").trim())
     .filter(Boolean);
@@ -2337,6 +2360,7 @@ async function requestWineLookup(mode, query) {
   params.set("vintage", el.wineVintage.value.trim());
   params.set("varietal", el.wineVarietal.value.trim());
   params.set("region", el.wineRegion.value.trim());
+  params.set("subRegion", el.wineSubRegion.value.trim());
   params.set("type", el.wineType.value.trim());
 
   const response = await fetch(`/functions/wine-lookup?${params.toString()}`);
@@ -2582,8 +2606,8 @@ function buildPersonaSummaryLines(persona) {
   return {
     headline,
     deck: buildFavoriteDeck(redFavorites, whiteFavorites),
-    red: buildModeSummary(red, "red", redFavorites),
-    white: buildModeSummary(white, "white", whiteFavorites)
+    red: buildModeSummary(red, "red"),
+    white: buildModeSummary(white, "white")
   };
 }
 
@@ -2591,13 +2615,7 @@ function buildPersonaHeadline(red, white) {
   return "";
 }
 
-function buildModeSummary(taste, mode, favorites) {
-  const favoriteLead = favorites.length
-    ? (mode === "white"
-      ? `${favorites.join(", ")} 쪽에 자연스럽게 손이 가는 편입니다. `
-      : `${favorites.join(", ")} 계열에서 만족도가 확실히 올라가는 타입입니다. `)
-    : "";
-
+function buildModeSummary(taste, mode) {
   if (mode === "white") {
     const fruitLine = taste.fruitDriven <= 3
       ? "과실 향이 또렷하게 드러나는 화이트를 편하게 즐깁니다"
@@ -2624,7 +2642,7 @@ function buildModeSummary(taste, mode, favorites) {
       : taste.oak >= 6
         ? "오크는 최대한 뒤로 빠져 있을수록 좋습니다"
         : "오크는 존재하되 전면에 나서지 않길 바랍니다";
-    return `${favoriteLead}${fruitLine}. ${profileLine}. ${acidityLine} ${bodyLine}. ${oakLine}.`;
+    return `${fruitLine}. ${profileLine}. ${acidityLine} ${bodyLine}. ${oakLine}.`;
   }
 
   const fruitLine = taste.fruitDriven <= 3
@@ -2652,7 +2670,14 @@ function buildModeSummary(taste, mode, favorites) {
     : taste.oak >= 6
       ? "오크는 최대한 절제된 편을 선호합니다"
       : "오크는 존재하되 과하게 드러나지 않길 바랍니다";
-  return `${favoriteLead}${fruitLine}. ${profileLine}. ${acidityLine} ${bodyLine}. ${oakLine}.`;
+  return `${fruitLine}. ${profileLine}. ${acidityLine} ${bodyLine}. ${oakLine}.`;
+}
+
+function formatRegionPath(region, subRegion) {
+  return [region, subRegion]
+    .map((value) => String(value || "").trim())
+    .filter(Boolean)
+    .join(" > ");
 }
 
 function describeFruitPreference(taste, mode) {
@@ -2694,6 +2719,7 @@ async function persistReviewCreate(wine, review) {
     type: wine.type,
     varietal: wine.varietal,
     region: wine.region,
+    sub_region: wine.subRegion,
     average_price: wine.averagePrice,
     image_url: wine.image
   });
@@ -2732,6 +2758,7 @@ async function persistReviewUpdate(wine, review) {
     type: wine.type,
     varietal: wine.varietal,
     region: wine.region,
+    sub_region: wine.subRegion,
     average_price: wine.averagePrice,
     image_url: wine.image
   });
