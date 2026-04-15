@@ -858,7 +858,7 @@ function populateReviewInputs() {
       wine.vintage,
       wine.varietal,
       formatRegionPath(wine.region, wine.subRegion),
-      `${wine.reviews.length} reviews`
+      `${wine.reviews.length}\uac1c \ub9ac\ubdf0`
     ].filter(Boolean).join(" / ")}</option>`)
     .join("");
   el.wineNameOptions.innerHTML = wineOptions;
@@ -936,17 +936,22 @@ function handleWineNameSelection() {
 function updateWineNameMeta() {
   const name = el.wineName.value.trim();
   if (!name) {
-    el.wineNameMeta.textContent = "\uAE30\uC874\uC5D0 \uB4F1\uB85D\uB41C \uC640\uC778\uC744 \uACE0\uB974\uBA74 \uAD00\uB828 \uC815\uBCF4\uC640 \uB9AC\uBDF0 \uC218\uB97C \uBC14\uB85C \uBD88\uB7EC\uC635\uB2C8\uB2E4.";
+    el.wineNameMeta.textContent = "기존 와인을 고르면 관련 정보와 리뷰 수를 바로 채워옵니다.";
     return;
   }
 
   const wine = state.wines.find((item) => item.name.toLowerCase() === name.toLowerCase());
   if (!wine) {
-    el.wineNameMeta.textContent = "\uC0C8 \uC640\uC778\uC73C\uB85C \uC785\uB825 \uC911\uC785\uB2C8\uB2E4. \uD544\uC694\uD55C \uAC12\uB9CC \uBC14\uB85C \uBCF4\uC815\uD574 \uC800\uC7A5\uD558\uC138\uC694.";
+    el.wineNameMeta.textContent = "새 와인으로 입력 중입니다. 필요한 값만 보정해서 바로 저장하면 됩니다.";
     return;
   }
 
-  el.wineNameMeta.textContent = `${wine.reviews.length}개 리뷰가 등록된 기존 와인입니다.${wine.producer ? ` Producer: ${wine.producer}.` : ""}${formatRegionPath(wine.region, wine.subRegion) ? ` Region: ${formatRegionPath(wine.region, wine.subRegion)}.` : ""}`;
+  const metaParts = [
+    wine.producer ? `생산자 ${wine.producer}` : "",
+    formatRegionPath(wine.region, wine.subRegion) ? `산지 ${formatRegionPath(wine.region, wine.subRegion)}` : ""
+  ].filter(Boolean);
+
+  el.wineNameMeta.textContent = `${wine.reviews.length}개 리뷰가 쌓인 기존 와인입니다.${metaParts.length ? ` ${metaParts.join(" · ")}.` : ""}`;
 }
 
 function findBestWineFromText(normalizedText) {
@@ -1165,7 +1170,7 @@ function renderPersonas() {
 
   el.personaGrid.innerHTML = personas.length
     ? personas.map(renderPersonaCard).join("")
-    : '<div class="empty-state">\uC544\uC9C1 \uB4F1\uB85D\uB41C persona\uAC00 \uC5C6\uC2B5\uB2C8\uB2E4. \uC544\uB798 Persona Studio\uC5D0\uC11C \uC774\uB984\uACFC \uD55C \uC904 \uC18C\uAC1C, \uCD5C\uC560 \uD488\uC885, \uCDE8\uD5A5 \uCD95\uC744 \uC785\uB825\uD574 \uC8FC\uC138\uC694.</div>';
+    : '<div class="empty-state-rich"><strong>아직 꺼내 볼 페르소나가 없습니다</strong><span>아래 Persona Studio에서 이름, 한 줄 소개, 최애 품종과 취향 축을 먼저 저장해 보세요. 첫 페르소나가 만들어지면 이 보드가 바로 채워집니다.</span><a class="review-action" href="#personaStudio">페르소나 만들기</a></div>';
   attachTasteTabs();
   attachPersonaActions();
 }
@@ -1342,7 +1347,7 @@ function filteredWines() {
 function renderWines() {
   const wines = filteredWines();
   if (!wines.length) {
-    el.wineGrid.innerHTML = '<div class="empty-state">&#xC870;&#xAC74;&#xC5D0; &#xB9DE;&#xB294; &#xC640;&#xC778;&#xC774; &#xC544;&#xC9C1; &#xC5C6;&#xC2B5;&#xB2C8;&#xB2E4;. &#xC0C8; &#xB9AC;&#xBDF0;&#xB97C; &#xCD94;&#xAC00;&#xD574;&#xBCF4;&#xC138;&#xC694;.</div>';
+    el.wineGrid.innerHTML = '<div class="empty-state-rich"><strong>아직 조건에 맞는 와인이 없습니다</strong><span>검색어나 리뷰어 필터를 조금 풀어 보거나, 아래 Review Studio에서 새 리뷰를 먼저 한 병 추가해 보세요.</span><a class="review-action" href="#reviewStudio">리뷰 쓰러 가기</a></div>';
     return;
   }
 
@@ -1355,24 +1360,24 @@ function renderWineCard(wine) {
   const reviewMarkup = visibleReviews.map((review) => renderReviewSnippet(wine, review)).join("");
   const typeClass = `type-${String(wine.type || "red").toLowerCase()}`;
   const metaLine = [wine.producer, wine.vintage, wine.varietal, formatRegionPath(wine.region, wine.subRegion)].filter(Boolean).join(" / ");
-  const varietalLabel = wine.varietal || "Varietal &#xBBF8;&#xC785;&#xB825;";
-  const regionLabel = formatRegionPath(wine.region, wine.subRegion) || "Region 미입력";
+  const varietalLabel = wine.varietal || "\ud488\uc885 \ubbf8\uc785\ub825";
+  const regionLabel = formatRegionPath(wine.region, wine.subRegion) || "\uc0b0\uc9c0 \ubbf8\uc785\ub825";
   const priceLine = wine.averagePrice
     ? `Wine-Searcher / Manual &#xAC00;&#xACA9; &#xBA54;&#xBAA8;: ${wine.averagePrice}`
     : "&#xC544;&#xC9C1; &#xD3C9;&#xADE0;&#xAC00; &#xBA54;&#xBAA8;&#xAC00; &#xC5C6;&#xC2B5;&#xB2C8;&#xB2E4;.";
   const wineActions = `<div class="button-row"><button type="button" class="review-action" data-action="write-review-for-wine" data-wine-id="${wine.id}">&#xC774; &#xC640;&#xC778;&#xC5D0; &#xB9AC;&#xBDF0; &#xC4F0;&#xAE30;</button></div>`;
   const reviewShell = visibleReviews.length
-    ? `<div class="review-stack-title"><strong>&#xB9AC;&#xBDF0; &amp; &#xB313;&#xAE00;</strong><span>${visibleReviews.length} review${visibleReviews.length > 1 ? "s" : ""}</span></div>${reviewMarkup}`
+    ? `<div class="review-stack-title"><strong>&#xB9AC;&#xBDF0; &amp; &#xB313;&#xAE00;</strong><span>${visibleReviews.length}개 리뷰</span></div>${reviewMarkup}`
     : `<div class="review-empty review-empty-rich"><strong>&#xC544;&#xC9C1; &#xCCAB; &#xB9AC;&#xBDF0;&#xAC00; &#xC5C6;&#xC2B5;&#xB2C8;&#xB2E4;</strong><span>&#xC774; &#xC640;&#xC778;&#xC758; &#xCCAB; &#xC778;&#xC0C1;&#xC744; &#xB0A8;&#xAE30;&#xBA74; &#xB2E4;&#xC74C; &#xC0AC;&#xB78C;&#xC774; &#xBE60;&#xB974;&#xAC8C; &#xCC38;&#xACE0;&#xD560; &#xC218; &#xC788;&#xC2B5;&#xB2C8;&#xB2E4;.</span><button type="button" class="review-action" data-action="write-review-for-wine" data-wine-id="${wine.id}">&#xCCAB; &#xB9AC;&#xBDF0; &#xC4F0;&#xAE30;</button></div>`;
 
   return `<article class="wine-card ${typeClass}" id="wine-${wine.id}">
     <div class="wine-card-inner">
       <div class="wine-image-wrap"><img class="wine-image" src="${wine.image || makePlaceholderImage(wine.name, "#8a3650", "#f5d2c6")}" alt="${wine.name} &#xC774;&#xBBF8;&#xC9C0;"></div>
       <div class="wine-card-top">
-        <div class="wine-card-copy"><h3>${wine.name}</h3><div class="muted">${metaLine}</div></div>
+      <div class="wine-meta-pills"><span class="pill">${varietalLabel}</span><span class="pill">${regionLabel}</span><span class="pill">${wine.reviews.length}개 리뷰</span></div>
         <span class="type-badge ${typeClass}">${wine.type}</span>
       </div>
-      <div class="wine-meta-pills"><span class="pill">${varietalLabel}</span><span class="pill">${regionLabel}</span><span class="pill">${wine.reviews.length} reviews</span></div>
+      <div class="wine-meta-pills"><span class="pill">${varietalLabel}</span><span class="pill">${regionLabel}</span><span class="pill">${wine.reviews.length}\uac1c \ub9ac\ubdf0</span></div>
       <div class="muted">${priceLine}</div>
       <div class="wine-card-footer">
         ${wineActions}
@@ -1502,7 +1507,7 @@ function renderRecentReviews() {
 
 function renderReviewStructureSnapshot(review, type) {
   const fields = getStructureFields(type);
-  return `<div class="review-section-shell"><div class="review-stack-title"><strong>&#xAD6C;&#xC870; &#xD3C9;&#xAC00;</strong><span>${fields.length} axes</span></div><div class="review-detail-grid">${fields.map((field) => `<div class="review-detail-block"><h4>${field.label}</h4><div class="taste-scale">${renderSegments(review.structure?.[field.key] || 4)}</div><div class="taste-poles"><span>${field.left}</span><span>${field.right}</span></div></div>`).join("")}</div></div>`;
+  return `<div class="review-section-shell"><div class="review-stack-title"><strong>&#xAD6C;&#xC870; &#xD3C9;&#xAC00;</strong><span>${fields.length}개 축</span></div><div class="review-detail-grid">${fields.map((field) => `<div class="review-detail-block"><h4>${field.label}</h4><div class="taste-scale">${renderSegments(review.structure?.[field.key] || 4)}</div><div class="taste-poles"><span>${field.left}</span><span>${field.right}</span></div></div>`).join("")}</div></div>`;
 }
 
 function renderAromaSummary(review) {
@@ -1516,7 +1521,14 @@ function renderAromaSummary(review) {
     return "";
   }
 
-  return `<div class="review-section-shell"><div class="review-stack-title"><strong>&#xD5A5;&#xBBF8; &#xD504;&#xB85C;&#xD30C;&#xC77C;</strong><span>${groups.length} layers</span></div><div class="review-detail-grid">${groups.map((group) => `<div class="review-detail-block aroma-detail-block"><h4>${group.label} Aromas</h4><div class="selected-aromas">${group.values.map((value) => `<span class="pill">${value}</span>`).join("")}</div></div>`).join("")}</div></div>`;
+  return `<div class="review-section-shell"><div class="review-stack-title"><strong>&#xD5A5;&#xBBF8; &#xD504;&#xB85C;&#xD30C;&#xC77C;</strong><span>${groups.length}개 레이어</span></div><div class="review-detail-grid">${groups.map((group) => `<div class="review-detail-block aroma-detail-block"><h4>${translateAromaLayerLabel(group.label)}</h4><div class="selected-aromas">${group.values.map((value) => `<span class="pill">${value}</span>`).join("")}</div></div>`).join("")}</div></div>`;
+}
+
+function translateAromaLayerLabel(label) {
+  if (label === "Primary") return "1차 향";
+  if (label === "Secondary") return "2차 향";
+  if (label === "Tertiary") return "3차 향";
+  return label;
 }
 
 function updateMetrics() {
@@ -2630,37 +2642,37 @@ function buildPersonaHeadline(red, white) {
 function buildModeSummary(taste, mode) {
   if (mode === "white") {
     const fruitLine = taste.fruitDriven <= 3
-      ? "과실 향이 또렷하게 드러나는 화이트를 편하게 즐깁니다"
+      ? "과실이 또렲하게 먼저 올라오는 화이트에 마음이 갑니다"
       : taste.fruitDriven >= 6
-        ? "과실보다 미네랄과 직선적인 인상이 살아 있는 화이트를 더 선호합니다"
-        : "과실과 미네랄이 균형을 이루는 화이트에 안정감을 느낍니다";
+        ? "과실보다 미네랄과 직선적인 인상이 살아 있는 화이트를 더 좋아합니다"
+        : "과실과 미네랄이 균형을 이루는 화이트에서 가장 안정감을 느낍니다";
     const profileLine = taste.fruitProfile <= 2
-      ? "열대 과실의 여운이 도는 쪽이 더 잘 맞고"
+      ? "열대 과실의 결이 도는 쪽이 더 잘 맞고"
       : taste.fruitProfile >= 6
-        ? "시트러스가 선명하게 올라오는 쪽이 더 취향에 가깝고"
-        : "열대 과실과 시트러스가 함께 보이는 스펙트럼도 무리 없이 받아들입니다";
+        ? "시트러스가 선명하게 올라오는 스타일이 더 취향에 가깝고"
+        : "열대 과실과 시트러스가 함께 보이는 스펙트럼도 무리 없이 즐깁니다";
     const acidityLine = taste.acidity <= 3
-      ? "산도는 또렷하게 살아 있어야 표정이 산다고 느끼며"
+      ? "산도는 또렲하게 살아 있어야 표정이 선다고 느끼며"
       : taste.acidity >= 6
-        ? "산도가 낮더라도 질감과 균형이 매끄러우면 충분히 만족합니다"
+        ? "산도가 낮아도 질감과 균형이 매끄러우면 충분히 만족하고"
         : "산도는 과하지 않게 정돈된 정도를 가장 편안하게 봅니다";
     const bodyLine = taste.body <= 3
       ? "바디는 어느 정도 볼륨이 있는 편을 선호합니다"
       : taste.body >= 6
-        ? "바디는 가볍고 슬림한 쪽이 더 좋습니다"
-        : "바디는 중간 밀도 정도면 가장 안정적으로 느낍니다";
+        ? "바디는 가볍고 슬림한 쪽이 더 좋고"
+        : "바디는 중간 밀도 정도면 가장 안정적으로 느껴집니다";
     const oakLine = taste.oak <= 3
       ? "오크는 향을 살짝 보태는 정도까지는 괜찮습니다"
       : taste.oak >= 6
-        ? "오크는 최대한 뒤로 빠져 있을수록 좋습니다"
-        : "오크는 존재하되 전면에 나서지 않길 바랍니다";
+        ? "오크는 최대한 뒤로 빠져 있을수록 좋고"
+        : "오크는 존재하되 앞에 과하게 나서지 않기를 바랍니다";
     return `${fruitLine}. ${profileLine}. ${acidityLine} ${bodyLine}. ${oakLine}.`;
   }
 
   const fruitLine = taste.fruitDriven <= 3
-      ? "과실이 먼저 치고 나오는 레드에 더 빠르게 반응합니다"
+      ? "과실이 또렲하게 먼저 치고 나오는 레드에 더 빠르게 반응합니다"
     : taste.fruitDriven >= 6
-      ? "세이보리와 어시 톤이 살아 있는 레드에 더 마음이 갑니다"
+      ? "세이보리와 어시 톤이 살아 있는 레드 쪽으로 더 마음이 갑니다"
       : "과실과 세이보리가 함께 엮이는 레드를 편안하게 받아들입니다";
   const profileLine = taste.fruitProfile <= 2
     ? "다크 프루트 결이 짙어질수록 만족도가 올라가고"
@@ -2668,19 +2680,19 @@ function buildModeSummary(taste, mode) {
       ? "레드 프루트의 선명함이 살아 있는 쪽을 더 선호하고"
       : "레드와 다크 프루트가 교차하는 구간도 충분히 매력적으로 느낍니다";
   const acidityLine = taste.acidity <= 3
-    ? "산도는 와인의 골격을 세워 줄 만큼 분명해야 하며"
+    ? "산도는 와인의 골격을 세워 줄 만큼 분명해야 하고"
     : taste.acidity >= 6
-      ? "산도가 낮더라도 전체 질감이 매끄러우면 받아들일 수 있으며"
+      ? "산도가 낮아도 전체 질감이 매끄러우면 충분히 받아들일 수 있으며"
       : "산도는 과하지 않게 중심을 잡아 주는 정도를 선호합니다";
   const bodyLine = taste.body <= 3
-    ? "바디는 어느 정도 밀도감이 느껴지는 편이 잘 맞습니다"
+    ? "바디는 어느 정도 밀도감이 느껴지는 편이 잘 맞고"
     : taste.body >= 6
-      ? "바디는 가볍고 날렵한 쪽이 더 편합니다"
+      ? "바디는 가볍고 날렵한 쪽이 더 편하고"
       : "바디는 중간 이상 정도에서 균형이 가장 좋다고 느낍니다";
   const oakLine = taste.oak <= 3
     ? "오크가 약간 전면에 있어도 스타일만 맞으면 괜찮습니다"
     : taste.oak >= 6
-      ? "오크는 최대한 절제된 편을 선호합니다"
+      ? "오크는 최대한 절제된 편을 선호하고"
       : "오크는 존재하되 과하게 드러나지 않길 바랍니다";
   return `${fruitLine}. ${profileLine}. ${acidityLine} ${bodyLine}. ${oakLine}.`;
 }
@@ -2830,7 +2842,7 @@ function escapeHtml(value) {
 
 function makePlaceholderImage(title, start, end) {
   const safe = title.replace(/[&<>]/g, (char) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;" }[char]));
-  const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 600"><defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="${start}"/><stop offset="100%" stop-color="${end}"/></linearGradient></defs><rect width="800" height="600" rx="42" fill="url(#g)"/><circle cx="650" cy="120" r="110" fill="rgba(255,255,255,0.16)"/><circle cx="130" cy="520" r="160" fill="rgba(255,255,255,0.10)"/><text x="60" y="285" font-size="44" font-family="Georgia,serif" fill="white">${safe}</text><text x="60" y="340" font-size="24" font-family="sans-serif" fill="rgba(255,255,255,0.86)">VVR ??Vintage Varietal Region</text></svg>`;
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 600"><defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="${start}"/><stop offset="100%" stop-color="${end}"/></linearGradient></defs><rect width="800" height="600" rx="42" fill="url(#g)"/><circle cx="650" cy="120" r="110" fill="rgba(255,255,255,0.16)"/><circle cx="130" cy="520" r="160" fill="rgba(255,255,255,0.10)"/><text x="60" y="285" font-size="42" font-family="Pretendard, Apple SD Gothic Neo, Arial, sans-serif" font-weight="700" fill="white">${safe}</text><text x="60" y="340" font-size="22" font-family="Pretendard, Apple SD Gothic Neo, Arial, sans-serif" fill="rgba(255,255,255,0.84)">Vintage Varietal Region</text></svg>`;
   return `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(svg)}`;
 }
 
