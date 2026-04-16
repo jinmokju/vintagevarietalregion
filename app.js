@@ -1170,7 +1170,7 @@ function renderPersonas() {
 
   el.personaGrid.innerHTML = personas.length
     ? personas.map(renderPersonaCard).join("")
-    : '<div class="empty-state-rich"><strong>아직 꺼내 볼 페르소나가 없습니다</strong><span>아래 Persona Studio에서 이름, 한 줄 소개, 최애 품종과 취향 축을 먼저 저장해 보세요. 첫 페르소나가 만들어지면 이 보드가 바로 채워집니다.</span><a class="review-action" href="#personaStudio">페르소나 만들기</a></div>';
+    : '<div class="empty-state-rich"><strong>\uC544\uC9C1 \uAEBC\uB0B4 \uBCFC \uD398\uB974\uC18C\uB098\uAC00 \uC5C6\uC2B5\uB2C8\uB2E4</strong><span>\uC544\uB798 Persona Studio\uC5D0\uC11C \uC774\uB984, \uD55C \uC904 \uC18C\uAC1C, \uCD5C\uC560 \uD488\uC885\uACFC \uCDE8\uD5A5 \uCD95\uC744 \uBA3C\uC800 \uC785\uB825\uD574 \uBCF4\uC138\uC694. \uCCAB \uD398\uB974\uC18C\uB098\uAC00 \uB9CC\uB4E4\uC5B4\uC9C0\uBA74 \uC774 \uBCF4\uB4DC\uAC00 \uBC14\uB85C \uCC44\uC6CC\uC9D1\uB2C8\uB2E4.</span><a class="review-action" href="#personaStudio">\uD398\uB974\uC18C\uB098 \uB9CC\uB4E4\uAE30</a></div>';
   attachTasteTabs();
   attachPersonaActions();
 }
@@ -1178,7 +1178,8 @@ function renderPersonas() {
 function renderPersonaCard(persona) {
   const summary = buildPersonaSummaryLines(persona);
   const insights = getPersonaReviewInsights(persona.id);
-  return `<article class="persona-card">
+  const compactView = state.selectedPersona === "all";
+  return `<article class="persona-card ${compactView ? "persona-card-compact" : ""}">
     <div class="persona-header">
       <div class="persona-top">
         <div class="avatar">${persona.name.slice(0, 2).toUpperCase()}</div>
@@ -1188,11 +1189,17 @@ function renderPersonaCard(persona) {
         </div>
       </div>
     </div>
-    <div class="persona-character">
-      <div class="persona-character-kicker">&#xCD5C;&#xC560; &#xD488;&#xC885;</div>
-      <p>${summary.deck}</p>
+    <div class="persona-favorite-grid persona-favorite-grid-clean">
+      <div class="persona-favorite-block">
+        <span class="persona-character-label">\uB808\uB4DC \uCD5C\uC560 \uD488\uC885</span>
+        <div class="taste-summary persona-favorites">${renderFavoritePills(persona.tastes.red, "\uC544\uC9C1 \uC785\uB825 \uC804")}</div>
+      </div>
+      <div class="persona-favorite-block">
+        <span class="persona-character-label">\uD654\uC774\uD2B8 \uCD5C\uC560 \uD488\uC885</span>
+        <div class="taste-summary persona-favorites">${renderFavoritePills(persona.tastes.white, "\uC544\uC9C1 \uC785\uB825 \uC804")}</div>
+      </div>
     </div>
-    <div class="persona-character-grid">
+    ${compactView ? "" : `<div class="persona-character-grid">
       <div class="persona-character-block">
         <span class="persona-character-label">\uB808\uB4DC \uCE90\uB9AD\uD130</span>
         <p>${summary.red}</p>
@@ -1201,19 +1208,17 @@ function renderPersonaCard(persona) {
         <span class="persona-character-label">\uD654\uC774\uD2B8 \uCE90\uB9AD\uD130</span>
         <p>${summary.white}</p>
       </div>
-    </div>
+    </div>`}
     <div class="taste-tabs">
       <button type="button" class="tab-button active" data-tab="${persona.id}-red">\uB808\uB4DC</button>
       <button type="button" class="tab-button" data-tab="${persona.id}-white">\uD654\uC774\uD2B8</button>
     </div>
     <div class="taste-panel active" id="${persona.id}-red">
       <div class="persona-character-label">\uB808\uB4DC \uCDE8\uD5A5 \uB9F5</div>
-      <div class="taste-summary persona-favorites">${renderFavoritePills(persona.tastes.red)}</div>
       ${renderTasteTracks(persona.tastes.red, "red")}
     </div>
     <div class="taste-panel" id="${persona.id}-white">
       <div class="persona-character-label">\uD654\uC774\uD2B8 \uCDE8\uD5A5 \uB9F5</div>
-      <div class="taste-summary persona-favorites">${renderFavoritePills(persona.tastes.white)}</div>
       ${renderTasteTracks(persona.tastes.white, "white")}
     </div>
     <div class="persona-review-shell">
@@ -1231,15 +1236,15 @@ function renderPersonaCard(persona) {
       <div class="persona-review-grid">
         <div class="persona-review-panel">
           <span class="persona-character-label">\uC0C1\uC704 5\uAC1C \uC640\uC778</span>
-          ${renderPersonaReviewLinks(insights.topReviews, "&#xC544;&#xC9C1; &#xC810;&#xC218;&#xAC00; &#xC788;&#xB294; &#xB9AC;&#xBDF0;&#xAC00; &#xC5C6;&#xC2B5;&#xB2C8;&#xB2E4;.", true)}
+          ${renderPersonaReviewLinks(insights.topReviews, "\uC544\uC9C1 \uC810\uC218\uAC00 \uC788\uB294 \uB9AC\uBDF0\uAC00 \uC5C6\uC2B5\uB2C8\uB2E4.", true)}
         </div>
         <div class="persona-review-panel">
           <span class="persona-character-label">\uCD5C\uADFC \uB9AC\uBDF0</span>
-          ${renderPersonaReviewLinks(insights.recentReviews, "&#xC544;&#xC9C1; &#xCD5C;&#xADFC; &#xB9AC;&#xBDF0;&#xAC00; &#xC5C6;&#xC2B5;&#xB2C8;&#xB2E4;.")}
+          ${renderPersonaReviewLinks(insights.recentReviews, "\uC544\uC9C1 \uCD5C\uADFC \uB9AC\uBDF0\uAC00 \uC5C6\uC2B5\uB2C8\uB2E4.")}
         </div>
       </div>
       <div class="button-row">
-        <button type="button" class="review-action" data-action="focus-persona-reviews" data-persona-id="${persona.id}">${persona.name} &#xB9AC;&#xBDF0;&#xB9CC; &#xBCF4;&#xAE30;</button>
+        <button type="button" class="review-action" data-action="focus-persona-reviews" data-persona-id="${persona.id}">${persona.name} \uB9AC\uBDF0\uB9CC \uBCF4\uAE30</button>
       </div>
     </div>
   </article>`;
@@ -2642,59 +2647,59 @@ function buildPersonaHeadline(red, white) {
 function buildModeSummary(taste, mode) {
   if (mode === "white") {
     const fruitLine = taste.fruitDriven <= 3
-      ? "과실이 또렲하게 먼저 올라오는 화이트에 마음이 갑니다"
+      ? "\uACFC\uC2E4\uC774 \uBA3C\uC800 \uB610\uB832\uD558\uAC8C \uC5F4\uB9AC\uB294 \uD654\uC774\uD2B8\uC5D0 \uB354 \uC27D\uAC8C \uC190\uC774 \uAC11\uB2C8\uB2E4"
       : taste.fruitDriven >= 6
-        ? "과실보다 미네랄과 직선적인 인상이 살아 있는 화이트를 더 좋아합니다"
-        : "과실과 미네랄이 균형을 이루는 화이트에서 가장 안정감을 느낍니다";
+        ? "\uACFC\uC2E4\uBCF4\uB2E4\uB294 \uBBF8\uB124\uB784\uACFC \uC120\uC774 \uC0B4\uC544 \uC788\uB294 \uD654\uC774\uD2B8\uB97C \uB354 \uD3B8\uD558\uAC8C \uBD05\uB2C8\uB2E4"
+        : "\uACFC\uC2E4\uACFC \uBBF8\uB124\uB784\uC774 \uADE0\uD615 \uC788\uAC8C \uB9DE\uBB3C\uB9AC\uB294 \uC2A4\uD0C0\uC77C\uC5D0 \uC548\uC815\uAC10\uC744 \uB290\uB081\uB2C8\uB2E4";
     const profileLine = taste.fruitProfile <= 2
-      ? "열대 과실의 결이 도는 쪽이 더 잘 맞고"
+      ? "\uC5F4\uB300 \uACFC\uC2E4 \uCABD\uC73C\uB85C \uBCFC\uB968\uC774 \uC2E4\uB9B4\uC218\uB85D \uB9CC\uC871\uB3C4\uAC00 \uC62C\uB77C\uAC00\uACE0"
       : taste.fruitProfile >= 6
-        ? "시트러스가 선명하게 올라오는 스타일이 더 취향에 가깝고"
-        : "열대 과실과 시트러스가 함께 보이는 스펙트럼도 무리 없이 즐깁니다";
+        ? "\uC2DC\uD2B8\uB7EC\uC2A4\uAC00 \uC120\uBA85\uD558\uAC8C \uCE58\uACE0 \uB098\uC624\uB294 \uCABD\uC5D0 \uB354 \uBC18\uC751\uD558\uBA70"
+        : "\uC5F4\uB300 \uACFC\uC2E4\uACFC \uC2DC\uD2B8\uB7EC\uC2A4\uAC00 \uBC18\uBC18 \uBCF4\uC774\uB294 \uACB0\uB3C4 \uD3B8\uD558\uAC8C \uBC1B\uC544\uB4E4\uC785\uB2C8\uB2E4";
     const acidityLine = taste.acidity <= 3
-      ? "산도는 또렲하게 살아 있어야 표정이 선다고 느끼며"
+      ? "\uC0B0\uB3C4\uB294 \uB610\uB832\uD558\uAC8C \uC0B4\uC544 \uC788\uC5B4\uC57C \uC778\uC0C1\uC774 \uD750\uB824\uC9C0\uC9C0 \uC54A\uC2B5\uB2C8\uB2E4"
       : taste.acidity >= 6
-        ? "산도가 낮아도 질감과 균형이 매끄러우면 충분히 만족하고"
-        : "산도는 과하지 않게 정돈된 정도를 가장 편안하게 봅니다";
+        ? "\uC0B0\uB3C4\uAC00 \uB108\uBB34 \uB3C4\uB4DC\uB77C\uC9C0\uAE30\uBCF4\uB2E4 \uC9C8\uAC10\uC744 \uC815\uB9AC\uD574 \uC8FC\uB294 \uC815\uB3C4\uBA74 \uCDA9\uBD84\uD569\uB2C8\uB2E4"
+        : "\uC0B0\uB3C4\uB294 \uC874\uC7AC\uAC10\uC740 \uBD84\uBA85\uD558\uB418 \uACFC\uD558\uC9C0 \uC54A\uC740 \uCABD\uC744 \uC120\uD638\uD569\uB2C8\uB2E4";
     const bodyLine = taste.body <= 3
-      ? "바디는 어느 정도 볼륨이 있는 편을 선호합니다"
+      ? "\uBC14\uB514\uB294 \uC911\uAC04 \uC774\uC0C1\uC73C\uB85C \uCC28\uC624\uB97C \uB54C \uC644\uC131\uB3C4\uAC00 \uB290\uAEF4\uC9C0\uACE0"
       : taste.body >= 6
-        ? "바디는 가볍고 슬림한 쪽이 더 좋고"
-        : "바디는 중간 밀도 정도면 가장 안정적으로 느껴집니다";
+        ? "\uBC14\uB514\uB294 \uAC00\uBCBD\uACE0 \uB9E4\uB048\uD55C \uCABD\uC77C\uC218\uB85D \uC190\uC774 \uC790\uC8FC \uAC11\uB2C8\uB2E4"
+        : "\uBC14\uB514\uB294 \uC911\uAC04 \uC815\uB3C4\uC758 \uBC00\uB3C4\uBA74 \uAC00\uC7A5 \uC548\uC815\uC801\uC73C\uB85C \uC77D\uD799\uB2C8\uB2E4";
     const oakLine = taste.oak <= 3
-      ? "오크는 향을 살짝 보태는 정도까지는 괜찮습니다"
+      ? "\uC624\uD06C\uB294 \uC874\uC7AC\uD558\uB418 \uC9C8\uAC10\uC744 \uB2E4\uB4EC\uB294 \uC218\uC900\uC774\uBA74 \uCDA9\uBD84\uD569\uB2C8\uB2E4"
       : taste.oak >= 6
-        ? "오크는 최대한 뒤로 빠져 있을수록 좋고"
-        : "오크는 존재하되 앞에 과하게 나서지 않기를 바랍니다";
-    return `${fruitLine}. ${profileLine}. ${acidityLine} ${bodyLine}. ${oakLine}.`;
+        ? "\uC624\uD06C\uB294 \uCD5C\uB300\uD55C \uB4A4\uB85C \uBE60\uC838 \uC788\uC744\uC218\uB85D \uC88B\uC2B5\uB2C8\uB2E4"
+        : "\uC624\uD06C\uB294 \uD5A5\uC744 \uB36E\uC9C0 \uC54A\uC744 \uB9CC\uD07C\uB9CC \uC5B9\uD600 \uC788\uB294 \uD3B8\uC744 \uC120\uD638\uD569\uB2C8\uB2E4";
+    return `${fruitLine}. ${profileLine}. ${acidityLine}. ${bodyLine}. ${oakLine}.`;
   }
 
   const fruitLine = taste.fruitDriven <= 3
-      ? "과실이 또렲하게 먼저 치고 나오는 레드에 더 빠르게 반응합니다"
+    ? "\uACFC\uC2E4\uC774 \uB610\uB832\uD558\uAC8C \uBA3C\uC800 \uCE58\uACE0 \uB098\uC624\uB294 \uB808\uB4DC\uC5D0 \uBC18\uC751\uC774 \uBE60\uB978 \uD3B8\uC785\uB2C8\uB2E4"
     : taste.fruitDriven >= 6
-      ? "세이보리와 어시 톤이 살아 있는 레드 쪽으로 더 마음이 갑니다"
-      : "과실과 세이보리가 함께 엮이는 레드를 편안하게 받아들입니다";
+      ? "\uC138\uC774\uBCF4\uB9AC\uC640 \uD759 \uB0B4\uC74C\uC774 \uAC10\uB3C4\uB294 \uB808\uB4DC \uCABD\uC73C\uB85C \uB354 \uB9C8\uC74C\uC774 \uAC11\uB2C8\uB2E4"
+      : "\uACFC\uC2E4\uACFC \uC138\uC774\uBCF4\uB9AC\uAC00 \uADE0\uD615\uC744 \uC774\uB8E8\uB294 \uB808\uB4DC\uC5D0 \uD3B8\uC548\uD568\uC744 \uB290\uB081\uB2C8\uB2E4";
   const profileLine = taste.fruitProfile <= 2
-    ? "다크 프루트 결이 짙어질수록 만족도가 올라가고"
+    ? "\uB2E4\uD06C \uD504\uB8E8\uD2B8 \uCABD\uC73C\uB85C \uACB0\uC774 \uAE4A\uC5B4\uC9C8\uC218\uB85D \uB9CC\uC871\uB3C4\uAC00 \uC62C\uB77C\uAC00\uACE0"
     : taste.fruitProfile >= 6
-      ? "레드 프루트의 선명함이 살아 있는 쪽을 더 선호하고"
-      : "레드와 다크 프루트가 교차하는 구간도 충분히 매력적으로 느낍니다";
+      ? "\uBD89\uC740 \uACFC\uC2E4\uC758 \uC120\uBA85\uD568\uC774 \uC0B4\uC544 \uC788\uB294 \uC2A4\uD0C0\uC77C\uC744 \uC120\uD638\uD558\uBA70"
+      : "\uB2E4\uD06C \uD504\uB8E8\uD2B8\uC640 \uBD89\uC740 \uACFC\uC2E4\uC774 \uD568\uAED8 \uBCF4\uC774\uB294 \uAD6C\uAC04\uB3C4 \uCDA9\uBD84\uD788 \uB9E4\uB825\uC801\uC73C\uB85C \uBD05\uB2C8\uB2E4";
   const acidityLine = taste.acidity <= 3
-    ? "산도는 와인의 골격을 세워 줄 만큼 분명해야 하고"
+    ? "\uC0B0\uB3C4\uB294 \uC640\uC778\uC758 \uACB0\uC744 \uC138\uC6CC \uC904 \uB9CC\uD07C \uBD84\uBA85\uD574\uC57C \uD558\uACE0"
     : taste.acidity >= 6
-      ? "산도가 낮아도 전체 질감이 매끄러우면 충분히 받아들일 수 있으며"
-      : "산도는 과하지 않게 중심을 잡아 주는 정도를 선호합니다";
+      ? "\uC0B0\uB3C4\uAC00 \uB108\uBB34 \uB3C4\uB4DC\uB77C\uC9C0\uC9C0 \uC54A\uACE0 \uC804\uCCB4 \uADE0\uD615\uC744 \uB2E4\uB4EC\uC5B4 \uC8FC\uBA74 \uCDA9\uBD84\uD558\uBA70"
+      : "\uC0B0\uB3C4\uB294 \uC911\uAC04 \uC815\uB3C4\uC5D0\uC11C \uC640\uC778\uC758 \uACB0\uC744 \uBAA8\uC544 \uC8FC\uB294 \uCABD\uC744 \uC88B\uC544\uD569\uB2C8\uB2E4";
   const bodyLine = taste.body <= 3
-    ? "바디는 어느 정도 밀도감이 느껴지는 편이 잘 맞고"
+    ? "\uBC14\uB514\uB294 \uC911\uAC04 \uC774\uC0C1\uC73C\uB85C \uBC00\uB3C4\uAC00 \uCC28\uC62C\uB77C\uC57C \uC548\uC815\uC801\uC73C\uB85C \uB290\uAEF4\uC9C0\uACE0"
     : taste.body >= 6
-      ? "바디는 가볍고 날렵한 쪽이 더 편하고"
-      : "바디는 중간 이상 정도에서 균형이 가장 좋다고 느낍니다";
+      ? "\uBC14\uB514\uAC00 \uAC00\uBCBD\uACE0 \uB9E4\uB048\uD55C \uCABD\uC774\uBA74 \uB354 \uC790\uC8FC \uC190\uC774 \uAC00\uACE0"
+      : "\uBC14\uB514\uB294 \uC911\uAC04 \uC815\uB3C4\uC758 \uBB34\uAC8C\uAC10\uC774\uBA74 \uAC00\uC7A5 \uC548\uC815\uC801\uC73C\uB85C \uBC1B\uC544\uB4E4\uC785\uB2C8\uB2E4";
   const oakLine = taste.oak <= 3
-    ? "오크가 약간 전면에 있어도 스타일만 맞으면 괜찮습니다"
+    ? "\uC624\uD06C\uB294 \uC874\uC7AC\uAC10\uC774 \uC788\uB354\uB77C\uB3C4 \uACFC\uC2E4\uC744 \uB36E\uC9C0 \uC54A\uB294 \uC120\uC774\uBA74 \uC88B\uACE0"
     : taste.oak >= 6
-      ? "오크는 최대한 절제된 편을 선호하고"
-      : "오크는 존재하되 과하게 드러나지 않길 바랍니다";
-  return `${fruitLine}. ${profileLine}. ${acidityLine} ${bodyLine}. ${oakLine}.`;
+      ? "\uC624\uD06C\uAC00 \uCD5C\uB300\uD55C \uB4A4\uB85C \uBE60\uC838 \uC788\uB294 \uD3B8\uC744 \uB354 \uC120\uD638\uD569\uB2C8\uB2E4"
+      : "\uC624\uD06C\uB294 \uBC14\uB514\uC640 \uACFC\uC2E4\uC744 \uC815\uB9AC\uD574 \uC8FC\uB294 \uC815\uB3C4\uBA74 \uCDA9\uBD84\uD569\uB2C8\uB2E4";
+  return `${fruitLine}. ${profileLine}. ${acidityLine}. ${bodyLine}. ${oakLine}.`;
 }
 
 function formatRegionPath(region, subRegion) {
