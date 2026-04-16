@@ -2051,7 +2051,7 @@ function toggleReviewSavingState(isSaving) {
 function formatReviewSaveError(error) {
   const message = String(error?.message || "");
   if (message.includes("schema cache") || message.includes("column")) {
-    return "저장은 시도됐지만 Supabase 테이블 구조가 현재 페이지 버전과 어긋나 있습니다. `supabase-schema.sql`을 SQL Editor에서 다시 실행해 producer, sub_region, overall_score, aroma/comment 관련 컬럼을 한 번에 맞춰주세요.";
+    return `저장은 시도됐지만 Supabase 테이블 구조가 현재 페이지 버전과 어긋나 있습니다. \`supabase-schema.sql\`을 SQL Editor에서 다시 실행해 producer, sub_region, overall_score, aroma/comment 관련 컬럼을 한 번에 맞춰주세요.\n\n실제 오류: ${message}`;
   }
   return message || "\uC800\uC7A5 \uACFC\uC815\uC744 \uB2E4\uC2DC \uD655\uC778\uD574 \uC8FC\uC138\uC694.";
 }
