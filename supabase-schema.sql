@@ -8,10 +8,15 @@ create table if not exists personas (
   display_order integer default 0
 );
 
+alter table personas add column if not exists role text;
+alter table personas add column if not exists focus text;
+alter table personas add column if not exists red_taste jsonb default '{}'::jsonb;
+alter table personas add column if not exists white_taste jsonb default '{}'::jsonb;
+alter table personas add column if not exists display_order integer default 0;
+
 create table if not exists wines (
   id text primary key,
   name text not null,
-  producer text,
   vintage text,
   type text,
   varietal text,
@@ -22,8 +27,14 @@ create table if not exists wines (
   created_at timestamptz default now()
 );
 
-alter table wines add column if not exists producer text;
+alter table wines add column if not exists vintage text;
+alter table wines add column if not exists type text;
+alter table wines add column if not exists varietal text;
+alter table wines add column if not exists region text;
 alter table wines add column if not exists sub_region text;
+alter table wines add column if not exists average_price text;
+alter table wines add column if not exists image_url text;
+alter table wines add column if not exists created_at timestamptz default now();
 
 create table if not exists reviews (
   id bigint generated always as identity primary key,
@@ -39,6 +50,14 @@ create table if not exists reviews (
   created_at date default current_date
 );
 
+alter table reviews add column if not exists summary text;
+alter table reviews add column if not exists overall_score integer;
+alter table reviews add column if not exists structure jsonb default '{}'::jsonb;
+alter table reviews add column if not exists primary_aromas text[] default '{}'::text[];
+alter table reviews add column if not exists secondary_aromas text[] default '{}'::text[];
+alter table reviews add column if not exists tertiary_aromas text[] default '{}'::text[];
+alter table reviews add column if not exists created_at date default current_date;
+
 create table if not exists comments (
   id bigint generated always as identity primary key,
   review_id bigint references reviews(id) on delete cascade,
@@ -47,12 +66,9 @@ create table if not exists comments (
   created_at timestamptz default now()
 );
 
-alter table reviews add column if not exists summary text;
-alter table reviews add column if not exists overall_score integer;
-alter table reviews add column if not exists structure jsonb default '{}'::jsonb;
-alter table reviews add column if not exists primary_aromas text[] default '{}'::text[];
-alter table reviews add column if not exists secondary_aromas text[] default '{}'::text[];
-alter table reviews add column if not exists tertiary_aromas text[] default '{}'::text[];
+alter table comments add column if not exists author_name text;
+alter table comments add column if not exists body text;
+alter table comments add column if not exists created_at timestamptz default now();
 
 alter table personas enable row level security;
 alter table wines enable row level security;

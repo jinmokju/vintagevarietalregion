@@ -250,7 +250,7 @@ const el = {
   wineName: document.getElementById("wineName"),
   wineVintage: document.getElementById("wineVintage"),
   wineVarietal: document.getElementById("wineVarietal"),
-  wineProducer: document.getElementById("wineProducer"),
+  wineProducer: document.getElementById("wineProducer") || { value: "" },
   wineNameOptions: document.getElementById("wineNameOptions"),
   wineVintageOptions: document.getElementById("wineVintageOptions"),
   wineVarietalOptions: document.getElementById("wineVarietalOptions"),
@@ -2051,7 +2051,7 @@ function toggleReviewSavingState(isSaving) {
 function formatReviewSaveError(error) {
   const message = String(error?.message || "");
   if (message.includes("schema cache") || message.includes("column")) {
-    return "\uC800\uC7A5\uC740 \uC2DC\uB3C4\uB410\uC9C0\uB9CC Supabase \uD14C\uC774\uBE14 \uAD6C\uC870\uAC00 \uD604\uC7AC \uD398\uC774\uC9C0 \uBC84\uC804\uACFC \uC5C7\uAC08\uB9AC\uACE0 \uC788\uC2B5\uB2C8\uB2E4. `supabase-schema.sql`\uC744 SQL Editor\uC5D0\uC11C \uB2E4\uC2DC \uC2E4\uD589\uD574 producer, sub_region \uCEEC\uB7FC\uC744 \uCD94\uAC00\uD574 \uC8FC\uC138\uC694.";
+    return "저장은 시도됐지만 Supabase 테이블 구조가 현재 페이지 버전과 어긋나 있습니다. `supabase-schema.sql`을 SQL Editor에서 다시 실행해 sub_region, overall_score, aroma/comment 관련 컬럼을 한 번에 맞춰주세요.";
   }
   return message || "\uC800\uC7A5 \uACFC\uC815\uC744 \uB2E4\uC2DC \uD655\uC778\uD574 \uC8FC\uC138\uC694.";
 }
@@ -2067,7 +2067,6 @@ async function handleReviewSave(event) {
     personaId: el.reviewPersona.value,
     type: el.wineType.value,
     name: el.wineName.value.trim(),
-    producer: el.wineProducer.value.trim(),
     vintage: el.wineVintage.value.trim(),
     varietal: el.wineVarietal.value.trim(),
     region: el.wineRegion.value.trim(),
@@ -2139,7 +2138,6 @@ async function createNewReview(payload) {
     wine = {
       id: `wine-${Date.now()}`,
       name: payload.name,
-      producer: payload.producer,
       vintage: payload.vintage,
       type: payload.type,
       varietal: payload.varietal,
@@ -2151,7 +2149,6 @@ async function createNewReview(payload) {
     };
     state.wines.unshift(wine);
   } else {
-    wine.producer = payload.producer || wine.producer;
     wine.vintage = payload.vintage || wine.vintage;
     wine.type = payload.type || wine.type;
     wine.varietal = payload.varietal || wine.varietal;
@@ -2191,7 +2188,6 @@ async function updateExistingReview(payload) {
   }
 
   wine.name = payload.name;
-  wine.producer = payload.producer;
   wine.vintage = payload.vintage;
   wine.type = payload.type;
   wine.varietal = payload.varietal;
@@ -2799,7 +2795,6 @@ async function persistReviewCreate(wine, review) {
   const { error: wineError } = await state.supabase.from("wines").upsert({
     id: wine.id,
     name: wine.name,
-    producer: wine.producer,
     vintage: wine.vintage,
     type: wine.type,
     varietal: wine.varietal,
@@ -2840,7 +2835,6 @@ async function persistReviewUpdate(wine, review) {
   const { error: wineError } = await state.supabase.from("wines").upsert({
     id: wine.id,
     name: wine.name,
-    producer: wine.producer,
     vintage: wine.vintage,
     type: wine.type,
     varietal: wine.varietal,
