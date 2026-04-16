@@ -198,6 +198,14 @@
     .comment-thread-card .form-grid{grid-template-columns:1fr}
     .comment-thread-card input{background:rgba(255,255,255,.76)}
     .comment-thread-card .review-action{justify-self:start}
+    .review-status{margin-top:12px;padding:12px 14px;border-radius:16px;border:1px solid var(--line);background:rgba(255,255,255,.32);font-size:.9rem;line-height:1.6;color:var(--muted)}
+    .review-status[data-tone="saving"]{border-color:rgba(166,61,83,.18);background:rgba(166,61,83,.08);color:var(--accent-ink)}
+    .review-status[data-tone="success"]{border-color:rgba(75,126,92,.2);background:rgba(90,160,114,.1);color:#24543a}
+    .review-status[data-tone="error"]{border-color:rgba(166,61,83,.2);background:rgba(166,61,83,.1);color:var(--accent-ink)}
+    .review-status{margin-top:12px;padding:12px 14px;border-radius:16px;border:1px solid var(--line);background:rgba(255,255,255,.32);font-size:.9rem;line-height:1.6;color:var(--muted)}
+    .review-status[data-tone="saving"]{border-color:rgba(166,61,83,.18);background:rgba(166,61,83,.08);color:var(--accent-ink)}
+    .review-status[data-tone="success"]{border-color:rgba(75,126,92,.2);background:rgba(90,160,114,.1);color:#24543a}
+    .review-status[data-tone="error"]{border-color:rgba(166,61,83,.2);background:rgba(166,61,83,.1);color:var(--accent-ink)}
     @media (max-width:720px){.library-toolbar{padding:14px}.wine-grid.refined{grid-template-columns:1fr}.wine-card-inner{padding:16px}.wine-image{min-height:220px}}
     @media (max-width:980px){.hero-grid-refined,.hero-bullet-grid,.studio-intro-grid{grid-template-columns:1fr}}
     @media (max-width:720px){.hero-refined{padding:22px 20px 22px}.hero-refined::before{inset:12px}.hero-top-actions{width:100%;justify-content:space-between}}
@@ -481,6 +489,7 @@
                   </div>
                 </div>
               </div>
+                <div class="review-status" id="reviewStatus" data-tone="idle">??? ???? ???? ?? ??? ?? ??????.</div>
             </form>
           </section>
           <section class="studio-shell studio-persona-shell" id="personaStudio">

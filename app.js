@@ -282,6 +282,7 @@ const el = {
   fetchImageCandidates: document.getElementById("fetchImageCandidates"),
   fetchPriceData: document.getElementById("fetchPriceData"),
   fetchStatus: document.getElementById("fetchStatus"),
+  reviewStatus: document.getElementById("reviewStatus"),
   imageCandidateGrid: document.getElementById("imageCandidateGrid"),
   tastePersona: document.getElementById("tastePersona"),
   tasteMode: document.getElementById("tasteMode"),
@@ -2025,12 +2026,32 @@ function resetReviewForm() {
   renderImageCandidates();
   syncReviewEditor();
   populateReviewInputs();
+  setReviewStatus("\uB9AC\uBDF0\uB97C \uC800\uC7A5\uD558\uBA74 \uC5EC\uAE30\uC5D0\uC11C \uACB0\uACFC\uB97C \uBC14\uB85C \uC54C\uB824\uB4DC\uB9BD\uB2C8\uB2E4.", "idle");
+}
+
+function setReviewStatus(message, tone = "idle") {
+  if (!el.reviewStatus) {
+    return;
+  }
+  el.reviewStatus.textContent = message;
+  el.reviewStatus.dataset.tone = tone;
+}
+
+function toggleReviewSavingState(isSaving) {
+  const submitButton = el.reviewSubmitLabel;
+  if (!submitButton) {
+    return;
+  }
+  submitButton.disabled = isSaving;
+  submitButton.textContent = isSaving
+    ? "\uC800\uC7A5 \uC911..."
+    : (state.reviewFormMode === "edit" ? "\uB9AC\uBDF0 \uC218\uC815 \uC800\uC7A5\uD558\uAE30" : "\uB9AC\uBDF0 \uC800\uC7A5\uD558\uAE30");
 }
 
 async function handleReviewSave(event) {
   event.preventDefault();
   if (!state.isAdmin) {
-    alert("\uAD00\uB9AC\uC790 \uB85C\uADF8\uC778 \uD6C4\uC5D0\uB9CC \uB9AC\uBDF0\uB97C \uC800\uC7A5\uD560 \uC218 \uC788\uC2B5\uB2C8\uB2E4.");
+    setReviewStatus("\uAD00\uB9AC\uC790 \uB85C\uADF8\uC778 \uD6C4\uC5D0\uB9CC \uB9AC\uBDF0\uB97C \uC800\uC7A5\uD560 \uC218 \uC788\uC2B5\uB2C8\uB2E4.", "error");
     return;
   }
 
@@ -2055,28 +2076,53 @@ async function handleReviewSave(event) {
 
   if (!payload.personaId || !payload.name || !payload.summary || !payload.overallScore) {
     if (!payload.personaId) {
-      alert("\uB9AC\uBDF0\uB97C \uC800\uC7A5\uD558\uB824\uBA74 \uBA3C\uC800 \uB9AC\uBDF0\uC5B4 Persona\uB97C \uC120\uD0DD\uD574 \uC8FC\uC138\uC694.");
+      setReviewStatus("\uB9AC\uBDF0\uB97C \uC800\uC7A5\uD558\uB824\uBA74 \uBA3C\uC800 \uB9AC\uBDF0\uC5B4 Persona\uB97C \uC120\uD0DD\uD574 \uC8FC\uC138\uC694.", "error");
     } else if (!payload.overallScore) {
-      alert("Overall score\uB97C \uC785\uB825\uD574 \uC8FC\uC138\uC694.");
+      setReviewStatus("Overall score\uB97C \uC785\uB825\uD574 \uC8FC\uC138\uC694.", "error");
+    } else {
+      setReviewStatus("\uC640\uC778\uBA85\uACFC Overall Summary\uB97C \uD568\uAED8 \uC785\uB825\uD574 \uC8FC\uC138\uC694.", "error");
     }
     return;
   }
 
   const numericScore = Number(payload.overallScore);
   if (Number.isNaN(numericScore) || numericScore < 0 || numericScore > 100) {
-    alert("Overall score\uB294 0\uBD80\uD130 100 \uC0AC\uC774 \uAC12\uC73C\uB85C \uC785\uB825\uD574 \uC8FC\uC138\uC694.");
+    setReviewStatus("Overall score\uB294 0\uBD80\uD130 100 \uC0AC\uC774 \uAC12\uC73C\uB85C \uC785\uB825\uD574 \uC8FC\uC138\uC694.", "error");
     return;
   }
 
-  if (state.reviewFormMode === "edit") {
-    await updateExistingReview(payload);
-  } else {
-    await createNewReview(payload);
-  }
+  const savingLabel = state.reviewFormMode === "edit"
+    ? "\uB9AC\uBDF0 \uC218\uC815 \uC800\uC7A5 \uC911..."
+    : "\uB9AC\uBDF0 \uC800\uC7A5 \uC911...";
+  setReviewStatus(savingLabel, "saving");
+  toggleReviewSavingState(true);
 
-  saveLocal();
-  renderAll();
-  resetReviewForm();
+  try {
+    const result = state.reviewFormMode === "edit"
+      ? await updateExistingReview(payload)
+      : await createNewReview(payload);
+
+    saveLocal();
+    renderAll();
+    resetReviewForm();
+
+    const storageLabel = state.supabase
+      ? "Supabase\uC5D0 \uBC18\uC601\uB418\uACE0 \uB77C\uC774\uBE0C\uB7EC\uB9AC\uC5D0 \uC801\uC6A9\uB410\uC2B5\uB2C8\uB2E4."
+      : "Local Mode\uB85C \uC800\uC7A5\uB418\uC5C8\uACE0, \uC774 \uBE0C\uB77C\uC6B0\uC800\uC5D0\uC11C \uACC4\uC18D \uD655\uC778\uD560 \uC218 \uC788\uC2B5\uB2C8\uB2E4.";
+    setReviewStatus(`\uB9AC\uBDF0\uAC00 \uC800\uC7A5\uB410\uC2B5\uB2C8\uB2E4. ${storageLabel}`, "success");
+
+    if (result?.wineId) {
+      requestAnimationFrame(() => {
+        const wineCard = document.getElementById(`wine-${result.wineId}`);
+        wineCard?.scrollIntoView({ behavior: "smooth", block: "center" });
+      });
+    }
+  } catch (error) {
+    console.error(error);
+    setReviewStatus(`\uB9AC\uBDF0 \uC800\uC7A5\uC5D0 \uC2E4\uD328\uD588\uC2B5\uB2C8\uB2E4. ${error?.message || "\uC800\uC7A5 \uACFC\uC815\uC744 \uB2E4\uC2DC \uD655\uC778\uD574 \uC8FC\uC138\uC694."}`, "error");
+  } finally {
+    toggleReviewSavingState(false);
+  }
 }
 
 async function createNewReview(payload) {
@@ -2127,12 +2173,13 @@ async function createNewReview(payload) {
   if (persistedReview?.id) {
     review.id = persistedReview.id;
   }
+  return { wineId: wine.id, reviewId: review.id };
 }
 async function updateExistingReview(payload) {
   const wine = state.wines.find((item) => item.id === state.editingWineId);
   const review = wine?.reviews.find((item) => String(item.id) === String(state.editingReviewId));
   if (!wine || !review) {
-    return;
+    throw new Error("\uC218\uC815\uD560 \uB9AC\uBDF0\uB97C \uCC3E\uC9C0 \uBABB\uD588\uC2B5\uB2C8\uB2E4.");
   }
 
   wine.name = payload.name;
@@ -2155,6 +2202,7 @@ async function updateExistingReview(payload) {
   review.createdAt = new Date().toISOString().slice(0, 10);
 
   await persistReviewUpdate(wine, review);
+  return { wineId: wine.id, reviewId: review.id };
 }
 
 async function handleReviewDelete(wineId, reviewId) {
@@ -2740,7 +2788,7 @@ async function persistReviewCreate(wine, review) {
     return null;
   }
 
-  await state.supabase.from("wines").upsert({
+  const { error: wineError } = await state.supabase.from("wines").upsert({
     id: wine.id,
     name: wine.name,
     producer: wine.producer,
@@ -2752,6 +2800,9 @@ async function persistReviewCreate(wine, review) {
     average_price: wine.averagePrice,
     image_url: wine.image
   });
+  if (wineError) {
+    throw wineError;
+  }
 
   const { data, error } = await state.supabase.from("reviews").insert({
     wine_id: wine.id,
@@ -2767,8 +2818,7 @@ async function persistReviewCreate(wine, review) {
   }).select("id").single();
 
   if (error) {
-    console.error(error);
-    return null;
+    throw error;
   }
 
   return data;
@@ -2779,7 +2829,7 @@ async function persistReviewUpdate(wine, review) {
     return;
   }
 
-  await state.supabase.from("wines").upsert({
+  const { error: wineError } = await state.supabase.from("wines").upsert({
     id: wine.id,
     name: wine.name,
     producer: wine.producer,
@@ -2791,8 +2841,11 @@ async function persistReviewUpdate(wine, review) {
     average_price: wine.averagePrice,
     image_url: wine.image
   });
+  if (wineError) {
+    throw wineError;
+  }
 
-  await state.supabase.from("reviews").update({
+  const { error: reviewError } = await state.supabase.from("reviews").update({
     persona_id: review.personaId,
     note: review.note,
     summary: review.summary,
@@ -2803,6 +2856,9 @@ async function persistReviewUpdate(wine, review) {
     tertiary_aromas: review.tertiaryAromas,
     created_at: review.createdAt
   }).eq("id", review.id);
+  if (reviewError) {
+    throw reviewError;
+  }
 }
 
 async function persistReviewDelete(wineId, reviewId, deleteWineToo) {
