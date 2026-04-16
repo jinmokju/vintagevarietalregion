@@ -2048,6 +2048,14 @@ function toggleReviewSavingState(isSaving) {
     : (state.reviewFormMode === "edit" ? "\uB9AC\uBDF0 \uC218\uC815 \uC800\uC7A5\uD558\uAE30" : "\uB9AC\uBDF0 \uC800\uC7A5\uD558\uAE30");
 }
 
+function formatReviewSaveError(error) {
+  const message = String(error?.message || "");
+  if (message.includes("schema cache") || message.includes("column")) {
+    return "\uC800\uC7A5\uC740 \uC2DC\uB3C4\uB410\uC9C0\uB9CC Supabase \uD14C\uC774\uBE14 \uAD6C\uC870\uAC00 \uD604\uC7AC \uD398\uC774\uC9C0 \uBC84\uC804\uACFC \uC5C7\uAC08\uB9AC\uACE0 \uC788\uC2B5\uB2C8\uB2E4. `supabase-schema.sql`\uC744 SQL Editor\uC5D0\uC11C \uB2E4\uC2DC \uC2E4\uD589\uD574 producer, sub_region \uCEEC\uB7FC\uC744 \uCD94\uAC00\uD574 \uC8FC\uC138\uC694.";
+  }
+  return message || "\uC800\uC7A5 \uACFC\uC815\uC744 \uB2E4\uC2DC \uD655\uC778\uD574 \uC8FC\uC138\uC694.";
+}
+
 async function handleReviewSave(event) {
   event.preventDefault();
   if (!state.isAdmin) {
@@ -2119,7 +2127,7 @@ async function handleReviewSave(event) {
     }
   } catch (error) {
     console.error(error);
-    setReviewStatus(`\uB9AC\uBDF0 \uC800\uC7A5\uC5D0 \uC2E4\uD328\uD588\uC2B5\uB2C8\uB2E4. ${error?.message || "\uC800\uC7A5 \uACFC\uC815\uC744 \uB2E4\uC2DC \uD655\uC778\uD574 \uC8FC\uC138\uC694."}`, "error");
+    setReviewStatus(`\uB9AC\uBDF0 \uC800\uC7A5\uC5D0 \uC2E4\uD328\uD588\uC2B5\uB2C8\uB2E4. ${formatReviewSaveError(error)}`, "error");
   } finally {
     toggleReviewSavingState(false);
   }
