@@ -17,6 +17,7 @@ alter table personas add column if not exists display_order integer default 0;
 create table if not exists wines (
   id text primary key,
   name text not null,
+  producer text,
   vintage text,
   type text,
   varietal text,
@@ -27,6 +28,7 @@ create table if not exists wines (
   created_at timestamptz default now()
 );
 
+alter table wines add column if not exists producer text;
 alter table wines add column if not exists vintage text;
 alter table wines add column if not exists type text;
 alter table wines add column if not exists varietal text;
