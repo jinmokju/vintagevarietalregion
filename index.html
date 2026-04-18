@@ -457,7 +457,7 @@
                     <label>Varietal<input id="wineVarietal" list="wineVarietalOptions" placeholder="타입별 품종 선택 또는 직접 입력"></label>
                     <label>Country / Region<input id="wineRegion" list="wineRegionOptions" placeholder="예: France"></label>
                     <label>Sub Region<input id="wineSubRegion" list="wineSubRegionOptions" placeholder="예: Bourgogne"></label>
-                    <label>평균가 (Wine-Searcher / Manual)<input id="winePrice" placeholder="예: KRW 62,000"></label>
+                    <label>평균가 (선택)<input id="winePrice" placeholder="예: KRW 62,000"></label>
                     <input id="wineImage" type="hidden">
                   </div>
                 </div>
@@ -472,36 +472,21 @@
                   <div class="form-card-head">
                     <div>
                       <div class="section-kicker">Step 2</div>
-                      <h3>Image & Price Assist</h3>
+                      <h3>Image Upload</h3>
                     </div>
-                    <div class="summary-meta">공식 와이너리/수입사/상품 페이지를 먼저 찾고, 없으면 공개 이미지 소스로 보조 탐색합니다.</div>
+                    <div class="summary-meta">자동 탐색 없이 바로 업로드하고, 아래 미리보기에서 즉시 확인하는 흐름입니다.</div>
                   </div>
                   <div class="button-row">
-                    <button class="ghost-button" id="fetchImageCandidates" type="button" style="color:var(--text); border-color:var(--line); background:var(--surface-strong)">이미지 후보 찾기</button>
-                    <button class="ghost-button" id="fetchPriceData" type="button" style="color:var(--text); border-color:var(--line); background:var(--surface-strong)">가격 조회</button>
+                    <label class="ghost-button" style="color:var(--text); border-color:var(--line); background:var(--surface-strong); cursor:pointer">
+                      사진 보관함
+                      <input id="wineImageLibrary" type="file" accept="image/*" hidden>
+                    </label>
+                    <label class="ghost-button" style="color:var(--text); border-color:var(--line); background:var(--surface-strong); cursor:pointer">
+                      카메라 촬영
+                      <input id="wineImageCamera" type="file" accept="image/*" capture="environment" hidden>
+                    </label>
                   </div>
-                  <div class="muted" id="fetchStatus">이미지는 공식 와이너리, 수입사, 공개 이미지 fallback 순으로 찾고, 끝까지 안 나오면 그때 직접 업로드를 여는 흐름입니다.</div>
-                  <div class="candidate-grid" id="imageCandidateGrid"></div>
-                  <div class="form-card" id="uploadFallbackPanel" hidden>
-                    <div class="form-card-head">
-                      <div>
-                        <div class="section-kicker">Fallback</div>
-                        <h3>Manual Image Upload</h3>
-                      </div>
-                      <div class="summary-meta">자동 탐색이 끝까지 실패했을 때만 여는 마지막 수단</div>
-                    </div>
-                    <div class="muted" id="uploadFallbackNote">공식 와이너리, 수입사, 공개 이미지 fallback까지 다 돌아도 못 찾았을 때만 직접 업로드를 여세요.</div>
-                    <div class="button-row">
-                      <label class="ghost-button" style="color:var(--text); border-color:var(--line); background:var(--surface-strong); cursor:pointer">
-                        사진 보관함
-                        <input id="wineImageLibrary" type="file" accept="image/*" hidden>
-                      </label>
-                      <label class="ghost-button" style="color:var(--text); border-color:var(--line); background:var(--surface-strong); cursor:pointer">
-                        카메라 촬영
-                        <input id="wineImageCamera" type="file" accept="image/*" capture="environment" hidden>
-                      </label>
-                    </div>
-                  </div>
+                  <div class="muted" id="fetchStatus">사진을 바로 올리고 아래 미리보기에서 확인한 뒤 저장하면 됩니다. 가격은 필요할 때만 직접 입력해 주세요.</div>
                 </div>
                 <div class="form-card">
                   <div class="form-card-head">
@@ -509,7 +494,7 @@
                       <div class="section-kicker">Preview</div>
                       <h3>Image Check</h3>
                     </div>
-                    <div class="summary-meta">자동으로 가져온 이미지 후보를 바로 확인</div>
+                    <div class="summary-meta">업로드한 이미지를 바로 확인하고 잘못 올렸으면 즉시 교체</div>
                   </div>
                   <div class="image-preview" id="imagePreviewCard" hidden>
                     <div class="image-preview-head">
@@ -517,9 +502,9 @@
                       <button class="ghost-button" id="clearImageButton" type="button" style="color:var(--text); border-color:var(--line); background:var(--surface-strong)">이미지 비우기</button>
                     </div>
                     <img id="wineImagePreview" alt="선택한 와인 이미지 미리보기">
-                    <div class="image-caption" id="imagePreviewCaption">입력된 이미지 URL이나 자동 조회 결과를 여기서 바로 확인할 수 있습니다.</div>
+                    <div class="image-caption" id="imagePreviewCaption">올린 이미지는 여기서 바로 확인할 수 있습니다.</div>
                   </div>
-                  <div class="empty-state" id="imagePreviewPlaceholder">아직 불러온 이미지가 없습니다. 자동 조회 후 여기서 먼저 확인하세요.</div>
+                  <div class="empty-state" id="imagePreviewPlaceholder">아직 올린 이미지가 없습니다. 사진 보관함이나 카메라 촬영으로 바로 추가해 보세요.</div>
                 </div>
               </div>
               <details class="details-panel" open>

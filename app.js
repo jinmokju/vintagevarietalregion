@@ -928,8 +928,6 @@ function bindEvents() {
   el.clearPersonaImageButton?.addEventListener("click", clearPersonaImageField);
   el.reviewForm.addEventListener("submit", handleReviewSave);
   el.tasteForm.addEventListener("submit", handleTasteSave);
-  el.fetchImageCandidates.addEventListener("click", handleImageLookup);
-  el.fetchPriceData.addEventListener("click", handlePriceLookup);
   el.wineImage.addEventListener("input", syncImagePreview);
   el.wineImageLibrary?.addEventListener("change", (event) => handleImageUpload(event, "\uC0AC\uC9C4 \uBCF4\uAD00\uD568 \uC5C5\uB85C\uB4DC"));
   el.wineImageCamera?.addEventListener("change", (event) => handleImageUpload(event, "\uCE74\uBA54\uB77C \uCD2C\uC601 \uC5C5\uB85C\uB4DC"));
@@ -1884,12 +1882,6 @@ function updateAdminAccess() {
     tasteSubmitButton.disabled = disabled;
   }
 
-  if (el.fetchImageCandidates) {
-    el.fetchImageCandidates.disabled = false;
-  }
-  if (el.fetchPriceData) {
-    el.fetchPriceData.disabled = false;
-  }
   if (el.cancelEditButton) {
     el.cancelEditButton.disabled = disabled;
   }
@@ -2282,7 +2274,7 @@ function resetReviewForm() {
   state.imageCandidates = [];
   el.reviewSubmitLabel.textContent = "\uB9AC\uBDF0 \uC800\uC7A5\uD558\uAE30";
   el.cancelEditButton.hidden = true;
-  el.fetchStatus.textContent = "\uC774\uBBF8\uC9C0\uB294 \uD6C4\uBCF4\uB97C \uBA3C\uC800 \uBCF4\uACE0 \uC120\uD0DD\uD558\uACE0, \uAC00\uACA9\uC740 \uBCC4\uB3C4\uB85C \uC870\uD68C\uD569\uB2C8\uB2E4.";
+  el.fetchStatus.textContent = "\uC0AC\uC9C4\uC744 \uBC14\uB85C \uC5C5\uB85C\uB4DC\uD558\uACE0 \uBBF8\uB9AC\uBCF4\uAE30\uB97C \uD655\uC778\uD55C \uB4A4 \uC800\uC7A5\uD558\uC138\uC694. \uAC00\uACA9\uC740 \uD544\uC694\uD560 \uB54C\uB9CC \uC9C1\uC811 \uC785\uB825\uD558\uBA74 \uB429\uB2C8\uB2E4.";
   syncImagePreview();
   renderImageCandidates();
   syncReviewEditor();
@@ -2778,6 +2770,9 @@ function clearImageField() {
     el.wineImageCamera.value = "";
   }
   syncImagePreview();
+  if (el.fetchStatus) {
+    el.fetchStatus.textContent = "\uC774\uBBF8\uC9C0\uB97C \uBE44\uC6E0\uC2B5\uB2C8\uB2E4. \uB2E4\uC2DC \uC62C\uB9AC\uB824\uBA74 \uC0AC\uC9C4 \uBCF4\uAD00\uD568 \uB610\uB294 \uCE74\uBA54\uB77C \uCD2C\uC601\uC744 \uC774\uC6A9\uD558\uC138\uC694.";
+  }
 }
 
 function mergeImageCandidates(existing, incoming) {
@@ -2890,8 +2885,7 @@ async function handleImageUpload(event, sourceLabel) {
     state.imageCandidates = [];
     renderImageCandidates();
     syncImagePreview(sourceLabel);
-    setUploadFallbackVisible(true, "\uC790\uB3D9 \uD0D0\uC0C9\uC73C\uB85C \uC774\uBBF8\uC9C0\uB97C \uB05D\uB0B4 \uCC3E\uC9C0 \uBABB\uD574 \uC5C5\uB85C\uB4DC fallback\uC744 \uC5F4\uC5C8\uC2B5\uB2C8\uB2E4. \uC0AC\uC9C4 \uBCF4\uAD00\uD568\uC774\uB098 \uCE74\uBA54\uB77C \uCD2C\uC601\uC73C\uB85C \uC9C1\uC811 \uB123\uC5B4 \uC8FC\uC138\uC694.");
-    el.fetchStatus.textContent = `${sourceLabel} \uC774\uBBF8\uC9C0\uB97C \uC5C5\uB85C\uB4DC\uD588\uC2B5\uB2C8\uB2E4.`;
+    el.fetchStatus.textContent = `${sourceLabel} \uC774\uBBF8\uC9C0\uB97C \uC5C5\uB85C\uB4DC\uD588\uC2B5\uB2C8\uB2E4. \uBBF8\uB9AC\uBCF4\uAE30\uAC00 \uB9DE\uC73C\uBA74 \uADF8\uB300\uB85C \uC800\uC7A5\uD558\uC138\uC694.`;
   } catch (_error) {
     el.fetchStatus.textContent = `${sourceLabel} \uC5C5\uB85C\uB4DC\uC5D0 \uC2E4\uD328\uD588\uC2B5\uB2C8\uB2E4. \uB2E4\uB978 \uD30C\uC77C\uB85C \uB2E4\uC2DC \uC2DC\uB3C4\uD574 \uC8FC\uC138\uC694.`;
   } finally {
@@ -2953,8 +2947,8 @@ function syncImagePreview(sourceLabel = "") {
     }
     el.wineImagePreview.removeAttribute("src");
     el.imagePreviewCaption.textContent = imageUrl
-      ? "\uC785\uB825\uB41C \uAC12\uC740 \uC788\uC9C0\uB9CC \uC2E4\uC81C \uC774\uBBF8\uC9C0\uB85C \uC4F8 \uC218 \uC5C6\uB294 \uC8FC\uC18C\uC785\uB2C8\uB2E4. \uAC80\uC0C9 \uACB0\uACFC \uD398\uC774\uC9C0\uB098 \uC798\uBABB\uB41C \uB9C1\uD06C\uC77C \uC218 \uC788\uC73C\uB2C8 \uB2E4\uB978 \uD6C4\uBCF4\uB97C \uACE0\uB974\uAC70\uB098 \uC9C1\uC811 \uC5C5\uB85C\uB4DC\uD574 \uC8FC\uC138\uC694."
-      : "\uC544\uC9C1 \uBD88\uB7EC\uC628 \uC774\uBBF8\uC9C0\uAC00 \uC5C6\uC2B5\uB2C8\uB2E4. \uC790\uB3D9 \uC870\uD68C \uD6C4 \uC5EC\uAE30\uC11C \uBA3C\uC800 \uD655\uC778\uD558\uC138\uC694.";
+      ? "\uC785\uB825\uB41C \uAC12\uC740 \uC788\uC9C0\uB9CC \uC2E4\uC81C \uC774\uBBF8\uC9C0\uB85C \uC4F8 \uC218 \uC5C6\uB294 \uC8FC\uC18C\uC785\uB2C8\uB2E4. \uB2E4\uB978 \uD30C\uC77C\uC744 \uC62C\uB9AC\uAC70\uB098 \uC774\uBBF8\uC9C0\uB97C \uBE44\uC6B4 \uB4A4 \uB2E4\uC2DC \uC120\uD0DD\uD574 \uC8FC\uC138\uC694."
+      : "\uC544\uC9C1 \uC62C\uB9B0 \uC774\uBBF8\uC9C0\uAC00 \uC5C6\uC2B5\uB2C8\uB2E4. \uC0AC\uC9C4 \uBCF4\uAD00\uD568\uC774\uB098 \uCE74\uBA54\uB77C \uCD2C\uC601\uC73C\uB85C \uBC14\uB85C \uCD94\uAC00\uD574 \uBCF4\uC138\uC694.";
     return;
   }
 
@@ -2965,7 +2959,7 @@ function syncImagePreview(sourceLabel = "") {
   el.wineImagePreview.src = imageUrl;
   el.imagePreviewCaption.textContent = sourceLabel
     ? `\uC120\uD0DD\uB41C \uC774\uBBF8\uC9C0 \uCD9C\uCC98: ${sourceLabel}`
-    : "\uC120\uD0DD\uB41C \uC774\uBBF8\uC9C0 \uBBF8\uB9AC\uBCF4\uAE30";
+    : "\uC62C\uB9B0 \uC774\uBBF8\uC9C0 \uBBF8\uB9AC\uBCF4\uAE30";
 }
 async function persistPersona(persona) {
   if (!state.supabase) {
