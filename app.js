@@ -1371,7 +1371,7 @@ function renderWineCard(wine) {
   const priceLine = wine.averagePrice
     ? `Wine-Searcher / Manual &#xAC00;&#xACA9; &#xBA54;&#xBAA8;: ${wine.averagePrice}`
     : "&#xC544;&#xC9C1; &#xD3C9;&#xADE0;&#xAC00; &#xBA54;&#xBAA8;&#xAC00; &#xC5C6;&#xC2B5;&#xB2C8;&#xB2E4;.";
-  const wineActions = `<div class="button-row"><button type="button" class="review-action" data-action="write-review-for-wine" data-wine-id="${wine.id}">&#xC774; &#xC640;&#xC778;&#xC5D0; &#xB9AC;&#xBDF0; &#xC4F0;&#xAE30;</button></div>`;
+  const wineActions = `<div class="button-row"><button type="button" class="review-action" data-action="write-review-for-wine" data-wine-id="${wine.id}">&#xC774; &#xC640;&#xC778;&#xC5D0; &#xB9AC;&#xBDF0; &#xC4F0;&#xAE30;</button>${state.isAdmin ? `<button type="button" class="review-action danger" data-action="delete-wine" data-wine-id="${wine.id}">&#xC640;&#xC778; &#xC0AD;&#xC81C;</button>` : ""}</div>`;
   const reviewShell = visibleReviews.length
     ? `<div class="review-stack-title"><strong>&#xB9AC;&#xBDF0; &amp; &#xB313;&#xAE00;</strong><span>${visibleReviews.length}개 리뷰</span></div>${reviewMarkup}`
     : `<div class="review-empty review-empty-rich"><strong>&#xC544;&#xC9C1; &#xCCAB; &#xB9AC;&#xBDF0;&#xAC00; &#xC5C6;&#xC2B5;&#xB2C8;&#xB2E4;</strong><span>&#xC774; &#xC640;&#xC778;&#xC758; &#xCCAB; &#xC778;&#xC0C1;&#xC744; &#xB0A8;&#xAE30;&#xBA74; &#xB2E4;&#xC74C; &#xC0AC;&#xB78C;&#xC774; &#xBE60;&#xB974;&#xAC8C; &#xCC38;&#xACE0;&#xD560; &#xC218; &#xC788;&#xC2B5;&#xB2C8;&#xB2E4;.</span><button type="button" class="review-action" data-action="write-review-for-wine" data-wine-id="${wine.id}">&#xCCAB; &#xB9AC;&#xBDF0; &#xC4F0;&#xAE30;</button></div>`;
@@ -1487,6 +1487,10 @@ function attachReviewActions() {
 
   document.querySelectorAll("[data-action='delete-review']").forEach((button) => {
     button.addEventListener("click", () => handleReviewDelete(button.dataset.wineId, button.dataset.reviewId));
+  });
+
+  document.querySelectorAll("[data-action='delete-wine']").forEach((button) => {
+    button.addEventListener("click", () => handleWineDelete(button.dataset.wineId));
   });
 
   document.querySelectorAll(".comment-form").forEach((form) => {
@@ -2852,6 +2856,32 @@ async function persistReviewCreate(wine, review) {
   return data;
 }
 
+async function handleWineDelete(wineId) {
+  if (!state.isAdmin) {
+    return;
+  }
+
+  const wine = state.wines.find((item) => item.id === wineId);
+  if (!wine) {
+    return;
+  }
+
+  const ok = window.confirm(`'${wine.name}' 와인 항목과 연결된 리뷰를 모두 삭제할까요?`);
+  if (!ok) {
+    return;
+  }
+
+  state.wines = state.wines.filter((item) => item.id !== wineId);
+
+  if (state.editingWineId === wineId) {
+    resetReviewForm();
+  }
+
+  await persistWineDelete(wineId);
+  saveLocal();
+  renderAll();
+}
+
 async function persistReviewUpdate(wine, review) {
   if (!state.supabase) {
     return;
@@ -2898,6 +2928,14 @@ async function persistReviewDelete(wineId, reviewId, deleteWineToo) {
   if (deleteWineToo) {
     await state.supabase.from("wines").delete().eq("id", wineId);
   }
+}
+
+async function persistWineDelete(wineId) {
+  if (!state.supabase) {
+    return;
+  }
+
+  await state.supabase.from("wines").delete().eq("id", wineId);
 }
 
 async function persistCommentCreate(reviewId, comment) {
