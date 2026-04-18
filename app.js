@@ -1545,7 +1545,8 @@ function renderWineCard(wine) {
   const priceLine = wine.averagePrice
     ? `Wine-Searcher / Manual &#xAC00;&#xACA9; &#xBA54;&#xBAA8;: ${wine.averagePrice}`
     : "&#xC544;&#xC9C1; &#xD3C9;&#xADE0;&#xAC00; &#xBA54;&#xBAA8;&#xAC00; &#xC5C6;&#xC2B5;&#xB2C8;&#xB2E4;.";
-  const wineActions = `<div class="button-row"><button type="button" class="review-action" data-action="write-review-for-wine" data-wine-id="${wine.id}">&#xC774; &#xC640;&#xC778;&#xC5D0; &#xB9AC;&#xBDF0; &#xC4F0;&#xAE30;</button>${state.isAdmin ? `<button type="button" class="review-action danger icon-action" data-action="delete-wine" data-wine-id="${wine.id}" title="등록된 와인 삭제" aria-label="등록된 와인 삭제">&#x1F5D1;</button>` : ""}</div>`;
+  const wineActions = `<div class="button-row wine-card-actions"><button type="button" class="review-action" data-action="write-review-for-wine" data-wine-id="${wine.id}">&#xC774; &#xC640;&#xC778;&#xC5D0; &#xB9AC;&#xBDF0; &#xC4F0;&#xAE30;</button></div>`;
+  const wineAdminAction = state.isAdmin ? `<button type="button" class="review-action danger icon-action" data-action="delete-wine" data-wine-id="${wine.id}" title="등록된 와인 삭제" aria-label="등록된 와인 삭제">&#x1F5D1;</button>` : "";
   const reviewShell = visibleReviews.length
     ? `<div class="review-stack-title"><strong>&#xB9AC;&#xBDF0; &amp; &#xB313;&#xAE00;</strong><span>${visibleReviews.length}개 리뷰</span></div>${reviewMarkup}`
     : `<div class="review-empty review-empty-rich"><strong>&#xC544;&#xC9C1; &#xCCAB; &#xB9AC;&#xBDF0;&#xAC00; &#xC5C6;&#xC2B5;&#xB2C8;&#xB2E4;</strong><span>&#xC774; &#xC640;&#xC778;&#xC758; &#xCCAB; &#xC778;&#xC0C1;&#xC744; &#xB0A8;&#xAE30;&#xBA74; &#xB2E4;&#xC74C; &#xC0AC;&#xB78C;&#xC774; &#xBE60;&#xB974;&#xAC8C; &#xCC38;&#xACE0;&#xD560; &#xC218; &#xC788;&#xC2B5;&#xB2C8;&#xB2E4;.</span><button type="button" class="review-action" data-action="write-review-for-wine" data-wine-id="${wine.id}">&#xCCAB; &#xB9AC;&#xBDF0; &#xC4F0;&#xAE30;</button></div>`;
@@ -1556,7 +1557,7 @@ function renderWineCard(wine) {
       <div class="wine-card-top">
         <div class="wine-card-copy"><h3>${wine.name}</h3><div class="muted">${[wine.producer, wine.vintage].filter(Boolean).join(" / ")}</div></div>
       <div class="wine-meta-pills"><span class="pill">${varietalLabel}</span><span class="pill">${regionLabel}</span><span class="pill">${wine.reviews.length}개 리뷰</span></div>
-        <span class="type-badge ${typeClass}">${wine.type}</span>
+        <div class="wine-card-head-actions"><span class="type-badge ${typeClass}">${wine.type}</span>${wineAdminAction}</div>
       </div>
       <div class="wine-meta-pills"><span class="pill">${varietalLabel}</span><span class="pill">${regionLabel}</span><span class="pill">${wine.reviews.length}\uac1c \ub9ac\ubdf0</span></div>
       <div class="muted">${priceLine}</div>
@@ -1580,9 +1581,7 @@ function renderReviewSnippet(wine, review) {
     ? `<span class="score-pill">${review.overallScore} pts</span>`
     : "";
   const commentMarkup = renderCommentThread(wine, review);
-  const jumpAction = `<div class="button-row" style="margin-top:10px"><button type="button" class="review-action" data-action="write-review-for-wine" data-wine-id="${wine.id}">&#xC774; &#xC640;&#xC778;&#xC5D0; &#xB9AC;&#xBDF0; &#xC4F0;&#xAE30;</button></div>`;
-
-  return `<div class="review-snippet" id="review-${wine.id}-${review.id}"><div class="row" style="align-items:flex-start"><div class="review-meta-stack"><strong>${persona ? persona.name : review.personaId}</strong><div class="review-meta">${review.createdAt}</div></div>${actionButtons}</div><div class="review-stack"><div class="review-score">${scoreMarkup}</div>${structureMarkup}${aromaMarkup}${jumpAction}<div class="review-copy">${review.summary || review.note}</div>${commentMarkup}</div></div>`;
+  return `<div class="review-snippet" id="review-${wine.id}-${review.id}"><div class="row" style="align-items:flex-start"><div class="review-meta-stack"><strong>${persona ? persona.name : review.personaId}</strong><div class="review-meta">${review.createdAt}</div></div>${actionButtons}</div><div class="review-stack"><div class="review-score">${scoreMarkup}</div>${structureMarkup}${aromaMarkup}<div class="review-copy">${review.summary || review.note}</div>${commentMarkup}</div></div>`;
 }
 
 function renderCommentThread(wine, review) {
