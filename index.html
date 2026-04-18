@@ -81,6 +81,7 @@
   <style>
     .persona-copy{display:grid;gap:4px}
     .persona-copy strong{font-size:1.08rem}
+    .persona-grid.persona-grid-summary{grid-template-columns:1fr;gap:12px}
     .persona-character{display:grid;gap:10px;padding:16px 18px;border-radius:20px;border:1px solid var(--line);background:linear-gradient(135deg,rgba(166,61,83,.1),rgba(255,255,255,.34))}
     .persona-character-hero{margin-top:14px}
     .persona-character-kicker{display:inline-flex;width:max-content;padding:7px 11px;border-radius:999px;background:rgba(255,255,255,.54);border:1px solid var(--line);font-size:.74rem;font-weight:800;letter-spacing:.04em;text-transform:uppercase;color:var(--accent)}
@@ -94,6 +95,22 @@
     .persona-favorite-grid-clean .persona-favorite-block{gap:10px;background:linear-gradient(180deg,rgba(255,255,255,.46),rgba(255,255,255,.22))}
     .persona-favorite-grid-clean .taste-summary{display:grid;gap:8px}
     .persona-favorite-grid-clean .pill{justify-content:flex-start;padding:10px 12px;background:rgba(166,61,83,.08);color:var(--accent-ink);font-weight:700}
+    .persona-summary-card{padding:0;overflow:hidden}
+    .persona-summary-row{list-style:none;display:grid;grid-template-columns:minmax(0,1.1fr) minmax(240px,.95fr) auto;gap:14px;align-items:center;padding:16px 18px;cursor:pointer}
+    .persona-summary-row::-webkit-details-marker{display:none}
+    .persona-summary-identity{display:flex;align-items:center;gap:12px;min-width:0}
+    .persona-summary-copy{display:grid;gap:4px;min-width:0}
+    .persona-summary-copy strong{font-size:1rem}
+    .persona-summary-copy .muted{font-size:.86rem;line-height:1.55;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+    .persona-summary-tags{display:flex;flex-wrap:wrap;gap:8px}
+    .persona-summary-chip{display:inline-flex;align-items:center;padding:8px 10px;border-radius:999px;background:rgba(166,61,83,.08);border:1px solid var(--line);font-size:.76rem;color:var(--accent-ink);font-weight:700}
+    .persona-summary-metrics{display:grid;grid-template-columns:repeat(3,minmax(74px,auto));gap:8px;justify-content:end}
+    .persona-summary-metric{display:grid;gap:3px;padding:9px 10px;border-radius:14px;background:rgba(255,255,255,.34);border:1px solid var(--line);text-align:center}
+    .persona-summary-metric span{font-size:.68rem;color:var(--muted);text-transform:uppercase;letter-spacing:.04em}
+    .persona-summary-metric strong{font-size:.9rem}
+    .persona-summary-body{display:grid;gap:14px;padding:0 18px 18px;border-top:1px solid rgba(86,52,45,.08);background:linear-gradient(180deg,rgba(255,255,255,.28),rgba(255,255,255,.16))}
+    .persona-summary-card:not([open]) .persona-summary-body{display:none}
+    .persona-summary-card[open] .persona-summary-row{padding-bottom:14px}
     .persona-card-compact .persona-review-shell{margin-top:10px}
     .persona-card-compact .persona-review-grid{grid-template-columns:1fr}
     .persona-card-compact .persona-review-panel{padding:12px 14px}
@@ -127,7 +144,8 @@
     .persona-review-link span{font-size:.82rem;color:var(--muted)}
     .persona-rank-badge{display:inline-flex;align-items:center;justify-content:center;width:max-content;padding:4px 8px;border-radius:999px;background:linear-gradient(135deg,var(--accent),var(--accent-soft));color:var(--white)!important;font-size:.74rem!important;font-weight:800}
     .empty-state.compact{padding:12px 14px;font-size:.86rem}
-    @media (max-width:720px){.persona-character-grid,.persona-favorite-grid,.persona-review-grid,.persona-review-stats{grid-template-columns:1fr}}
+    @media (max-width:980px){.persona-summary-row{grid-template-columns:1fr}.persona-summary-metrics{justify-content:start}}
+    @media (max-width:720px){.persona-character-grid,.persona-favorite-grid,.persona-review-grid,.persona-review-stats{grid-template-columns:1fr}.persona-summary-row{padding:14px}.persona-summary-body{padding:0 14px 14px}.persona-summary-metrics{grid-template-columns:repeat(3,minmax(0,1fr))}}
   </style>
   <style>
     .hero-refined{padding:30px 30px 28px;background:radial-gradient(circle at 16% 18%,rgba(255,236,221,.14),transparent 21%),radial-gradient(circle at 86% 16%,rgba(255,222,197,.24),transparent 24%),radial-gradient(circle at 62% 78%,rgba(255,255,255,.08),transparent 16%),linear-gradient(135deg,#4e1627 0%,#8f3f58 46%,#d48876 100%)}

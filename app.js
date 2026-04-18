@@ -1253,6 +1253,7 @@ function renderPersonas() {
   const personas = state.selectedPersona === "all"
     ? state.personas
     : state.personas.filter((persona) => persona.id === state.selectedPersona);
+  el.personaGrid.classList.toggle("persona-grid-summary", state.selectedPersona === "all");
 
   el.personaGrid.innerHTML = personas.length
     ? personas.map(renderPersonaCard).join("")
@@ -1265,6 +1266,9 @@ function renderPersonaCard(persona) {
   const summary = buildPersonaSummaryLines(persona);
   const insights = getPersonaReviewInsights(persona.id);
   const compactView = state.selectedPersona === "all";
+  if (compactView) {
+    return renderCompactPersonaCard(persona, summary, insights);
+  }
   return `<article class="persona-card ${compactView ? "persona-card-compact" : ""}">
     <div class="persona-header">
       <div class="persona-top">
@@ -1336,11 +1340,90 @@ function renderPersonaCard(persona) {
   </article>`;
 }
 
+function renderCompactPersonaCard(persona, summary, insights) {
+  return `<details class="persona-card persona-summary-card">
+    <summary class="persona-summary-row">
+      <div class="persona-summary-identity">
+        <div class="avatar">${persona.name.slice(0, 2).toUpperCase()}</div>
+        <div class="persona-summary-copy">
+          <strong>${persona.name}</strong>
+          <div class="muted">${summary.headline}</div>
+        </div>
+      </div>
+      <div class="persona-summary-tags">
+        <span class="persona-summary-chip">Red ${formatPrimaryFavorite(persona.tastes.red)}</span>
+        <span class="persona-summary-chip">White ${formatPrimaryFavorite(persona.tastes.white)}</span>
+      </div>
+      <div class="persona-summary-metrics">
+        <div class="persona-summary-metric"><span>Avg</span><strong>${insights.averageLabel}</strong></div>
+        <div class="persona-summary-metric"><span>Reviews</span><strong>${insights.reviewCount}</strong></div>
+        <div class="persona-summary-metric"><span>Latest</span><strong>${insights.latestLabel}</strong></div>
+      </div>
+    </summary>
+    <div class="persona-summary-body">
+      <div class="persona-character-grid">
+        <div class="persona-character-block">
+          <span class="persona-character-label">\uB808\uB4DC \uCE90\uB9AD\uD130</span>
+          <p>${summary.red}</p>
+        </div>
+        <div class="persona-character-block">
+          <span class="persona-character-label">\uD654\uC774\uD2B8 \uCE90\uB9AD\uD130</span>
+          <p>${summary.white}</p>
+        </div>
+      </div>
+      <div class="taste-tabs">
+        <button type="button" class="tab-button active" data-tab="${persona.id}-red">\uB808\uB4DC</button>
+        <button type="button" class="tab-button" data-tab="${persona.id}-white">\uD654\uC774\uD2B8</button>
+      </div>
+      <div class="taste-panel active" id="${persona.id}-red">
+        <div class="persona-character-label">\uB808\uB4DC \uCDE8\uD5A5 \uB9F5</div>
+        ${renderTasteTracks(persona.tastes.red, "red")}
+      </div>
+      <div class="taste-panel" id="${persona.id}-white">
+        <div class="persona-character-label">\uD654\uC774\uD2B8 \uCDE8\uD5A5 \uB9F5</div>
+        ${renderTasteTracks(persona.tastes.white, "white")}
+      </div>
+      <div class="persona-review-shell">
+        <div class="persona-review-summary">
+          <div class="persona-review-stat hero">
+            <span>&#xD3C9;&#xADE0; &#xC810;&#xC218;</span>
+            <strong>${insights.averageLabel}</strong>
+            <div class="persona-review-meta-line">
+              <span>&#xB9AC;&#xBDF0; ${insights.reviewCount}&#xAC1C;</span>
+              <span>&#xCD5C;&#xACE0; ${insights.topScoreLabel}</span>
+              <span>&#xCD5C;&#xADFC; ${insights.latestLabel}</span>
+            </div>
+          </div>
+        </div>
+        <div class="persona-review-grid">
+          <div class="persona-review-panel">
+            <span class="persona-character-label">\uC0C1\uC704 5\uAC1C \uC640\uC778</span>
+            ${renderPersonaReviewLinks(insights.topReviews, "\uC544\uC9C1 \uC810\uC218\uAC00 \uC788\uB294 \uB9AC\uBDF0\uAC00 \uC5C6\uC2B5\uB2C8\uB2E4.", true)}
+          </div>
+          <div class="persona-review-panel">
+            <span class="persona-character-label">\uCD5C\uADFC \uB9AC\uBDF0</span>
+            ${renderPersonaReviewLinks(insights.recentReviews, "\uC544\uC9C1 \uCD5C\uADFC \uB9AC\uBDF0\uAC00 \uC5C6\uC2B5\uB2C8\uB2E4.")}
+          </div>
+        </div>
+        <div class="button-row">
+          <button type="button" class="review-action" data-action="focus-persona-reviews" data-persona-id="${persona.id}">${persona.name} \uB9AC\uBDF0\uB9CC \uBCF4\uAE30</button>
+        </div>
+      </div>
+    </div>
+  </details>`;
+}
+
 function renderFavoritePills(taste, emptyLabel = "&#xC544;&#xC9C1; &#xC785;&#xB825; &#xC804;") {
   const items = (taste.favoritePairs || [])
     .map((pair) => [pair?.varietal, pair?.region].filter(Boolean).join(" - "))
     .filter(Boolean);
   return items.length ? items.map((item) => `<span class="pill">${item}</span>`).join("") : `<span class="pill">${emptyLabel}</span>`;
+}
+
+function formatPrimaryFavorite(taste) {
+  const first = normalizeTaste(taste || {}).favoritePairs?.[0] || {};
+  const parts = [first.varietal, first.region].filter(Boolean);
+  return parts.length ? parts.join(" - ") : "Not set";
 }
 
 function renderPersonaReviewLinks(items, emptyMessage, ranked = false) {
