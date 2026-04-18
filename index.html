@@ -233,9 +233,14 @@
     .wine-card-footer{display:grid;gap:12px;padding-top:14px;border-top:1px solid rgba(86,52,45,.08)}
     .wine-card-actions{justify-content:flex-start}
     @media (max-width:720px){
-      .wine-summary-row{grid-template-columns:1fr;align-items:flex-start}
-      .wine-summary-bar,.wine-summary-row .wine-card-head-actions{justify-content:flex-start}
-      .wine-summary-copy strong,.wine-summary-copy span{white-space:normal}
+      .wine-summary-row{grid-template-columns:minmax(0,1fr) auto;align-items:start;gap:10px 12px;padding:14px 16px}
+      .wine-summary-copy{gap:2px}
+      .wine-summary-copy strong{font-size:.94rem;white-space:nowrap}
+      .wine-summary-copy span{font-size:.76rem;white-space:nowrap}
+      .wine-summary-row .wine-card-head-actions{justify-content:flex-end;align-self:start}
+      .wine-summary-bar{grid-column:1 / -1;justify-content:flex-start;flex-wrap:nowrap;overflow-x:auto;overflow-y:hidden;padding-bottom:2px;scrollbar-width:none}
+      .wine-summary-bar::-webkit-scrollbar{display:none}
+      .wine-summary-pill{flex:0 0 auto;padding:6px 9px;font-size:.72rem}
     }
     .review-stack-title{display:flex;align-items:center;justify-content:space-between;gap:10px}
     .review-stack-title strong{font-size:.94rem}
