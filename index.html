@@ -211,6 +211,15 @@
     .library-shell .search-box span{font-size:.74rem}
     .wine-grid.refined{grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:22px}
     .wine-card{padding:0;background:linear-gradient(180deg,rgba(255,255,255,.76),rgba(255,255,255,.42));box-shadow:0 24px 50px rgba(74,31,36,.08)}
+    .wine-summary-card{overflow:hidden}
+    .wine-summary-row{list-style:none;display:grid;grid-template-columns:minmax(0,1.5fr) auto auto;align-items:center;gap:14px;padding:18px 20px;cursor:pointer}
+    .wine-summary-row::-webkit-details-marker{display:none}
+    .wine-summary-copy{display:grid;gap:4px;min-width:0}
+    .wine-summary-copy strong{font-size:1rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .wine-summary-copy span{font-size:.82rem;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .wine-summary-bar{display:flex;align-items:center;gap:8px;flex-wrap:wrap;justify-content:flex-end}
+    .wine-summary-pill{display:inline-flex;align-items:center;justify-content:center;padding:7px 11px;border-radius:999px;background:rgba(166,61,83,.08);border:1px solid rgba(166,61,83,.12);font-size:.76rem;font-weight:700;color:var(--accent-ink)}
+    .wine-summary-card[open] .wine-summary-row{border-bottom:1px solid rgba(86,52,45,.08)}
     .wine-card-inner{display:grid;gap:16px;padding:20px}
     .wine-image-wrap{position:relative}
     .wine-image{margin-bottom:0;min-height:260px}
@@ -223,6 +232,11 @@
     .wine-meta-pills .pill{background:rgba(166,61,83,.08)}
     .wine-card-footer{display:grid;gap:12px;padding-top:14px;border-top:1px solid rgba(86,52,45,.08)}
     .wine-card-actions{justify-content:flex-start}
+    @media (max-width:720px){
+      .wine-summary-row{grid-template-columns:1fr;align-items:flex-start}
+      .wine-summary-bar,.wine-summary-row .wine-card-head-actions{justify-content:flex-start}
+      .wine-summary-copy strong,.wine-summary-copy span{white-space:normal}
+    }
     .review-stack-title{display:flex;align-items:center;justify-content:space-between;gap:10px}
     .review-stack-title strong{font-size:.94rem}
     .review-stack-title span{font-size:.82rem;color:var(--muted)}

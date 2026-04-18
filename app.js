@@ -1542,6 +1542,10 @@ function renderWineCard(wine) {
   const typeClass = `type-${String(wine.type || "red").toLowerCase()}`;
   const varietalLabel = wine.varietal || "\ud488\uc885 \ubbf8\uc785\ub825";
   const regionLabel = formatRegionPath(wine.region, wine.subRegion) || "\uc0b0\uc9c0 \ubbf8\uc785\ub825";
+  const scoredReviews = visibleReviews.filter((review) => Number.isFinite(Number(review.overallScore)));
+  const averageScore = scoredReviews.length
+    ? (scoredReviews.reduce((sum, review) => sum + Number(review.overallScore), 0) / scoredReviews.length).toFixed(1)
+    : "-";
   const priceLine = wine.averagePrice
     ? `Wine-Searcher / Manual &#xAC00;&#xACA9; &#xBA54;&#xBAA8;: ${wine.averagePrice}`
     : "&#xC544;&#xC9C1; &#xD3C9;&#xADE0;&#xAC00; &#xBA54;&#xBAA8;&#xAC00; &#xC5C6;&#xC2B5;&#xB2C8;&#xB2E4;.";
@@ -1551,14 +1555,20 @@ function renderWineCard(wine) {
     ? `<div class="review-stack-title"><strong>&#xB9AC;&#xBDF0; &amp; &#xB313;&#xAE00;</strong><span>${visibleReviews.length}개 리뷰</span></div>${reviewMarkup}`
     : `<div class="review-empty review-empty-rich"><strong>&#xC544;&#xC9C1; &#xCCAB; &#xB9AC;&#xBDF0;&#xAC00; &#xC5C6;&#xC2B5;&#xB2C8;&#xB2E4;</strong><span>&#xC774; &#xC640;&#xC778;&#xC758; &#xCCAB; &#xC778;&#xC0C1;&#xC744; &#xB0A8;&#xAE30;&#xBA74; &#xB2E4;&#xC74C; &#xC0AC;&#xB78C;&#xC774; &#xBE60;&#xB974;&#xAC8C; &#xCC38;&#xACE0;&#xD560; &#xC218; &#xC788;&#xC2B5;&#xB2C8;&#xB2E4;.</span><button type="button" class="review-action" data-action="write-review-for-wine" data-wine-id="${wine.id}">&#xCCAB; &#xB9AC;&#xBDF0; &#xC4F0;&#xAE30;</button></div>`;
 
-  return `<article class="wine-card ${typeClass}" id="wine-${wine.id}">
+  return `<details class="wine-card wine-summary-card ${typeClass}" id="wine-${wine.id}">
+    <summary class="wine-summary-row">
+      <div class="wine-summary-copy">
+        <strong>${wine.name}</strong>
+        <span>${[wine.producer, wine.vintage].filter(Boolean).join(" / ") || "와이너리 미입력"}</span>
+      </div>
+      <div class="wine-summary-bar">
+        <span class="wine-summary-pill">Reviews ${visibleReviews.length}</span>
+        <span class="wine-summary-pill">Avg ${averageScore}</span>
+      </div>
+      <div class="wine-card-head-actions"><span class="type-badge ${typeClass}">${wine.type}</span>${wineAdminAction}</div>
+    </summary>
     <div class="wine-card-inner">
       <div class="wine-image-wrap"><img class="wine-image" src="${wine.image || makePlaceholderImage(wine.name, "#8a3650", "#f5d2c6")}" alt="${wine.name} &#xC774;&#xBBF8;&#xC9C0;"></div>
-      <div class="wine-card-top">
-        <div class="wine-card-copy"><h3>${wine.name}</h3><div class="muted">${[wine.producer, wine.vintage].filter(Boolean).join(" / ")}</div></div>
-      <div class="wine-meta-pills"><span class="pill">${varietalLabel}</span><span class="pill">${regionLabel}</span><span class="pill">${wine.reviews.length}개 리뷰</span></div>
-        <div class="wine-card-head-actions"><span class="type-badge ${typeClass}">${wine.type}</span>${wineAdminAction}</div>
-      </div>
       <div class="wine-meta-pills"><span class="pill">${varietalLabel}</span><span class="pill">${regionLabel}</span><span class="pill">${wine.reviews.length}\uac1c \ub9ac\ubdf0</span></div>
       <div class="muted">${priceLine}</div>
       <div class="wine-card-footer">
@@ -1566,7 +1576,7 @@ function renderWineCard(wine) {
         ${reviewShell}
       </div>
     </div>
-  </article>`;
+  </details>`;
 }
 
 function renderReviewSnippet(wine, review) {
