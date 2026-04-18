@@ -2051,6 +2051,26 @@ function toggleReviewSavingState(isSaving) {
 function formatReviewSaveError(error) {
   const message = String(error?.message || "");
   if (message.includes("schema cache") || message.includes("column")) {
+    const missingColumn = message.match(/Could not find the '([^']+)' column of '([^']+)'/i);
+    if (missingColumn) {
+      const [, column, table] = missingColumn;
+      const columnSql = {
+        producer: "alter table wines add column if not exists producer text;",
+        sub_region: "alter table wines add column if not exists sub_region text;",
+        average_price: "alter table wines add column if not exists average_price text;",
+        image_url: "alter table wines add column if not exists image_url text;",
+        summary: "alter table reviews add column if not exists summary text;",
+        overall_score: "alter table reviews add column if not exists overall_score integer;",
+        structure: "alter table reviews add column if not exists structure jsonb default '{}'::jsonb;",
+        primary_aromas: "alter table reviews add column if not exists primary_aromas text[] default '{}'::text[];",
+        secondary_aromas: "alter table reviews add column if not exists secondary_aromas text[] default '{}'::text[];",
+        tertiary_aromas: "alter table reviews add column if not exists tertiary_aromas text[] default '{}'::text[];",
+        author_name: "alter table comments add column if not exists author_name text;",
+        body: "alter table comments add column if not exists body text;"
+      };
+      const sqlHint = columnSql[column] || `-- ${table}.${column} 컬럼을 추가하는 alter table 문을 실행해 주세요.`;
+      return `Supabase 테이블에 필요한 컬럼이 아직 없습니다.\n\n빠진 컬럼: ${table}.${column}\n실행할 SQL:\n${sqlHint}\n\n참고: create table if not exists 는 기존 테이블에 새 컬럼을 추가하지 않습니다. 이미 테이블이 있으면 alter table ... add column if not exists ... 를 실행해야 합니다.`;
+    }
     return `저장은 시도됐지만 Supabase 테이블 구조가 현재 페이지 버전과 어긋나 있습니다. \`supabase-schema.sql\`을 SQL Editor에서 다시 실행해 producer, sub_region, overall_score, aroma/comment 관련 컬럼을 한 번에 맞춰주세요.\n\n실제 오류: ${message}`;
   }
   return message || "\uC800\uC7A5 \uACFC\uC815\uC744 \uB2E4\uC2DC \uD655\uC778\uD574 \uC8FC\uC138\uC694.";
