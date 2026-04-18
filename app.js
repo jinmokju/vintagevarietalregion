@@ -1565,11 +1565,14 @@ function renderWineCard(wine) {
         <span class="wine-summary-pill">Reviews ${visibleReviews.length}</span>
         <span class="wine-summary-pill">Avg ${averageScore}</span>
       </div>
-      <div class="wine-card-head-actions"><span class="type-badge ${typeClass}">${wine.type}</span>${wineAdminAction}</div>
+      <div class="wine-card-head-actions"><span class="type-badge ${typeClass}">${wine.type}</span></div>
     </summary>
     <div class="wine-card-inner">
       <div class="wine-image-wrap"><img class="wine-image" src="${wine.image || makePlaceholderImage(wine.name, "#8a3650", "#f5d2c6")}" alt="${wine.name} &#xC774;&#xBBF8;&#xC9C0;"></div>
-      <div class="wine-meta-pills"><span class="pill">${varietalLabel}</span><span class="pill">${regionLabel}</span><span class="pill">${wine.reviews.length}\uac1c \ub9ac\ubdf0</span></div>
+      <div class="wine-card-top">
+        <div class="wine-meta-pills"><span class="pill">${varietalLabel}</span><span class="pill">${regionLabel}</span><span class="pill">${wine.reviews.length}\uac1c \ub9ac\ubdf0</span></div>
+        <div class="wine-card-head-actions">${wineAdminAction}</div>
+      </div>
       <div class="muted">${priceLine}</div>
       <div class="wine-card-footer">
         ${wineActions}
