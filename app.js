@@ -1356,8 +1356,8 @@ function renderCompactPersonaCard(persona, summary, insights) {
       </div>
       <div class="persona-summary-metrics">
         <div class="persona-summary-metric"><span>Avg</span><strong>${insights.averageLabel}</strong></div>
-        <div class="persona-summary-metric"><span>Reviews</span><strong>${insights.reviewCount}</strong></div>
-        <div class="persona-summary-metric"><span>Latest</span><strong>${insights.latestLabel}</strong></div>
+        <button type="button" class="persona-summary-metric action" data-action="focus-persona-reviews" data-persona-id="${persona.id}"><span>Reviews</span><strong>${insights.reviewCount}</strong></button>
+        <button type="button" class="persona-summary-metric action" data-action="jump-to-review" data-persona-id="${persona.id}" data-wine-id="${insights.latestReview?.wineId || ""}" data-review-id="${insights.latestReview?.reviewId || ""}" ${insights.latestReview ? "" : "disabled"}><span>Latest</span><strong>${insights.latestReview?.wineName || "-"}</strong></button>
       </div>
     </summary>
     <div class="persona-summary-body">
@@ -1462,7 +1462,9 @@ function attachTasteTabs() {
 
 function attachPersonaActions() {
   document.querySelectorAll("[data-action='focus-persona-reviews']").forEach((button) => {
-    button.addEventListener("click", () => {
+    button.addEventListener("click", (event) => {
+      event.preventDefault();
+      event.stopPropagation();
       state.selectedPersona = button.dataset.personaId;
       state.selectedType = "All";
       renderAll();
@@ -1471,7 +1473,12 @@ function attachPersonaActions() {
   });
 
   document.querySelectorAll("[data-action='jump-to-review']").forEach((button) => {
-    button.addEventListener("click", () => {
+    button.addEventListener("click", (event) => {
+      event.preventDefault();
+      event.stopPropagation();
+      if (!button.dataset.wineId || !button.dataset.reviewId) {
+        return;
+      }
       state.selectedPersona = button.dataset.personaId;
       state.selectedType = "All";
       renderAll();
@@ -1639,6 +1646,7 @@ function getPersonaReviewInsights(personaId) {
     averageLabel: average === null ? "-" : average.toFixed(1),
     topScoreLabel: topReviews[0] ? `${topReviews[0].score} pts` : "-",
     latestLabel: recentReviews[0]?.createdAt || "-",
+    latestReview: recentReviews[0] || null,
     topReviews,
     recentReviews
   };
