@@ -344,8 +344,6 @@ const el = {
   favVarietyTwo: document.getElementById("favVarietyTwo"),
   favRegionTwo: document.getElementById("favRegionTwo"),
   tasteEditor: document.getElementById("tasteEditor"),
-  storageStatus: document.getElementById("storageStatus"),
-  storageNote: document.getElementById("storageNote"),
   personaCount: document.getElementById("personaCount"),
   wineCount: document.getElementById("wineCount"),
   reviewCount: document.getElementById("reviewCount"),
@@ -356,15 +354,7 @@ const el = {
   authStatus: document.getElementById("authStatus"),
   loginButton: document.getElementById("loginButton"),
   signupButton: document.getElementById("signupButton"),
-  passwordResetButton: document.getElementById("passwordResetButton"),
   logoutButton: document.getElementById("logoutButton"),
-  passwordRecoveryPanel: document.getElementById("passwordRecoveryPanel"),
-  passwordRecoveryForm: document.getElementById("passwordRecoveryForm"),
-  passwordRecoveryHelp: document.getElementById("passwordRecoveryHelp"),
-  passwordRecoverySubmit: document.getElementById("passwordRecoverySubmit"),
-  passwordRecoveryCancel: document.getElementById("passwordRecoveryCancel"),
-  newPassword: document.getElementById("newPassword"),
-  confirmPassword: document.getElementById("confirmPassword"),
   authBadge: document.getElementById("authBadge"),
   authHelp: document.getElementById("authHelp"),
   reviewSubmitLabel: document.getElementById("reviewSubmitLabel"),
@@ -934,10 +924,7 @@ function bindEvents() {
   el.clearImageButton.addEventListener("click", clearImageField);
   el.authForm.addEventListener("submit", handleLogin);
   el.signupButton.addEventListener("click", handleSignup);
-  el.passwordResetButton.addEventListener("click", handlePasswordResetRequest);
   el.logoutButton.addEventListener("click", handleLogout);
-  el.passwordRecoveryForm.addEventListener("submit", handlePasswordRecoverySubmit);
-  el.passwordRecoveryCancel.addEventListener("click", cancelPasswordRecovery);
   el.cancelEditButton.addEventListener("click", resetReviewForm);
   el.deletePersonaButton.addEventListener("click", handlePersonaDelete);
 }
@@ -1794,32 +1781,19 @@ function updateMetrics() {
 }
 
 function updateStorageStatus() {
-  if (!el.storageStatus || !el.storageNote) {
-    return;
-  }
-  if (state.supabase) {
-    el.storageStatus.textContent = "Supabase Connected";
-    el.storageNote.innerHTML = state.isAdmin
-      ? "&#xAD00;&#xB9AC;&#xC790; &#xB85C;&#xADF8;&#xC778; &#xC0C1;&#xD0DC;&#xC785;&#xB2C8;&#xB2E4;. &#xB9AC;&#xBDF0; &#xC0DD;&#xC131;, &#xC218;&#xC815;, &#xC0AD;&#xC81C;&#xC640; taste &#xC800;&#xC7A5;&#xC774; DB&#xC5D0; &#xBC18;&#xC601;&#xB429;&#xB2C8;&#xB2E4;."
-      : "&#xACF5;&#xAC1C; &#xC77D;&#xAE30; &#xBAA8;&#xB4DC;&#xC785;&#xB2C8;&#xB2E4;. &#xAD00;&#xB9AC;&#xC790; &#xB85C;&#xADF8;&#xC778; &#xD6C4; &#xC218;&#xC815; &#xAD8C;&#xD55C;&#xC774; &#xC5F4;&#xB9BD;&#xB2C8;&#xB2E4;.";
-  } else {
-    el.storageStatus.textContent = "Local Mode";
-    el.storageNote.innerHTML = (window.VVR_SUPABASE_URL && window.VVR_SUPABASE_ANON_KEY)
-      ? "Supabase &#xC124;&#xC815;&#xC740; &#xC788;&#xC9C0;&#xB9CC; auth client &#xB85C;&#xB4DC;&#xAC00; &#xC2E4;&#xD328;&#xD574; localStorage fallback&#xC73C;&#xB85C; &#xB3D9;&#xC791;&#xC911;&#xC785;&#xB2C8;&#xB2E4;."
-      : "Supabase &#xC124;&#xC815; &#xC804;&#xC5D0;&#xB294; localStorage fallback&#xC73C;&#xB85C; &#xB3D9;&#xC791;&#xD569;&#xB2C8;&#xB2E4;.";
-  }
+  return;
 }
 
 function updateAuthUi() {
   if (!state.supabase) {
     el.authBadge.textContent = "Local Prototype";
     el.authStatus.innerHTML = "Supabase Auth&#xB97C; &#xC5F0;&#xACB0;&#xD558;&#xBA74; &#xC2E4;&#xC81C; &#xAD00;&#xB9AC;&#xC790; &#xB85C;&#xADF8;&#xC778;&#xC744; &#xC0AC;&#xC6A9;&#xD560; &#xC218; &#xC788;&#xC2B5;&#xB2C8;&#xB2E4;.";
-    el.authHelp.innerHTML = "&#xD604;&#xC7AC;&#xB294; &#xB85C;&#xCEEC; &#xD504;&#xB85C;&#xD1A0;&#xD0C0;&#xC785; &#xBAA8;&#xB4DC;&#xC785;&#xB2C8;&#xB2E4;.";
+    if (el.authHelp) {
+      el.authHelp.innerHTML = "&#xD604;&#xC7AC;&#xB294; &#xB85C;&#xCEEC; &#xD504;&#xB85C;&#xD1A0;&#xD0C0;&#xC785; &#xBAA8;&#xB4DC;&#xC785;&#xB2C8;&#xB2E4;.";
+    }
     el.logoutButton.hidden = true;
     el.loginButton.disabled = true;
     el.signupButton.disabled = true;
-    el.passwordResetButton.disabled = true;
-    updatePasswordRecoveryUi();
     updateStorageStatus();
     return;
   }
@@ -1827,48 +1801,31 @@ function updateAuthUi() {
   const email = state.session?.user?.email || "";
   el.loginButton.disabled = false;
   el.signupButton.disabled = false;
-  el.passwordResetButton.disabled = false;
 
   if (state.isAdmin) {
     el.authBadge.textContent = "Admin Verified";
     el.authStatus.innerHTML = `${email} &#xACC4;&#xC815;&#xC73C;&#xB85C; &#xB85C;&#xADF8;&#xC778;&#xB428;`;
-    el.authHelp.innerHTML = "&#xC774;&#xBA54;&#xC77C; &#xAE30;&#xBC18; &#xAD00;&#xB9AC;&#xC790; &#xC778;&#xC99D;&#xC774; &#xD1B5;&#xACFC;&#xB418;&#xC5B4; &#xB9AC;&#xBDF0; &#xC218;&#xC815;/&#xC0AD;&#xC81C;&#xC640; taste &#xC800;&#xC7A5;&#xC774; &#xAC00;&#xB2A5;&#xD569;&#xB2C8;&#xB2E4;.";
+    if (el.authHelp) {
+      el.authHelp.innerHTML = "&#xC774;&#xBA54;&#xC77C; &#xAE30;&#xBC18; &#xAD00;&#xB9AC;&#xC790; &#xC778;&#xC99D;&#xC774; &#xD1B5;&#xACFC;&#xB418;&#xC5B4; &#xB9AC;&#xBDF0; &#xC218;&#xC815;/&#xC0AD;&#xC81C;&#xC640; taste &#xC800;&#xC7A5;&#xC774; &#xAC00;&#xB2A5;&#xD569;&#xB2C8;&#xB2E4;.";
+    }
     el.logoutButton.hidden = false;
   } else if (state.session) {
-    el.authBadge.textContent = state.recoveryMode ? "Password Recovery" : "Viewer Session";
-    el.authStatus.innerHTML = state.recoveryMode
-      ? "재설정 링크가 확인되었습니다. 아래에서 새 비밀번호를 저장해 주세요."
-      : `${email} &#xACC4;&#xC815;&#xC73C;&#xB85C; &#xB85C;&#xADF8;&#xC778;&#xB428;`;
-    el.authHelp.innerHTML = state.recoveryMode
-      ? "새 비밀번호를 저장한 뒤 같은 이메일로 다시 로그인하면 됩니다."
-      : "&#xD604;&#xC7AC; &#xACC4;&#xC815;&#xC740; &#xAD00;&#xB9AC;&#xC790; &#xD5C8;&#xC6A9; &#xBAA9;&#xB85D;&#xC5D0; &#xC5C6;&#xC5B4; &#xC77D;&#xAE30; &#xC804;&#xC6A9;&#xC785;&#xB2C8;&#xB2E4;.";
+    el.authBadge.textContent = "Viewer Session";
+    el.authStatus.innerHTML = `${email} &#xACC4;&#xC815;&#xC73C;&#xB85C; &#xB85C;&#xADF8;&#xC778;&#xB428;`;
+    if (el.authHelp) {
+      el.authHelp.innerHTML = "&#xD604;&#xC7AC; &#xACC4;&#xC815;&#xC740; &#xAD00;&#xB9AC;&#xC790; &#xD5C8;&#xC6A9; &#xBAA9;&#xB85D;&#xC5D0; &#xC5C6;&#xC5B4; &#xC77D;&#xAE30; &#xC804;&#xC6A9;&#xC785;&#xB2C8;&#xB2E4;.";
+    }
     el.logoutButton.hidden = false;
   } else {
     el.authBadge.textContent = "Admin Locked";
-    el.authStatus.innerHTML = state.recoveryError
-      ? `재설정 링크를 처리하지 못했습니다: ${escapeHtml(state.recoveryError)}`
-      : "&#xC544;&#xC9C1; &#xB85C;&#xADF8;&#xC778;&#xB418;&#xC9C0; &#xC54A;&#xC558;&#xC2B5;&#xB2C8;&#xB2E4;.";
-    el.authHelp.innerHTML = `&#xAD00;&#xB9AC;&#xC790; &#xC774;&#xBA54;&#xC77C;(${ADMIN_EMAILS.join(", ")})&#xB85C; &#xB85C;&#xADF8;&#xC778;&#xD558;&#xBA74; &#xD3B8;&#xC9D1; &#xAD8C;&#xD55C;&#xC774; &#xC5F4;&#xB9BD;&#xB2C8;&#xB2E4;.`;
+    el.authStatus.innerHTML = "&#xC544;&#xC9C1; &#xB85C;&#xADF8;&#xC778;&#xB418;&#xC9C0; &#xC54A;&#xC558;&#xC2B5;&#xB2C8;&#xB2E4;.";
+    if (el.authHelp) {
+      el.authHelp.innerHTML = `&#xAD00;&#xB9AC;&#xC790; &#xC774;&#xBA54;&#xC77C;(${ADMIN_EMAILS.join(", ")})&#xB85C; &#xB85C;&#xADF8;&#xC778;&#xD558;&#xBA74; &#xD3B8;&#xC9D1; &#xAD8C;&#xD55C;&#xC774; &#xC5F4;&#xB9BD;&#xB2C8;&#xB2E4;.`;
+    }
     el.logoutButton.hidden = true;
   }
 
-  updatePasswordRecoveryUi();
   updateStorageStatus();
-}
-
-function updatePasswordRecoveryUi() {
-  if (!el.passwordRecoveryPanel) {
-    return;
-  }
-
-  el.passwordRecoveryPanel.hidden = !state.recoveryMode;
-  if (state.recoveryMode) {
-    el.passwordRecoveryHelp.textContent = "재설정 링크가 확인되었습니다. 아래에서 새 비밀번호를 입력하고 바로 저장하세요.";
-  } else if (state.recoveryError) {
-    el.passwordRecoveryHelp.textContent = `재설정 링크를 처리하지 못했습니다: ${state.recoveryError}`;
-  } else {
-    el.passwordRecoveryHelp.textContent = "재설정 링크로 들어오면 여기서 새 비밀번호를 바로 저장할 수 있습니다.";
-  }
 }
 function updateAdminAccess() {
   const disabled = !state.isAdmin;
@@ -2030,16 +1987,18 @@ function renderAromaSelector(category, type) {
       <button type="button" class="ghost-button" data-aroma-add="${category}" style="color:var(--text); border-color:var(--line); background:var(--surface-strong)">향미 추가</button>
     </div>
     <div class="aroma-add-status" data-aroma-status="${category}">기본 향미에 없는 표현은 직접 추가해 다음 리뷰에서도 계속 쓸 수 있습니다.</div>
-  ` + Object.entries(groups).map(([groupName, options]) => `
-    <div class="aroma-category">
-      <div class="aroma-category-head">
+  ` + Object.entries(groups).map(([groupName, options], index) => `
+    <details class="aroma-category"${options.some((option) => values.includes(option)) || index === 0 ? " open" : ""}>
+      <summary class="aroma-category-head">
         <strong>${groupName}</strong>
         <span>${options.length} notes</span>
+      </summary>
+      <div class="aroma-category-body">
+        <div class="aroma-chip-row">
+          ${options.map((option) => `<button type="button" class="aroma-chip${values.includes(option) ? " active" : ""}" data-aroma-category="${category}" data-aroma-value="${option}">${option}</button>`).join("")}
+        </div>
       </div>
-      <div class="aroma-chip-row">
-        ${options.map((option) => `<button type="button" class="aroma-chip${values.includes(option) ? " active" : ""}" data-aroma-category="${category}" data-aroma-value="${option}">${option}</button>`).join("")}
-      </div>
-    </div>
+    </details>
   `).join("");
   selector.querySelectorAll("[data-aroma-category]").forEach((button) => {
     button.addEventListener("click", () => toggleAromaSelection(category, button.dataset.aromaValue));
