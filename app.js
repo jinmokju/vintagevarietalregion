@@ -27,7 +27,7 @@ const VARIETAL_OPTIONS = {
 
 const REVIEW_STRUCTURE_FIELDS = {
   red: [
-    { key: "sweetness", label: "Sweetness", left: "Dry", right: "Sweet" },
+    { key: "sweetness", label: "Sweetness", left: "Sweet", right: "Dry", reverse: true },
     { key: "acidityLevel", label: "Acidity Level", left: "High", right: "Low" },
     { key: "acidityShape", label: "Acidity Shape", left: "Racy", right: "Soft" },
     { key: "body", label: "Body", left: "High", right: "Low" },
@@ -36,7 +36,7 @@ const REVIEW_STRUCTURE_FIELDS = {
     { key: "finish", label: "Finish", left: "Long", right: "Short" }
   ],
   white: [
-    { key: "sweetness", label: "Sweetness", left: "Dry", right: "Sweet" },
+    { key: "sweetness", label: "Sweetness", left: "Sweet", right: "Dry", reverse: true },
     { key: "acidityLevel", label: "Acidity Level", left: "High", right: "Low" },
     { key: "acidityShape", label: "Acidity Shape", left: "Racy", right: "Soft" },
     { key: "body", label: "Body", left: "High", right: "Low" },
@@ -44,7 +44,7 @@ const REVIEW_STRUCTURE_FIELDS = {
     { key: "finish", label: "Finish", left: "Long", right: "Short" }
   ],
   sparkling: [
-    { key: "sweetness", label: "Sweetness", left: "Dry", right: "Sweet" },
+    { key: "sweetness", label: "Sweetness", left: "Sweet", right: "Dry", reverse: true },
     { key: "acidityLevel", label: "Acidity Level", left: "High", right: "Low" },
     { key: "acidityShape", label: "Acidity Shape", left: "Racy", right: "Soft" },
     { key: "body", label: "Body", left: "High", right: "Low" },
@@ -650,6 +650,20 @@ function getAromaTypeKey(type) {
 
 function getStructureFields(type) {
   return REVIEW_STRUCTURE_FIELDS[getReviewTypeKey(type)];
+}
+
+function normalizeScaleValue(value) {
+  return Math.max(1, Math.min(7, Number(value) || 4));
+}
+
+function getDisplayedScaleValue(value, reversed = false) {
+  const normalized = normalizeScaleValue(value);
+  return reversed ? 8 - normalized : normalized;
+}
+
+function getStoredScaleValue(value, reversed = false) {
+  const normalized = normalizeScaleValue(value);
+  return reversed ? 8 - normalized : normalized;
 }
 
 function createEmptyReviewDraft(type) {
@@ -1517,7 +1531,26 @@ function renderRecentReviews() {
 
 function renderReviewStructureSnapshot(review, type) {
   const fields = getStructureFields(type);
-  return `<div class="review-section-shell"><div class="review-stack-title"><strong>&#xAD6C;&#xC870; &#xD3C9;&#xAC00;</strong><span>${fields.length}개 축</span></div><div class="review-detail-grid">${fields.map((field) => `<div class="review-detail-block"><h4>${field.label}</h4><div class="taste-scale">${renderSegments(review.structure?.[field.key] || 4)}</div><div class="taste-poles"><span>${field.left}</span><span>${field.right}</span></div></div>`).join("")}</div></div>`;
+  return `<div class="review-section-shell"><div class="review-stack-title"><strong>&#xAD6C;&#xC870; &#xD3C9;&#xAC00;</strong><span>${fields.length}개 축</span></div><div class="review-detail-grid structure-detail-grid">${fields.map((field) => renderStructureFieldSnapshot(field, review.structure?.[field.key] || 4)).join("")}</div></div>`;
+}
+
+function renderStructureFieldSnapshot(field, rawValue) {
+  const displayedValue = getDisplayedScaleValue(rawValue, field.reverse);
+  return `<div class="review-detail-block structure-detail-block"><div class="structure-detail-head"><h4>${field.label}</h4><span class="structure-badge">${describeStructurePosition(field, rawValue)}</span></div><div class="taste-scale compact">${renderSegments(displayedValue)}</div><div class="taste-poles compact"><span>${field.left}</span><span>${field.right}</span></div></div>`;
+}
+
+function describeStructurePosition(field, rawValue) {
+  const value = getDisplayedScaleValue(rawValue, field.reverse);
+  if (value <= 2) {
+    return field.left;
+  }
+  if (value >= 6) {
+    return field.right;
+  }
+  if (value === 4) {
+    return "Balanced";
+  }
+  return value < 4 ? `Leaning ${field.left}` : `Leaning ${field.right}`;
 }
 
 function renderAromaSummary(review) {
@@ -1748,13 +1781,17 @@ function renderReviewSegmentPicker(fieldKey) {
     return;
   }
 
-  host.innerHTML = `<div class="taste-meter interactive"><div class="taste-line"></div><span class="taste-marker" style="left:${scalePosition(state.reviewDraft.structure[fieldKey])}%"></span></div>`;
-  for (let i = 1; i <= 7; i += 1) {
+  const field = getStructureFields(el.wineType.value || "Red").find((item) => item.key === fieldKey);
+  const isReversed = Boolean(field?.reverse);
+  const displayedValue = getDisplayedScaleValue(state.reviewDraft.structure[fieldKey], isReversed);
+  host.innerHTML = `<div class="taste-meter interactive"><div class="taste-line"></div><span class="taste-marker" style="left:${scalePosition(displayedValue)}%"></span></div>`;
+  for (let displayIndex = 1; displayIndex <= 7; displayIndex += 1) {
+    const storedValue = getStoredScaleValue(displayIndex, isReversed);
     const button = document.createElement("button");
     button.type = "button";
-    button.className = `segment-button${state.reviewDraft.structure[fieldKey] === i ? " active" : ""}`;
+    button.className = `segment-button${displayedValue === displayIndex ? " active" : ""}`;
     button.addEventListener("click", () => {
-      state.reviewDraft.structure[fieldKey] = i;
+      state.reviewDraft.structure[fieldKey] = storedValue;
       renderReviewSegmentPicker(fieldKey);
     });
     host.appendChild(button);
