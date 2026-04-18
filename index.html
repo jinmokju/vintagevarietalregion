@@ -79,8 +79,18 @@
     @media (max-width:420px){.structure-pair-row{grid-template-columns:repeat(2,minmax(0,1fr));gap:6px}.structure-detail-block{padding:9px 8px 8px;gap:8px}.structure-detail-head h4{font-size:.74rem}.structure-badge{font-size:.62rem;padding:3px 6px}.taste-scale.compact{min-height:16px}.taste-scale.compact .taste-meter{height:16px}.taste-scale.compact .taste-line{height:2px}.taste-scale.compact .taste-marker{width:11px;height:11px}.taste-poles.compact{font-size:.58rem;gap:6px}}
   </style>
   <style>
+    .avatar{overflow:hidden;flex-shrink:0}
+    .avatar img{width:100%;height:100%;object-fit:cover;display:block}
     .persona-copy{display:grid;gap:4px}
     .persona-copy strong{font-size:1.08rem}
+    .persona-avatar-builder{display:grid;gap:12px;grid-column:1 / -1}
+    .persona-avatar-preview{display:grid;grid-template-columns:88px minmax(0,1fr);gap:14px;align-items:center;padding:14px 16px;border-radius:18px;border:1px solid var(--line);background:linear-gradient(180deg,rgba(255,255,255,.5),rgba(255,255,255,.24))}
+    .persona-avatar-preview img{width:88px;height:88px;object-fit:cover;border-radius:22px;background:linear-gradient(135deg,#dcb8bf,#f4ddd2);box-shadow:0 12px 28px rgba(80,32,38,.12)}
+    .persona-avatar-copy{display:grid;gap:6px}
+    .persona-avatar-copy strong{font-size:.92rem}
+    .persona-avatar-copy span{font-size:.82rem;color:var(--muted);line-height:1.55}
+    .persona-image-picker{position:relative;overflow:hidden}
+    .persona-image-picker input{position:absolute;inset:0;opacity:0;cursor:pointer}
     .persona-grid.persona-grid-summary{grid-template-columns:1fr;gap:12px}
     .persona-character{display:grid;gap:10px;padding:16px 18px;border-radius:20px;border:1px solid var(--line);background:linear-gradient(135deg,rgba(166,61,83,.1),rgba(255,255,255,.34))}
     .persona-character-hero{margin-top:14px}
@@ -148,7 +158,7 @@
     .persona-rank-badge{display:inline-flex;align-items:center;justify-content:center;width:max-content;padding:4px 8px;border-radius:999px;background:linear-gradient(135deg,var(--accent),var(--accent-soft));color:var(--white)!important;font-size:.74rem!important;font-weight:800}
     .empty-state.compact{padding:12px 14px;font-size:.86rem}
     @media (max-width:980px){.persona-summary-row{grid-template-columns:1fr}.persona-summary-metrics{justify-content:start}}
-    @media (max-width:720px){.persona-character-grid,.persona-favorite-grid,.persona-review-grid,.persona-review-stats{grid-template-columns:1fr}.persona-summary-row{padding:12px 13px}.persona-summary-body{padding:0 14px 14px}.persona-summary-metrics{grid-template-columns:repeat(3,minmax(0,1fr))}.persona-summary-copy strong{font-size:.92rem}.persona-summary-copy .muted{font-size:.76rem}.persona-summary-chip{font-size:.68rem;padding:6px 8px}.persona-summary-metric strong{font-size:.76rem}}
+    @media (max-width:720px){.persona-character-grid,.persona-favorite-grid,.persona-review-grid,.persona-review-stats,.persona-avatar-preview{grid-template-columns:1fr}.persona-summary-row{padding:12px 13px}.persona-summary-body{padding:0 14px 14px}.persona-summary-metrics{grid-template-columns:repeat(3,minmax(0,1fr))}.persona-summary-copy strong{font-size:.92rem}.persona-summary-copy .muted{font-size:.76rem}.persona-summary-chip{font-size:.68rem;padding:6px 8px}.persona-summary-metric strong{font-size:.76rem}}
   </style>
   <style>
     .hero-refined{padding:30px 30px 28px;background:radial-gradient(circle at 16% 18%,rgba(255,236,221,.14),transparent 21%),radial-gradient(circle at 86% 16%,rgba(255,222,197,.24),transparent 24%),radial-gradient(circle at 62% 78%,rgba(255,255,255,.08),transparent 16%),linear-gradient(135deg,#4e1627 0%,#8f3f58 46%,#d48876 100%)}
@@ -585,6 +595,20 @@
                   <label>모드<select id="tasteMode"><option value="red">Red Taste</option><option value="white">White Taste</option></select></label>
                   <label style="grid-column:1 / -1">Persona Name<input id="personaNameInput" placeholder="표시 이름"></label>
                   <label style="grid-column:1 / -1">한 줄 소개<input id="personaSummaryInput" placeholder="예: 산도 중심의 클래식 유럽파"></label>
+                  <div class="persona-avatar-builder">
+                    <input id="personaImageInput" type="hidden">
+                    <div class="persona-avatar-preview">
+                      <img id="personaAvatarPreview" alt="Persona avatar preview">
+                      <div class="persona-avatar-copy">
+                        <strong>Persona Photo</strong>
+                        <span id="personaImageCaption">사진이 없으면 기본 이미지가 자동으로 표시됩니다. 사진 보관함에서 선택한 이미지는 이 페르소나 카드에만 적용됩니다.</span>
+                      </div>
+                    </div>
+                    <div class="button-row">
+                      <label class="review-action persona-image-picker">사진 보관함에서 선택<input id="personaImageLibrary" type="file" accept="image/*"></label>
+                      <button class="review-action" id="clearPersonaImageButton" type="button">기본 이미지 사용</button>
+                    </div>
+                  </div>
                   <label>최애 품종 1<input id="favVarietyOne" placeholder="예: Pinot Noir"></label>
                   <label>최애 지역 1<input id="favRegionOne" placeholder="예: Burgundy"></label>
                   <label>최애 품종 2<input id="favVarietyTwo" placeholder="예: Syrah"></label>

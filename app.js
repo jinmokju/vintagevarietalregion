@@ -334,6 +334,11 @@ const el = {
   tasteMode: document.getElementById("tasteMode"),
   personaNameInput: document.getElementById("personaNameInput"),
   personaSummaryInput: document.getElementById("personaSummaryInput"),
+  personaImageInput: document.getElementById("personaImageInput"),
+  personaImageLibrary: document.getElementById("personaImageLibrary"),
+  personaAvatarPreview: document.getElementById("personaAvatarPreview"),
+  personaImageCaption: document.getElementById("personaImageCaption"),
+  clearPersonaImageButton: document.getElementById("clearPersonaImageButton"),
   favVarietyOne: document.getElementById("favVarietyOne"),
   favRegionOne: document.getElementById("favRegionOne"),
   favVarietyTwo: document.getElementById("favVarietyTwo"),
@@ -502,7 +507,7 @@ function isAdminEmail(email) {
   return Boolean(email && ADMIN_EMAILS.includes(email.toLowerCase()));
 }
 async function hydrateData() {
-  state.personas = loadLocal(STORAGE_KEYS.personas, seedPersonas);
+  state.personas = loadLocal(STORAGE_KEYS.personas, seedPersonas).map(normalizeLocalPersona);
   state.wines = loadLocal(STORAGE_KEYS.wines, seedWines).map(normalizeLocalWine);
   state.customAromas = normalizeCustomAromas(loadLocal(STORAGE_KEYS.customAromas, createEmptyCustomAromas()));
 
@@ -571,6 +576,7 @@ function normalizePersonaRow(row) {
     name: row.name,
     role: row.role,
     focus: row.focus,
+    avatarImage: sanitizeStoredImage(row.avatar_image || row.focus),
     summary: row.role || "",
     tastes: {
       red: normalizeTaste(row.red_taste),
@@ -578,6 +584,19 @@ function normalizePersonaRow(row) {
     }
   };
   return persona;
+}
+
+function normalizeLocalPersona(persona) {
+  return {
+    ...persona,
+    focus: persona.focus || "",
+    avatarImage: sanitizeStoredImage(persona.avatarImage || persona.focus),
+    summary: persona.summary || persona.role || "",
+    tastes: {
+      red: normalizeTaste(persona?.tastes?.red),
+      white: normalizeTaste(persona?.tastes?.white)
+    }
+  };
 }
 
 function normalizeWineRow(row, reviews) {
@@ -608,6 +627,11 @@ function normalizeLocalWine(wine) {
 function sanitizeStoredImage(value) {
   const image = String(value || "").trim();
   return isUsableImageUrl(image) && !isPlaceholderImage(image) ? image : "";
+}
+
+function getPersonaAvatarImage(persona) {
+  const customImage = sanitizeStoredImage(persona?.avatarImage || persona?.focus);
+  return customImage || makePersonaAvatarPlaceholder(persona?.name || "Persona");
 }
 
 function normalizeReview(review, wineType) {
@@ -899,6 +923,9 @@ function bindEvents() {
   el.wineRegion.addEventListener("blur", populateReviewInputs);
   el.tastePersona.addEventListener("change", syncTasteEditor);
   el.tasteMode.addEventListener("change", syncTasteEditor);
+  el.personaNameInput.addEventListener("input", () => syncPersonaImagePreview());
+  el.personaImageLibrary?.addEventListener("change", handlePersonaImageUpload);
+  el.clearPersonaImageButton?.addEventListener("click", clearPersonaImageField);
   el.reviewForm.addEventListener("submit", handleReviewSave);
   el.tasteForm.addEventListener("submit", handleTasteSave);
   el.fetchImageCandidates.addEventListener("click", handleImageLookup);
@@ -1272,7 +1299,7 @@ function renderPersonaCard(persona) {
   return `<article class="persona-card ${compactView ? "persona-card-compact" : ""}">
     <div class="persona-header">
       <div class="persona-top">
-        <div class="avatar">${persona.name.slice(0, 2).toUpperCase()}</div>
+        ${renderPersonaAvatar(persona)}
         <div class="persona-copy">
           <strong>${persona.name}</strong>
           <div class="muted">${summary.headline}</div>
@@ -1344,7 +1371,7 @@ function renderCompactPersonaCard(persona, summary, insights) {
   return `<details class="persona-card persona-summary-card">
     <summary class="persona-summary-row">
       <div class="persona-summary-identity">
-        <div class="avatar">${persona.name.slice(0, 2).toUpperCase()}</div>
+        ${renderPersonaAvatar(persona)}
         <div class="persona-summary-copy">
           <strong>${persona.name}</strong>
           <div class="muted">${summary.headline}</div>
@@ -1411,6 +1438,11 @@ function renderCompactPersonaCard(persona, summary, insights) {
       </div>
     </div>
   </details>`;
+}
+
+function renderPersonaAvatar(persona) {
+  const imageUrl = getPersonaAvatarImage(persona);
+  return `<div class="avatar"><img src="${imageUrl}" alt="${escapeHtml(persona.name || "Persona")} profile image"></div>`;
 }
 
 function renderFavoritePills(taste, emptyLabel = "&#xC544;&#xC9C1; &#xC785;&#xB825; &#xC804;") {
@@ -1872,10 +1904,12 @@ function syncTasteEditor() {
   const taste = persona.tastes[mode];
   el.personaNameInput.value = persona.name || "";
   el.personaSummaryInput.value = persona.summary || "";
+  el.personaImageInput.value = sanitizeStoredImage(persona.avatarImage || persona.focus);
   el.favVarietyOne.value = taste.favoritePairs?.[0]?.varietal || "";
   el.favRegionOne.value = taste.favoritePairs?.[0]?.region || "";
   el.favVarietyTwo.value = taste.favoritePairs?.[1]?.varietal || "";
   el.favRegionTwo.value = taste.favoritePairs?.[1]?.region || "";
+  syncPersonaImagePreview();
   state.tasteDraft = {
     fruitDriven: taste.fruitDriven,
     oak: taste.oak,
@@ -1905,6 +1939,7 @@ function getSelectedPersonaData() {
     name: "",
     role: "",
     focus: "",
+    avatarImage: "",
     summary: "",
     tastes: {
       red: createEmptyTaste(),
@@ -2512,6 +2547,7 @@ async function handleTasteSave(event) {
       name: personaName,
       role: "",
       focus: "",
+      avatarImage: "",
       summary: "",
       tastes: {
         red: createEmptyTaste(),
@@ -2523,6 +2559,7 @@ async function handleTasteSave(event) {
 
   persona.name = personaName;
   persona.summary = el.personaSummaryInput.value.trim();
+  persona.avatarImage = sanitizeStoredImage(el.personaImageInput.value);
   const mode = el.tasteMode.value;
   persona.tastes[mode] = {
     favoritePairs: [
@@ -2542,7 +2579,7 @@ async function handleTasteSave(event) {
     fruitProfile: state.tasteDraft.fruitProfile
   };
   persona.role = persona.summary;
-  persona.focus = "";
+  persona.focus = persona.avatarImage || "";
 
   try {
     await persistPersona(persona);
@@ -2862,6 +2899,28 @@ async function handleImageUpload(event, sourceLabel) {
   }
 }
 
+async function handlePersonaImageUpload(event) {
+  const file = event.target.files?.[0];
+  if (!file) {
+    return;
+  }
+
+  try {
+    el.personaImageInput.value = await readFileAsDataUrl(file);
+    syncPersonaImagePreview("사진 보관함 업로드");
+  } finally {
+    event.target.value = "";
+  }
+}
+
+function clearPersonaImageField() {
+  el.personaImageInput.value = "";
+  if (el.personaImageLibrary) {
+    el.personaImageLibrary.value = "";
+  }
+  syncPersonaImagePreview();
+}
+
 function readFileAsDataUrl(file) {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
@@ -2869,6 +2928,20 @@ function readFileAsDataUrl(file) {
     reader.onerror = () => reject(reader.error || new Error("file-read-failed"));
     reader.readAsDataURL(file);
   });
+}
+
+function syncPersonaImagePreview(sourceLabel = "") {
+  const personaName = el.personaNameInput?.value.trim() || el.tastePersona?.selectedOptions?.[0]?.textContent || "Persona";
+  const customImage = sanitizeStoredImage(el.personaImageInput?.value);
+  const previewImage = customImage || makePersonaAvatarPlaceholder(personaName);
+  if (el.personaAvatarPreview) {
+    el.personaAvatarPreview.src = previewImage;
+  }
+  if (el.personaImageCaption) {
+    el.personaImageCaption.textContent = customImage
+      ? (sourceLabel ? `선택된 이미지 출처: ${sourceLabel}` : "이 페르소나에 적용될 프로필 이미지입니다.")
+      : "사진이 없으면 기본 이미지가 자동으로 표시됩니다. 사진 보관함에서 이미지를 선택하면 카드에 바로 반영됩니다.";
+  }
 }
 
 function syncImagePreview(sourceLabel = "") {
@@ -2903,7 +2976,7 @@ async function persistPersona(persona) {
     id: persona.id,
     name: persona.name,
     role: persona.summary || buildPersonaCharacterSummary(persona),
-    focus: "",
+    focus: persona.avatarImage || "",
     red_taste: persona.tastes.red,
     white_taste: persona.tastes.white,
     display_order: state.personas.findIndex((item) => item.id === persona.id)
@@ -3192,6 +3265,20 @@ function escapeHtml(value) {
 function makePlaceholderImage(title, start, end) {
   const safe = title.replace(/[&<>]/g, (char) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;" }[char]));
   const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 600"><defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="${start}"/><stop offset="100%" stop-color="${end}"/></linearGradient></defs><rect width="800" height="600" rx="42" fill="url(#g)"/><circle cx="650" cy="120" r="110" fill="rgba(255,255,255,0.16)"/><circle cx="130" cy="520" r="160" fill="rgba(255,255,255,0.10)"/><text x="60" y="285" font-size="42" font-family="Pretendard, Apple SD Gothic Neo, Arial, sans-serif" font-weight="700" fill="white">${safe}</text><text x="60" y="340" font-size="22" font-family="Pretendard, Apple SD Gothic Neo, Arial, sans-serif" fill="rgba(255,255,255,0.84)">Vintage Varietal Region</text></svg>`;
+  return `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(svg)}`;
+}
+
+function makePersonaAvatarPlaceholder(name) {
+  const initials = String(name || "Persona")
+    .trim()
+    .split(/\s+/)
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((part) => part[0])
+    .join("")
+    .toUpperCase() || "VV";
+  const safeInitials = initials.replace(/[&<>]/g, (char) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;" }[char]));
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 320"><defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#a63d53"/><stop offset="100%" stop-color="#dd8b6c"/></linearGradient></defs><rect width="320" height="320" rx="78" fill="url(#g)"/><circle cx="248" cy="72" r="54" fill="rgba(255,255,255,0.14)"/><circle cx="72" cy="266" r="86" fill="rgba(255,255,255,0.10)"/><text x="160" y="178" text-anchor="middle" font-size="92" font-family="Pretendard, Apple SD Gothic Neo, Arial, sans-serif" font-weight="800" fill="white">${safeInitials}</text><text x="160" y="226" text-anchor="middle" font-size="20" font-family="Pretendard, Apple SD Gothic Neo, Arial, sans-serif" fill="rgba(255,255,255,0.82)">Persona</text></svg>`;
   return `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(svg)}`;
 }
 
