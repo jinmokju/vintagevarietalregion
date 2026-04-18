@@ -43,6 +43,14 @@ const REVIEW_STRUCTURE_FIELDS = {
     { key: "texture", label: "Texture", left: "Waxy / Oily", right: "Clean" },
     { key: "finish", label: "Finish", left: "Long", right: "Short" }
   ],
+  rose: [
+    { key: "sweetness", label: "Sweetness", left: "Sweet", right: "Dry", reverse: true },
+    { key: "acidityLevel", label: "Acidity Level", left: "High", right: "Low" },
+    { key: "acidityShape", label: "Acidity Shape", left: "Racy", right: "Soft" },
+    { key: "body", label: "Body", left: "High", right: "Low" },
+    { key: "texture", label: "Texture", left: "Silky", right: "Crisp" },
+    { key: "finish", label: "Finish", left: "Long", right: "Short" }
+  ],
   sparkling: [
     { key: "sweetness", label: "Sweetness", left: "Sweet", right: "Dry", reverse: true },
     { key: "acidityLevel", label: "Acidity Level", left: "High", right: "Low" },
@@ -51,6 +59,44 @@ const REVIEW_STRUCTURE_FIELDS = {
     { key: "effervescence", label: "Effervescence", left: "Highly Fizzy", right: "Gentle Fizz" },
     { key: "mousseTexture", label: "Mousse Texture", left: "Creamy", right: "Sharp" },
     { key: "finish", label: "Finish", left: "Long", right: "Short" }
+  ],
+  orange: [
+    { key: "sweetness", label: "Sweetness", left: "Sweet", right: "Dry", reverse: true },
+    { key: "acidityLevel", label: "Acidity Level", left: "High", right: "Low" },
+    { key: "acidityShape", label: "Acidity Shape", left: "Racy", right: "Soft" },
+    { key: "body", label: "Body", left: "High", right: "Low" },
+    { key: "texture", label: "Texture", left: "Grippy", right: "Polished" },
+    { key: "finish", label: "Finish", left: "Long", right: "Short" }
+  ]
+};
+
+const REVIEW_STRUCTURE_GROUPS = {
+  red: [
+    ["sweetness", "body"],
+    ["acidityLevel", "acidityShape"],
+    ["tanninLevel", "tanninTexture"],
+    ["finish"]
+  ],
+  white: [
+    ["sweetness", "body"],
+    ["acidityLevel", "acidityShape"],
+    ["texture", "finish"]
+  ],
+  rose: [
+    ["sweetness", "body"],
+    ["acidityLevel", "acidityShape"],
+    ["texture", "finish"]
+  ],
+  sparkling: [
+    ["sweetness", "body"],
+    ["acidityLevel", "acidityShape"],
+    ["effervescence", "mousseTexture"],
+    ["finish"]
+  ],
+  orange: [
+    ["sweetness", "body"],
+    ["acidityLevel", "acidityShape"],
+    ["texture", "finish"]
   ]
 };
 
@@ -629,7 +675,19 @@ function createEmptyTaste() {
 }
 
 function getReviewTypeKey(type) {
-  return type === "Sparkling" ? "sparkling" : (type === "Red" ? "red" : "white");
+  if (type === "Sparkling") {
+    return "sparkling";
+  }
+  if (type === "Rose") {
+    return "rose";
+  }
+  if (type === "Orange") {
+    return "orange";
+  }
+  if (type === "Red") {
+    return "red";
+  }
+  return "white";
 }
 
 function getAromaTypeKey(type) {
@@ -650,6 +708,19 @@ function getAromaTypeKey(type) {
 
 function getStructureFields(type) {
   return REVIEW_STRUCTURE_FIELDS[getReviewTypeKey(type)];
+}
+
+function getStructureFieldMap(type) {
+  return Object.fromEntries(getStructureFields(type).map((field) => [field.key, field]));
+}
+
+function getStructureGroups(type) {
+  const typeKey = getReviewTypeKey(type);
+  const fieldMap = getStructureFieldMap(type);
+  const configuredGroups = REVIEW_STRUCTURE_GROUPS[typeKey] || [Object.keys(fieldMap)];
+  return configuredGroups
+    .map((group) => group.map((fieldKey) => fieldMap[fieldKey]).filter(Boolean))
+    .filter((group) => group.length);
 }
 
 function normalizeScaleValue(value) {
@@ -705,8 +776,8 @@ function normalizeCustomAromas(value) {
 }
 
 function normalizeReviewStructure(structure, typeKey) {
-  const typeLabel = typeKey === "sparkling" ? "Sparkling" : (typeKey === "red" ? "Red" : "White");
-  return getStructureFields(typeLabel).reduce((accumulator, field) => {
+  const fields = REVIEW_STRUCTURE_FIELDS[typeKey] || REVIEW_STRUCTURE_FIELDS.white;
+  return fields.reduce((accumulator, field) => {
     accumulator[field.key] = structure?.[field.key] || 4;
     return accumulator;
   }, {});
@@ -1531,7 +1602,13 @@ function renderRecentReviews() {
 
 function renderReviewStructureSnapshot(review, type) {
   const fields = getStructureFields(type);
-  return `<div class="review-section-shell"><div class="review-stack-title"><strong>&#xAD6C;&#xC870; &#xD3C9;&#xAC00;</strong><span>${fields.length}개 축</span></div><div class="review-detail-grid structure-detail-grid">${fields.map((field) => renderStructureFieldSnapshot(field, review.structure?.[field.key] || 4)).join("")}</div></div>`;
+  const groups = getStructureGroups(type);
+  return `<div class="review-section-shell"><div class="review-stack-title"><strong>&#xAD6C;&#xC870; &#xD3C9;&#xAC00;</strong><span>${fields.length}개 축</span></div><div class="structure-detail-grid">${groups.map((group) => renderStructureFieldGroup(group, review.structure || {})).join("")}</div></div>`;
+}
+
+function renderStructureFieldGroup(group, structure) {
+  const isSingle = group.length === 1;
+  return `<div class="structure-pair-row${isSingle ? " single" : ""}">${group.map((field) => renderStructureFieldSnapshot(field, structure?.[field.key] || 4)).join("")}</div>`;
 }
 
 function renderStructureFieldSnapshot(field, rawValue) {
@@ -1771,7 +1848,12 @@ function syncReviewEditor() {
 
 function renderReviewStructureEditor(type) {
   const fields = getStructureFields(type);
-  el.reviewStructureEditor.innerHTML = fields.map((field) => `<div class="review-track"><div class="taste-axis-head"><strong>${field.label}</strong></div><div class="segment-picker" data-review-field="${field.key}"></div><div class="taste-poles"><span>${field.left}</span><span>${field.right}</span></div></div>`).join("");
+  const groups = getStructureGroups(type);
+  el.reviewStructureEditor.innerHTML = groups.map((group) => `
+    <div class="structure-pair-row editor${group.length === 1 ? " single" : ""}">
+      ${group.map((field) => `<div class="review-track structure-editor-track"><div class="taste-axis-head"><strong>${field.label}</strong></div><div class="segment-picker" data-review-field="${field.key}"></div><div class="taste-poles"><span>${field.left}</span><span>${field.right}</span></div></div>`).join("")}
+    </div>
+  `).join("");
   fields.forEach((field) => renderReviewSegmentPicker(field.key));
 }
 
