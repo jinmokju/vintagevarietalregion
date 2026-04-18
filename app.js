@@ -7,7 +7,7 @@ const STORAGE_KEYS = {
   recoveryMode: "vvr-recovery-mode"
 };
 
-const ADMIN_EMAILS = ["jinmokju@gmail.com"];
+const ADMIN_EMAILS = ["jinmokju@gmail.com", "kokopam4@naver.com"];
 
 const TASTE_FIELDS = [
   { key: "fruitDriven", label: "Fruitiness", left: "Fruit-Driven", right: "Savory / Earthy" },
