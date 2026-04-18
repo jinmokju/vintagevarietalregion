@@ -1540,7 +1540,6 @@ function renderWineCard(wine) {
   const visibleReviews = wine.reviews.filter((review) => state.selectedPersona === "all" || review.personaId === state.selectedPersona);
   const reviewMarkup = visibleReviews.map((review) => renderReviewSnippet(wine, review)).join("");
   const typeClass = `type-${String(wine.type || "red").toLowerCase()}`;
-  const metaLine = [wine.producer, wine.vintage, wine.varietal, formatRegionPath(wine.region, wine.subRegion)].filter(Boolean).join(" / ");
   const varietalLabel = wine.varietal || "\ud488\uc885 \ubbf8\uc785\ub825";
   const regionLabel = formatRegionPath(wine.region, wine.subRegion) || "\uc0b0\uc9c0 \ubbf8\uc785\ub825";
   const priceLine = wine.averagePrice
@@ -1555,6 +1554,7 @@ function renderWineCard(wine) {
     <div class="wine-card-inner">
       <div class="wine-image-wrap"><img class="wine-image" src="${wine.image || makePlaceholderImage(wine.name, "#8a3650", "#f5d2c6")}" alt="${wine.name} &#xC774;&#xBBF8;&#xC9C0;"></div>
       <div class="wine-card-top">
+        <div class="wine-card-copy"><h3>${wine.name}</h3><div class="muted">${[wine.producer, wine.vintage].filter(Boolean).join(" / ")}</div></div>
       <div class="wine-meta-pills"><span class="pill">${varietalLabel}</span><span class="pill">${regionLabel}</span><span class="pill">${wine.reviews.length}개 리뷰</span></div>
         <span class="type-badge ${typeClass}">${wine.type}</span>
       </div>
@@ -1582,7 +1582,7 @@ function renderReviewSnippet(wine, review) {
   const commentMarkup = renderCommentThread(wine, review);
   const jumpAction = `<div class="button-row" style="margin-top:10px"><button type="button" class="review-action" data-action="write-review-for-wine" data-wine-id="${wine.id}">&#xC774; &#xC640;&#xC778;&#xC5D0; &#xB9AC;&#xBDF0; &#xC4F0;&#xAE30;</button></div>`;
 
-  return `<div class="review-snippet" id="review-${wine.id}-${review.id}"><div class="row" style="align-items:flex-start"><div class="review-meta-stack"><strong>${persona ? persona.name : review.personaId}</strong><div class="review-meta">${review.createdAt}</div></div>${actionButtons}</div><div class="review-stack"><div class="review-score">${scoreMarkup}<div class="review-copy">${review.summary || review.note}</div></div>${structureMarkup}${aromaMarkup}${jumpAction}${commentMarkup}</div></div>`;
+  return `<div class="review-snippet" id="review-${wine.id}-${review.id}"><div class="row" style="align-items:flex-start"><div class="review-meta-stack"><strong>${persona ? persona.name : review.personaId}</strong><div class="review-meta">${review.createdAt}</div></div>${actionButtons}</div><div class="review-stack"><div class="review-score">${scoreMarkup}</div>${structureMarkup}${aromaMarkup}${jumpAction}<div class="review-copy">${review.summary || review.note}</div>${commentMarkup}</div></div>`;
 }
 
 function renderCommentThread(wine, review) {
