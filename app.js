@@ -25,6 +25,57 @@ const VARIETAL_OPTIONS = {
   Orange: ["Ribolla Gialla", "Pinot Grigio", "Malvasia", "Sauvignon Blanc", "Chardonnay", "Rkatsiteli", "Gewurztraminer", "Muscat", "Vitovska", "Friulano", "Fiano", "Greco", "Vermentino", "Trebbiano", "Semillon"]
 };
 
+const REGION_OPTIONS = {
+  France: ["Champagne, France", "Bourgogne, France", "Bordeaux, France", "Loire Valley, France", "Rhone Valley, France", "Alsace, France", "Jura, France", "Provence, France", "Languedoc, France", "Roussillon, France", "Beaujolais, France", "Savoie, France"],
+  Italy: ["Piemonte, Italy", "Toscana, Italy", "Veneto, Italy", "Friuli-Venezia Giulia, Italy", "Alto Adige, Italy", "Trentino, Italy", "Etna, Italy", "Sicilia, Italy", "Campania, Italy", "Puglia, Italy", "Abruzzo, Italy", "Marche, Italy"],
+  Spain: ["Rioja, Spain", "Ribera del Duero, Spain", "Priorat, Spain", "Rias Baixas, Spain", "Jerez, Spain", "Penedes, Spain", "Bierzo, Spain", "Jumilla, Spain", "Rueda, Spain", "Toro, Spain"],
+  Germany: ["Mosel, Germany", "Rheingau, Germany", "Nahe, Germany", "Rheinhessen, Germany", "Pfalz, Germany", "Franken, Germany", "Baden, Germany"],
+  Austria: ["Wachau, Austria", "Kamptal, Austria", "Kremstal, Austria", "Burgenland, Austria", "Styria, Austria", "Wagram, Austria"],
+  Portugal: ["Douro, Portugal", "Dao, Portugal", "Vinho Verde, Portugal", "Bairrada, Portugal", "Alentejo, Portugal", "Madeira, Portugal"],
+  USA: ["Napa Valley, USA", "Sonoma Coast, USA", "Russian River Valley, USA", "Santa Rita Hills, USA", "Willamette Valley, USA", "Finger Lakes, USA", "Paso Robles, USA", "Santa Barbara County, USA", "Walla Walla Valley, USA", "Columbia Valley, USA"],
+  Australia: ["Barossa Valley, Australia", "McLaren Vale, Australia", "Yarra Valley, Australia", "Margaret River, Australia", "Adelaide Hills, Australia", "Hunter Valley, Australia", "Mornington Peninsula, Australia"],
+  "New Zealand": ["Marlborough, New Zealand", "Central Otago, New Zealand", "Hawke's Bay, New Zealand", "Martinborough, New Zealand", "Auckland, New Zealand", "Nelson, New Zealand"],
+  Argentina: ["Mendoza, Argentina", "Uco Valley, Argentina", "Salta, Argentina", "Patagonia, Argentina"],
+  Chile: ["Maipo Valley, Chile", "Colchagua Valley, Chile", "Casablanca Valley, Chile", "Leyda Valley, Chile", "Aconcagua, Chile", "Itata Valley, Chile"],
+  "South Africa": ["Stellenbosch, South Africa", "Swartland, South Africa", "Walker Bay, South Africa", "Elgin, South Africa", "Constantia, South Africa", "Hemel-en-Aarde, South Africa"]
+};
+
+const SUB_REGION_OPTIONS = {
+  "Champagne, France": ["Montagne de Reims", "Vallee de la Marne", "Cote des Blancs", "Cote de Sezanne", "Aube", "Riceys"],
+  "Bourgogne, France": ["Chablis", "Cote de Nuits", "Cote de Beaune", "Cote Chalonnaise", "Maconnais", "Pouilly-Fuisse", "Saint-Veran"],
+  "Bordeaux, France": ["Pauillac", "Saint-Julien", "Margaux", "Saint-Estephe", "Pomerol", "Saint-Emilion", "Pessac-Leognan", "Graves", "Sauternes", "Barsac"],
+  "Loire Valley, France": ["Sancerre", "Pouilly-Fume", "Vouvray", "Montlouis-sur-Loire", "Muscadet", "Saumur", "Chinon", "Bourgueil", "Anjou"],
+  "Rhone Valley, France": ["Cote-Rotie", "Hermitage", "Crozes-Hermitage", "Cornas", "Condrieu", "Chateauneuf-du-Pape", "Gigondas", "Vacqueyras", "Tavel"],
+  "Alsace, France": ["Ribeauville", "Riquewihr", "Kaysersberg", "Eguisheim", "Turckheim"],
+  "Piemonte, Italy": ["Barolo", "Barbaresco", "Roero", "Langhe", "Monferrato", "Gavi", "Gattinara"],
+  "Toscana, Italy": ["Chianti Classico", "Brunello di Montalcino", "Bolgheri", "Montalcino", "Vino Nobile di Montepulciano", "Maremma Toscana"],
+  "Veneto, Italy": ["Valpolicella", "Amarone della Valpolicella", "Soave", "Bardolino", "Conegliano Valdobbiadene", "Lugana"],
+  "Friuli-Venezia Giulia, Italy": ["Collio", "Colli Orientali del Friuli", "Isonzo", "Carso"],
+  "Etna, Italy": ["Etna Rosso", "Etna Bianco", "Milo", "Randazzo", "Passopisciaro"],
+  "Rioja, Spain": ["Rioja Alta", "Rioja Alavesa", "Rioja Oriental"],
+  "Ribera del Duero, Spain": ["Pesquera", "La Horra", "Roa", "Soria"],
+  "Penedes, Spain": ["Alt Penedes", "Baix Penedes", "Garraf", "Sant Sadurni d'Anoia"],
+  "Mosel, Germany": ["Bernkastel", "Wehlen", "Piesport", "Urzig", "Saar", "Ruwer"],
+  "Rheingau, Germany": ["Rudesheim", "Geisenheim", "Johannisberg", "Hattenheim"],
+  "Nahe, Germany": ["Schlossbockelheim", "Niederhausen", "Bad Kreuznach"],
+  "Napa Valley, USA": ["Oakville", "Rutherford", "Stags Leap District", "Howell Mountain", "Mount Veeder", "Spring Mountain", "Coombsville", "Atlas Peak"],
+  "Sonoma Coast, USA": ["Fort Ross-Seaview", "West Sonoma Coast", "Freestone-Occidental", "Petaluma Gap"],
+  "Russian River Valley, USA": ["Middle Reach", "Santa Rosa Plains", "Green Valley", "Sebastopol Hills"],
+  "Santa Rita Hills, USA": ["Sta. Rita Hills", "Lompoc", "Buellton"],
+  "Willamette Valley, USA": ["Dundee Hills", "Eola-Amity Hills", "Yamhill-Carlton", "Ribbon Ridge", "Chehalem Mountains", "McMinnville"],
+  "Auckland, New Zealand": ["Kumeu", "Matakana", "Waiheke Island"],
+  "Marlborough, New Zealand": ["Wairau Valley", "Awatere Valley", "Southern Valleys"],
+  "Central Otago, New Zealand": ["Bannockburn", "Gibbston", "Cromwell Basin", "Wanaka", "Bendigo"],
+  "Barossa Valley, Australia": ["Eden Valley", "Barossa Ranges", "Seppeltsfield"],
+  "Yarra Valley, Australia": ["Upper Yarra", "Lower Yarra", "Dixons Creek", "Coldstream"],
+  "Margaret River, Australia": ["Wilyabrup", "Wallcliffe", "Treeton", "Yallingup"],
+  "Mendoza, Argentina": ["Lujan de Cuyo", "Maipu", "Uco Valley", "Gualtallary", "Altamira", "Agrelo"],
+  "Uco Valley, Argentina": ["Gualtallary", "Altamira", "Los Chacayes", "Vista Flores", "Tunuyan"],
+  "Casablanca Valley, Chile": ["Lo Ovalle", "Tapihue", "Casablanca Costa"],
+  "Colchagua Valley, Chile": ["Apalta", "Marchigue", "Santa Cruz"],
+  "Stellenbosch, South Africa": ["Simonsberg", "Helderberg", "Polkadraai Hills", "Bottelary Hills"]
+};
+
 const REVIEW_STRUCTURE_FIELDS = {
   red: [
     { key: "sweetness", label: "Sweetness", left: "Sweet", right: "Dry", reverse: true },
@@ -887,7 +938,7 @@ function hydrateTheme() {
 }
 
 function syncThemeButton() {
-  el.themeToggle.textContent = el.body.classList.contains("dark-mode") ? "Light Mode" : "Dark Mode";
+  el.themeToggle.textContent = el.body.classList.contains("dark-mode") ? "\ub77c\uc774\ud2b8 \ubaa8\ub4dc" : "\ub2e4\ud06c \ubaa8\ub4dc";
 }
 
 function bindEvents() {
@@ -909,8 +960,10 @@ function bindEvents() {
   el.wineName.addEventListener("blur", handleWineNameSelection);
   el.wineVarietal.addEventListener("change", persistCustomVarietalFromInput);
   el.wineVarietal.addEventListener("blur", persistCustomVarietalFromInput);
+  el.wineVarietal.addEventListener("input", populateReviewInputs);
   el.wineVarietal.addEventListener("change", populateReviewInputs);
   el.wineVarietal.addEventListener("blur", populateReviewInputs);
+  el.wineRegion.addEventListener("input", populateReviewInputs);
   el.wineRegion.addEventListener("change", populateReviewInputs);
   el.wineRegion.addEventListener("blur", populateReviewInputs);
   el.tastePersona.addEventListener("change", syncTasteEditor);
@@ -936,7 +989,7 @@ function populatePersonaOptions() {
   const reviewOptions = state.personas.length
     ? state.personas.map((persona) => `<option value="${persona.id}">${persona.name}</option>`).join("")
     : '<option value="">\uD398\uB974\uC18C\uB098\uB97C \uBA3C\uC800 \uCD94\uAC00\uD574 \uC8FC\uC138\uC694</option>';
-  const tasteOptions = ['<option value="__new__">+ New Persona</option>']
+  const tasteOptions = ['<option value="__new__">+ \uc0c8 \ud398\ub974\uc18c\ub098</option>']
     .concat(state.personas.map((persona) => `<option value="${persona.id}">${persona.name}</option>`))
     .join("");
 
@@ -987,11 +1040,13 @@ function populateReviewInputs() {
     }
     return String(wine.varietal || "").toLowerCase() === currentVarietal;
   });
-  const regionOptions = [...new Set(regionSource.map((wine) => wine.region).filter(Boolean))].sort((a, b) => a.localeCompare(b));
+  const presetRegionOptions = getPresetRegionOptions(el.wineRegion.value.trim());
+  const regionOptions = [...new Set([...regionSource.map((wine) => wine.region).filter(Boolean), ...presetRegionOptions])].sort((a, b) => a.localeCompare(b));
   el.wineRegionOptions.innerHTML = regionOptions.map((value) => `<option value="${escapeHtml(value)}"></option>`).join("");
   const currentRegion = el.wineRegion.value.trim().toLowerCase();
   const subRegionSource = regionSource.filter((wine) => !currentRegion || String(wine.region || "").toLowerCase() === currentRegion);
-  const subRegionOptions = [...new Set(subRegionSource.map((wine) => wine.subRegion).filter(Boolean))].sort((a, b) => a.localeCompare(b));
+  const presetSubRegionOptions = getPresetSubRegionOptions(el.wineRegion.value.trim());
+  const subRegionOptions = [...new Set([...subRegionSource.map((wine) => wine.subRegion).filter(Boolean), ...presetSubRegionOptions])].sort((a, b) => a.localeCompare(b));
   el.wineSubRegionOptions.innerHTML = subRegionOptions.map((value) => `<option value="${escapeHtml(value)}"></option>`).join("");
   updateWineNameMeta();
 }
@@ -1000,6 +1055,47 @@ function getVarietalOptions(type) {
   const builtin = VARIETAL_OPTIONS[type] || [];
   const custom = Array.isArray(state.customVarietals[type]) ? state.customVarietals[type] : [];
   return [...new Set([...builtin, ...custom])].sort((a, b) => a.localeCompare(b));
+}
+
+function normalizeRegionOption(value) {
+  return String(value || "").trim().toLowerCase();
+}
+
+function getPresetRegionOptions(inputValue = "") {
+  const query = normalizeRegionOption(inputValue);
+  const countries = Object.keys(REGION_OPTIONS);
+  const allRegions = countries.flatMap((country) => REGION_OPTIONS[country] || []);
+  const allOptions = [...countries, ...allRegions];
+  if (!query) {
+    return allOptions;
+  }
+
+  const matchedCountry = countries.find((country) => normalizeRegionOption(country) === query);
+  if (matchedCountry) {
+    return [matchedCountry, ...(REGION_OPTIONS[matchedCountry] || [])];
+  }
+
+  return allOptions.filter((option) => normalizeRegionOption(option).includes(query));
+}
+
+function getPresetSubRegionOptions(regionValue = "") {
+  const normalizedRegion = normalizeRegionOption(regionValue);
+  if (!normalizedRegion) {
+    return [];
+  }
+
+  const directKey = Object.keys(SUB_REGION_OPTIONS).find((key) => normalizeRegionOption(key) === normalizedRegion);
+  if (directKey) {
+    return SUB_REGION_OPTIONS[directKey] || [];
+  }
+
+  const countryKey = Object.keys(REGION_OPTIONS).find((country) => normalizeRegionOption(country) === normalizedRegion);
+  if (countryKey) {
+    return (REGION_OPTIONS[countryKey] || []).flatMap((region) => SUB_REGION_OPTIONS[region] || []);
+  }
+
+  const partialRegion = Object.keys(SUB_REGION_OPTIONS).find((key) => normalizeRegionOption(key).includes(normalizedRegion));
+  return partialRegion ? (SUB_REGION_OPTIONS[partialRegion] || []) : [];
 }
 
 function handleWineNameSelection() {
@@ -1037,22 +1133,22 @@ function handleWineNameSelection() {
 function updateWineNameMeta() {
   const name = el.wineName.value.trim();
   if (!name) {
-    el.wineNameMeta.textContent = "Start typing a wine name, or pick a saved wine to reuse existing identity fields.";
+    el.wineNameMeta.textContent = "\uc640\uc778\uba85\uc744 \uc785\ub825\ud558\uac70\ub098 \uc800\uc7a5\ub41c \uc640\uc778\uc744 \uc120\ud0dd\ud558\uba74 \uae30\uc874 \uae30\ubcf8 \uc815\ubcf4\ub97c \ubc14\ub85c \uac00\uc838\uc62c \uc218 \uc788\uc2b5\ub2c8\ub2e4.";
     return;
   }
 
   const wine = state.wines.find((item) => item.name.toLowerCase() === name.toLowerCase());
   if (!wine) {
-    el.wineNameMeta.textContent = "This looks like a new wine entry. Add the core identity fields and the new card will be created on save.";
+    el.wineNameMeta.textContent = "\uc0c8 \uc640\uc778\uc73c\ub85c \ubcf4\uc785\ub2c8\ub2e4. \ud575\uc2ec \uae30\ubcf8 \uc815\ubcf4\ub97c \uc785\ub825\ud558\uba74 \uc800\uc7a5 \uc2dc \uc0c8 \uce74\ub4dc\uac00 \uc0dd\uc131\ub429\ub2c8\ub2e4.";
     return;
   }
 
   const metaParts = [
-    wine.producer ? `Producer ${wine.producer}` : "",
-    formatRegionPath(wine.region, wine.subRegion) ? `Region ${formatRegionPath(wine.region, wine.subRegion)}` : ""
+    wine.producer ? `\uc0dd\uc0b0\uc790 ${wine.producer}` : "",
+    formatRegionPath(wine.region, wine.subRegion) ? `\uc0b0\uc9c0 ${formatRegionPath(wine.region, wine.subRegion)}` : ""
   ].filter(Boolean);
 
-  el.wineNameMeta.textContent = `${wine.reviews.length} saved review${wine.reviews.length === 1 ? "" : "s"} already exist for this wine.${metaParts.length ? ` ${metaParts.join(" / ")}.` : ""}`;
+  el.wineNameMeta.textContent = `\uc774 \uc640\uc778\uc5d0\ub294 \uc774\ubbf8 ${wine.reviews.length}\uac1c\uc758 \uc800\uc7a5\ub41c \ub9ac\ubdf0\uac00 \uc788\uc2b5\ub2c8\ub2e4.${metaParts.length ? ` ${metaParts.join(" / ")}.` : ""}`;
 }
 
 function findBestWineFromText(normalizedText) {
@@ -1272,7 +1368,7 @@ function renderPersonas() {
 
   el.personaGrid.innerHTML = personas.length
     ? personas.map(renderPersonaCard).join("")
-    : '<div class="empty-state-rich"><strong>\uC544\uC9C1 \uAEBC\uB0B4 \uBCFC \uD398\uB974\uC18C\uB098\uAC00 \uC5C6\uC2B5\uB2C8\uB2E4</strong><span>\uC544\uB798 Persona Studio\uC5D0\uC11C \uC774\uB984, \uD55C \uC904 \uC18C\uAC1C, \uCD5C\uC560 \uD488\uC885\uACFC \uCDE8\uD5A5 \uCD95\uC744 \uBA3C\uC800 \uC785\uB825\uD574 \uBCF4\uC138\uC694. \uCCAB \uD398\uB974\uC18C\uB098\uAC00 \uB9CC\uB4E4\uC5B4\uC9C0\uBA74 \uC774 \uBCF4\uB4DC\uAC00 \uBC14\uB85C \uCC44\uC6CC\uC9D1\uB2C8\uB2E4.</span><a class="review-action" href="#personaStudio">\uD398\uB974\uC18C\uB098 \uB9CC\uB4E4\uAE30</a></div>';
+    : '<div class="empty-state-rich"><strong>\uc544\uc9c1 \uaebc\ub0b4 \ubcfc \ud398\ub974\uc18c\ub098\uac00 \uc5c6\uc2b5\ub2c8\ub2e4</strong><span>\uc544\ub798 \ud398\ub974\uc18c\ub098 \uc2a4\ud29c\ub514\uc624\uc5d0\uc11c \uc774\ub984, \ud55c \uc904 \uc18c\uac1c, \ucd5c\uc560 \ud488\uc885\uacfc \ucde8\ud5a5 \ucd95\uc744 \uba3c\uc800 \uc785\ub825\ud574 \ubcf4\uc138\uc694. \uccab \ud398\ub974\uc18c\ub098\uac00 \ub9cc\ub4e4\uc5b4\uc9c0\uba74 \uc774 \ubcf4\ub4dc\uac00 \ubc14\ub85c \ucc44\uc6cc\uc9d1\ub2c8\ub2e4.</span><a class="review-action" href="#personaStudio">\ud398\ub974\uc18c\ub098 \ub9cc\ub4e4\uae30</a></div>';
   attachTasteTabs();
   attachPersonaActions();
 }
@@ -1366,13 +1462,13 @@ function renderCompactPersonaCard(persona, summary, insights) {
         </div>
       </div>
       <div class="persona-summary-tags">
-        <span class="persona-summary-chip">Red ${formatPrimaryFavorite(persona.tastes.red)}</span>
-        <span class="persona-summary-chip">White ${formatPrimaryFavorite(persona.tastes.white)}</span>
+        <span class="persona-summary-chip">&#xb808;&#xb4dc; ${formatPrimaryFavorite(persona.tastes.red)}</span>
+        <span class="persona-summary-chip">&#xd654;&#xc774;&#xd2b8; ${formatPrimaryFavorite(persona.tastes.white)}</span>
       </div>
       <div class="persona-summary-metrics">
-        <div class="persona-summary-metric"><span>Avg</span><strong>${insights.averageLabel}</strong></div>
-        <button type="button" class="persona-summary-metric action" data-action="focus-persona-reviews" data-persona-id="${persona.id}"><span>Reviews</span><strong>${insights.reviewCount}</strong></button>
-        <button type="button" class="persona-summary-metric action" data-action="jump-to-review" data-persona-id="${persona.id}" data-wine-id="${insights.latestReview?.wineId || ""}" data-review-id="${insights.latestReview?.reviewId || ""}" ${insights.latestReview ? "" : "disabled"}><span>Latest</span><strong>${insights.latestReview?.wineName || "-"}</strong></button>
+        <div class="persona-summary-metric"><span>&#xd3c9;&#xade0;</span><strong>${insights.averageLabel}</strong></div>
+        <button type="button" class="persona-summary-metric action" data-action="focus-persona-reviews" data-persona-id="${persona.id}"><span>&#xb9ac;&#xbdf0;</span><strong>${insights.reviewCount}</strong></button>
+        <button type="button" class="persona-summary-metric action" data-action="jump-to-review" data-persona-id="${persona.id}" data-wine-id="${insights.latestReview?.wineId || ""}" data-review-id="${insights.latestReview?.reviewId || ""}" ${insights.latestReview ? "" : "disabled"}><span>&#xcd5c;&#xc2e0;</span><strong>${insights.latestReview?.wineName || "-"}</strong></button>
       </div>
     </summary>
     <div class="persona-summary-body">
@@ -1443,7 +1539,7 @@ function renderFavoritePills(taste, emptyLabel = "&#xC544;&#xC9C1; &#xC785;&#xB8
 function formatPrimaryFavorite(taste) {
   const first = normalizeTaste(taste || {}).favoritePairs?.[0] || {};
   const parts = [first.varietal, first.region].filter(Boolean);
-  return parts.length ? parts.join(" - ") : "Not set";
+  return parts.length ? parts.join(" - ") : "\ubbf8\uc124\uc815";
 }
 
 function renderPersonaReviewLinks(items, emptyMessage, ranked = false) {
@@ -1560,7 +1656,7 @@ function filteredWines() {
 function renderWines() {
   const wines = filteredWines();
   if (!wines.length) {
-    el.wineGrid.innerHTML = '<div class="empty-state-rich"><strong>No wines match this view yet.</strong><span>Widen the filters or add the next bottle from Review Studio below.</span><a class="review-action" href="#reviewStudio">Go to Review Studio</a></div>';
+    el.wineGrid.innerHTML = '<div class="empty-state-rich"><strong>\ud604\uc7ac \uc870\uac74\uc5d0 \ub9de\ub294 \uc640\uc778\uc774 \uc5c6\uc2b5\ub2c8\ub2e4.</strong><span>\ud544\ud130\ub97c \uc870\uae08 \ub113\ud788\uac70\ub098 \uc544\ub798 \ub9ac\ubdf0 \uc2a4\ud29c\ub514\uc624\uc5d0\uc11c \ub2e4\uc74c \uc640\uc778\uc744 \ucd94\uac00\ud574 \ubcf4\uc138\uc694.</span><a class="review-action" href="#reviewStudio">\ub9ac\ubdf0 \uc2a4\ud29c\ub514\uc624\ub85c \uc774\ub3d9</a></div>';
     return;
   }
 
@@ -1582,20 +1678,20 @@ function renderWineCard(wine) {
     ? `Wine-Searcher / Manual &#xAC00;&#xACA9; &#xBA54;&#xBAA8;: ${wine.averagePrice}`
     : "&#xC544;&#xC9C1; &#xD3C9;&#xADE0;&#xAC00; &#xBA54;&#xBAA8;&#xAC00; &#xC5C6;&#xC2B5;&#xB2C8;&#xB2E4;.";
   const wineActions = `<div class="button-row wine-card-actions"><button type="button" class="review-action" data-action="write-review-for-wine" data-wine-id="${wine.id}">&#xC774; &#xC640;&#xC778;&#xC5D0; &#xB9AC;&#xBDF0; &#xC4F0;&#xAE30;</button></div>`;
-  const wineAdminAction = state.isAdmin ? `<button type="button" class="review-action danger icon-action" data-action="delete-wine" data-wine-id="${wine.id}" title="Delete this wine" aria-label="Delete this wine">&#x1F5D1;</button>` : "";
+  const wineAdminAction = state.isAdmin ? `<button type="button" class="review-action danger icon-action" data-action="delete-wine" data-wine-id="${wine.id}" title="&#xc774; &#xc640;&#xc778; &#xc0ad;&#xc81c;" aria-label="&#xc774; &#xc640;&#xc778; &#xc0ad;&#xc81c;">&#x1F5D1;</button>` : "";
   const reviewShell = visibleReviews.length
-    ? `<div class="review-stack-title"><strong>&#xB9AC;&#xBDF0; &amp; &#xB313;&#xAE00;</strong><span>${visibleReviews.length} reviews</span></div>${reviewMarkup}`
+    ? `<div class="review-stack-title"><strong>&#xB9AC;&#xBDF0; &amp; &#xB313;&#xAE00;</strong><span>${visibleReviews.length}&#xac1c; &#xb9ac;&#xbdf0;</span></div>${reviewMarkup}`
     : `<div class="review-empty review-empty-rich"><strong>&#xC544;&#xC9C1; &#xCCAB; &#xB9AC;&#xBDF0;&#xAC00; &#xC5C6;&#xC2B5;&#xB2C8;&#xB2E4;</strong><span>&#xC774; &#xC640;&#xC778;&#xC758; &#xCCAB; &#xC778;&#xC0C1;&#xC744; &#xB0A8;&#xAE30;&#xBA74; &#xB2E4;&#xC74C; &#xC0AC;&#xB78C;&#xC774; &#xBE60;&#xB974;&#xAC8C; &#xCC38;&#xACE0;&#xD560; &#xC218; &#xC788;&#xC2B5;&#xB2C8;&#xB2E4;.</span><button type="button" class="review-action" data-action="write-review-for-wine" data-wine-id="${wine.id}">&#xCCAB; &#xB9AC;&#xBDF0; &#xC4F0;&#xAE30;</button></div>`;
 
   return `<details class="wine-card wine-summary-card ${typeClass}" id="wine-${wine.id}">
     <summary class="wine-summary-row">
       <div class="wine-summary-copy">
         <strong>${wine.name}</strong>
-        <span>${[wine.producer, wine.vintage].filter(Boolean).join(" / ") || "Producer or vintage not added yet"}</span>
+        <span>${[wine.producer, wine.vintage].filter(Boolean).join(" / ") || "\uc0dd\uc0b0\uc790 \ub610\ub294 \ube48\ud2f0\uc9c0\uac00 \uc544\uc9c1 \uc5c6\uc2b5\ub2c8\ub2e4"}</span>
       </div>
       <div class="wine-summary-bar">
-        <span class="wine-summary-pill">Reviews ${visibleReviews.length}</span>
-        <span class="wine-summary-pill">Avg ${averageScore}</span>
+        <span class="wine-summary-pill">\ub9ac\ubdf0 ${visibleReviews.length}</span>
+        <span class="wine-summary-pill">\ud3c9\uade0 ${averageScore}</span>
       </div>
       <div class="wine-card-head-actions"><span class="type-badge ${typeClass}">${wine.type}</span></div>
     </summary>
@@ -1738,7 +1834,7 @@ function renderRecentReviews() {
 function renderReviewStructureSnapshot(review, type) {
   const fields = getStructureFields(type);
   const groups = getStructureGroups(type);
-  return `<div class="review-section-shell"><div class="review-stack-title"><strong>&#xAD6C;&#xC870; &#xD3C9;&#xAC00;</strong><span>${fields.length} axes</span></div><div class="structure-detail-grid">${groups.map((group) => renderStructureFieldGroup(group, review.structure || {})).join("")}</div></div>`;
+  return `<div class="review-section-shell"><div class="review-stack-title"><strong>&#xAD6C;&#xC870; &#xD3C9;&#xAC00;</strong><span>${fields.length}&#xac1c; &#xd56d;&#xbaa9;</span></div><div class="structure-detail-grid">${groups.map((group) => renderStructureFieldGroup(group, review.structure || {})).join("")}</div></div>`;
 }
 
 function renderStructureFieldGroup(group, structure) {
@@ -1760,9 +1856,9 @@ function describeStructurePosition(field, rawValue) {
     return field.right;
   }
   if (value === 4) {
-    return "Balanced";
+    return "\uade0\ud615";
   }
-  return value < 4 ? `Leaning ${field.left}` : `Leaning ${field.right}`;
+  return value < 4 ? `${field.left} \ucabd` : `${field.right} \ucabd`;
 }
 
 function renderAromaSummary(review) {
@@ -1776,13 +1872,13 @@ function renderAromaSummary(review) {
     return "";
   }
 
-  return `<div class="review-section-shell"><div class="review-stack-title"><strong>&#xD5A5;&#xBBF8; &#xD504;&#xB85C;&#xD30C;&#xC77C;</strong><span>${groups.length} layers</span></div><div class="review-detail-grid">${groups.map((group) => `<div class="review-detail-block aroma-detail-block"><h4>${translateAromaLayerLabel(group.label)}</h4><div class="selected-aromas">${group.values.map((value) => `<span class="pill">${value}</span>`).join("")}</div></div>`).join("")}</div></div>`;
+  return `<div class="review-section-shell"><div class="review-stack-title"><strong>&#xD5A5;&#xBBF8; &#xD504;&#xB85C;&#xD30C;&#xC77C;</strong><span>${groups.length}&#xac1c; &#xb808;&#xc774;&#xc5b4;</span></div><div class="review-detail-grid">${groups.map((group) => `<div class="review-detail-block aroma-detail-block"><h4>${translateAromaLayerLabel(group.label)}</h4><div class="selected-aromas">${group.values.map((value) => `<span class="pill">${value}</span>`).join("")}</div></div>`).join("")}</div></div>`;
 }
 
 function translateAromaLayerLabel(label) {
-  if (label === "Primary") return "Primary";
-  if (label === "Secondary") return "Secondary";
-  if (label === "Tertiary") return "Tertiary";
+  if (label === "Primary") return "Primary (1\ucc28)";
+  if (label === "Secondary") return "Secondary (2\ucc28)";
+  if (label === "Tertiary") return "Tertiary (3\ucc28)";
   return label;
 }
 
@@ -1832,7 +1928,7 @@ function updateAuthUi() {
     }
     el.logoutButton.hidden = false;
   } else {
-    el.authBadge.textContent = "Admin Locked";
+    el.authBadge.textContent = "\uad00\ub9ac\uc790 \uc7a0\uae08";
     el.authStatus.innerHTML = "&#xC544;&#xC9C1; &#xB85C;&#xADF8;&#xC778;&#xB418;&#xC9C0; &#xC54A;&#xC558;&#xC2B5;&#xB2C8;&#xB2E4;.";
     if (el.authHelp) {
       el.authHelp.innerHTML = `&#xAD00;&#xB9AC;&#xC790; &#xC774;&#xBA54;&#xC77C;(${ADMIN_EMAILS.join(", ")})&#xB85C; &#xB85C;&#xADF8;&#xC778;&#xD558;&#xBA74; &#xD3B8;&#xC9D1; &#xAD8C;&#xD55C;&#xC774; &#xC5F4;&#xB9BD;&#xB2C8;&#xB2E4;.`;
@@ -2475,7 +2571,7 @@ async function handleReviewDelete(wineId, reviewId) {
     return;
   }
 
-  const ok = window.confirm(`Delete this review for '${wine.name}'?`);
+  const ok = window.confirm(`'${wine.name}' \ub9ac\ubdf0\ub97c \uc0ad\uc81c\ud560\uae4c\uc694?`);
   if (!ok) {
     return;
   }
@@ -2584,7 +2680,7 @@ async function handlePersonaDelete() {
     return;
   }
 
-  const ok = window.confirm(`Delete the persona profile for ${persona.name}? Reviews connected to this persona will be removed as well.`);
+  const ok = window.confirm(`${persona.name} \ud398\ub974\uc18c\ub098 \ud504\ub85c\ud544\uc744 \uc0ad\uc81c\ud560\uae4c\uc694? \uc5f0\uacb0\ub41c \ub9ac\ubdf0\ub3c4 \ud568\uaed8 \uc81c\uac70\ub429\ub2c8\ub2e4.`);
   if (!ok) {
     return;
   }
@@ -2609,14 +2705,14 @@ async function handlePersonaDelete() {
 async function handleImageLookup() {
   const query = buildWineLookupQuery();
   if (!query.primary) {
-    el.fetchStatus.textContent = "Add a wine name first so image suggestions can search accurately. Producer, region, or vintage will make the results better.";
+    el.fetchStatus.textContent = "\uc774\ubbf8\uc9c0 \ud6c4\ubcf4\ub97c \ucc3e\uc73c\ub824\uba74 \uba3c\uc800 \uc640\uc778\uba85\uc744 \uc785\ub825\ud574 \uc8fc\uc138\uc694. \uc0dd\uc0b0\uc790, \uc0b0\uc9c0, \ube48\ud2f0\uc9c0\uac00 \uc788\uc73c\uba74 \ub354 \uc815\ud655\ud574\uc9d1\ub2c8\ub2e4.";
     return;
   }
 
   state.imageCandidates = [];
   renderImageCandidates();
   setUploadFallbackVisible(false);
-  el.fetchStatus.textContent = "Looking for image candidates. If no strong match appears, you can keep using your own uploaded photo.";
+  el.fetchStatus.textContent = "\uc774\ubbf8\uc9c0 \ud6c4\ubcf4\ub97c \ucc3e\ub294 \uc911\uc785\ub2c8\ub2e4. \uc801\ud569\ud55c \ud6c4\ubcf4\uac00 \uc5c6\uc73c\uba74 \uc9c0\uae08 \uc5c5\ub85c\ub4dc\ud55c \uc0ac\uc9c4\uc744 \uadf8\ub300\ub85c \uc0ac\uc6a9\ud558\uba74 \ub429\ub2c8\ub2e4.";
 
   try {
     const data = await requestWineLookup("image", query);
@@ -2625,8 +2721,8 @@ async function handleImageLookup() {
     renderImageCandidates();
 
     if (!state.imageCandidates.length) {
-      setUploadFallbackVisible(true, "No image candidates came back, so direct upload is the best path for this wine.");
-      el.fetchStatus.textContent = data.note || "No image suggestions were found. Uploading your own bottle photo will be the fastest option.";
+      setUploadFallbackVisible(true, "\uc774\ubbf8\uc9c0 \ud6c4\ubcf4\uac00 \uc5c6\uc5b4 \uc9c1\uc811 \uc5c5\ub85c\ub4dc \ubc29\uc2dd\uc774 \uac00\uc7a5 \ube60\ub985\ub2c8\ub2e4.");
+      el.fetchStatus.textContent = data.note || "\uc774\ubbf8\uc9c0 \ud6c4\ubcf4\ub97c \ucc3e\uc9c0 \ubabb\ud588\uc2b5\ub2c8\ub2e4. \ubcd1 \uc0ac\uc9c4\uc744 \uc9c1\uc811 \uc5c5\ub85c\ub4dc\ud558\ub294 \uac83\uc774 \uac00\uc7a5 \ube60\ub985\ub2c8\ub2e4.";
       return;
     }
 
@@ -2634,38 +2730,38 @@ async function handleImageLookup() {
     if (!el.wineImage.value.trim() && state.imageCandidates[0]?.image_url) {
       applyImageCandidate(state.imageCandidates[0]);
     } else {
-      el.fetchStatus.textContent = data.note || `${state.imageCandidates.length} image candidate(s) found. Pick one if it looks right, or keep your uploaded image instead.`;
+      el.fetchStatus.textContent = data.note || `${state.imageCandidates.length}\uac1c\uc758 \uc774\ubbf8\uc9c0 \ud6c4\ubcf4\ub97c \ucc3e\uc558\uc2b5\ub2c8\ub2e4. \uc801\uc808\ud55c \ud6c4\ubcf4\ub97c \uace0\ub974\uac70\ub098 \uc5c5\ub85c\ub4dc\ud55c \uc774\ubbf8\uc9c0\ub97c \uadf8\ub300\ub85c \uc720\uc9c0\ud560 \uc218 \uc788\uc2b5\ub2c8\ub2e4.`;
     }
   } catch (error) {
-    setUploadFallbackVisible(true, "Image lookup is unavailable right now. Uploading from your library will keep the review moving.");
-    el.fetchStatus.textContent = `Image suggestions could not be loaded. ${error.message || "Check the Cloudflare Function or image lookup API configuration."}`;
+    setUploadFallbackVisible(true, "\ud604\uc7ac \uc774\ubbf8\uc9c0 \uc870\ud68c\ub97c \uc0ac\uc6a9\ud560 \uc218 \uc5c6\uc2b5\ub2c8\ub2e4. \uc0ac\uc9c4 \ubcf4\uad00\ud568 \uc5c5\ub85c\ub4dc\ub85c \ubc14\ub85c \uc9c4\ud589\ud560 \uc218 \uc788\uc2b5\ub2c8\ub2e4.");
+    el.fetchStatus.textContent = `\uc774\ubbf8\uc9c0 \ud6c4\ubcf4\ub97c \ubd88\ub7ec\uc624\uc9c0 \ubabb\ud588\uc2b5\ub2c8\ub2e4. ${error.message || "Cloudflare Function \ub610\ub294 \uc774\ubbf8\uc9c0 \uc870\ud68c API \uc124\uc815\uc744 \ud655\uc778\ud574 \uc8fc\uc138\uc694."}`;
   }
 }
 async function handlePriceLookup() {
   const query = buildWineLookupQuery();
   if (!query.primary) {
-    el.fetchStatus.textContent = "Add a wine name first so price lookup has enough context. Producer, region, or vintage helps a lot here too.";
+    el.fetchStatus.textContent = "\uac00\uaca9 \uc870\ud68c\ub97c \ud558\ub824\uba74 \uba3c\uc800 \uc640\uc778\uba85\uc744 \uc785\ub825\ud574 \uc8fc\uc138\uc694. \uc0dd\uc0b0\uc790, \uc0b0\uc9c0, \ube48\ud2f0\uc9c0\uac00 \uc788\uc73c\uba74 \ub354 \uc815\ud655\ud574\uc9d1\ub2c8\ub2e4.";
     return;
   }
 
   const existingWine = findClosestExistingWine();
   if (existingWine?.averagePrice && !el.winePrice.value.trim()) {
     el.winePrice.value = existingWine.averagePrice;
-    el.fetchStatus.textContent = `Copied the saved average price from '${existingWine.name}'. You can still edit it before saving this review.`;
+    el.fetchStatus.textContent = `'${existingWine.name}'\uc5d0 \uc800\uc7a5\ub41c \ud3c9\uade0\uac00\ub97c \uac00\uc838\uc654\uc2b5\ub2c8\ub2e4. \uc800\uc7a5 \uc804\uc5d0 \uc790\uc720\ub86d\uac8c \uc218\uc815\ud560 \uc218 \uc788\uc2b5\ub2c8\ub2e4.`;
     return;
   }
 
-  el.fetchStatus.textContent = "Checking for an average market price...";
+  el.fetchStatus.textContent = "\ud3c9\uade0 \uc2dc\uc138\ub97c \ud655\uc778\ud558\ub294 \uc911\uc785\ub2c8\ub2e4...";
   try {
     const data = await requestWineLookup("price", query);
     if (data.average_price) {
       el.winePrice.value = data.average_price;
-      el.fetchStatus.textContent = data.note || "Average price loaded into the form. Review it before saving if needed.";
+      el.fetchStatus.textContent = data.note || "\ud3c9\uade0\uac00\ub97c \uc785\ub825 \uce78\uc5d0 \ubc18\uc601\ud588\uc2b5\ub2c8\ub2e4. \ud544\uc694\ud558\uba74 \uc800\uc7a5 \uc804\uc5d0 \uc218\uc815\ud558\uc138\uc694.";
       return;
     }
-    el.fetchStatus.textContent = "No average price was returned. You can leave the field blank or type your own estimate.";
+    el.fetchStatus.textContent = "\ud3c9\uade0\uac00\ub97c \ucc3e\uc9c0 \ubabb\ud588\uc2b5\ub2c8\ub2e4. \ube44\uc6cc \ub450\uac70\ub098 \uc9c1\uc811 \uc785\ub825\ud560 \uc218 \uc788\uc2b5\ub2c8\ub2e4.";
   } catch (error) {
-    el.fetchStatus.textContent = `Price lookup could not be completed. ${error.message || "Check the Cloudflare Function or price API configuration."}`;
+    el.fetchStatus.textContent = `\uac00\uaca9 \uc870\ud68c\ub97c \uc644\ub8cc\ud558\uc9c0 \ubabb\ud588\uc2b5\ub2c8\ub2e4. ${error.message || "Cloudflare Function \ub610\ub294 \uac00\uaca9 API \uc124\uc815\uc744 \ud655\uc778\ud574 \uc8fc\uc138\uc694."}`;
   }
 }
 
@@ -2917,8 +3013,8 @@ function syncPersonaImagePreview(sourceLabel = "") {
   }
   if (el.personaImageCaption) {
     el.personaImageCaption.textContent = customImage
-      ? (sourceLabel ? `Selected image source: ${sourceLabel}` : "A custom persona photo is active for this profile.")
-      : "If no image is selected, the default avatar appears automatically. A library upload updates the card right away.";
+      ? (sourceLabel ? `\uc120\ud0dd\ub41c \uc774\ubbf8\uc9c0 \ucd9c\ucc98: ${sourceLabel}` : "\uc774 \ud504\ub85c\ud544\uc5d0\ub294 \uc0ac\uc6a9\uc790 \uc9c0\uc815 \ud398\ub974\uc18c\ub098 \uc0ac\uc9c4\uc774 \uc801\uc6a9\ub418\uc5b4 \uc788\uc2b5\ub2c8\ub2e4.")
+      : "\uc774\ubbf8\uc9c0\ub97c \uc120\ud0dd\ud558\uc9c0 \uc54a\uc73c\uba74 \uae30\ubcf8 \uc544\ubc14\ud0c0\uac00 \uc790\ub3d9\uc73c\ub85c \ud45c\uc2dc\ub429\ub2c8\ub2e4. \ubcf4\uad00\ud568 \uc5c5\ub85c\ub4dc \uc2dc \uce74\ub4dc\uc5d0 \ubc14\ub85c \ubc18\uc601\ub429\ub2c8\ub2e4.";
   }
 }
 
@@ -3139,7 +3235,7 @@ async function handleWineDelete(wineId) {
     return;
   }
 
-  const ok = window.confirm(`Delete the saved wine '${wine.name}'? This will also remove the reviews connected to it.`);
+  const ok = window.confirm(`\uc800\uc7a5\ub41c \uc640\uc778 '${wine.name}'\uc744 \uc0ad\uc81c\ud560\uae4c\uc694? \uc5f0\uacb0\ub41c \ub9ac\ubdf0\ub3c4 \ud568\uaed8 \uc81c\uac70\ub429\ub2c8\ub2e4.`);
   if (!ok) {
     return;
   }
