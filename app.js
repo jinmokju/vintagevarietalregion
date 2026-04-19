@@ -238,8 +238,8 @@ const seedWines = [
     averagePrice: "KRW 165,000",
     image: makePlaceholderImage("Bloom's Field", "#b04158", "#efd8c8"),
     reviews: [
-      { id: "local-r1", personaId: "mina", note: "산뜻한 붉은 과실과 또렷한 산도가 앞에 나서고, 오크는 과하지 않게 받쳐 주는 스타일입니다.", createdAt: "2026-04-08" },
-      { id: "local-r2", personaId: "soyeon", note: "향이 빨리 열리고 피니시가 깔끔해 마시기 편한 방향이었습니다.", createdAt: "2026-04-09" }
+      { id: "local-r1", personaId: "mina", note: "Bright red fruit sits on top, then the wine settles into a calm savory finish that keeps the whole note focused.", createdAt: "2026-04-08" },
+      { id: "local-r2", personaId: "soyeon", note: "The texture feels silky first, then a gentle herbal tone pulls the wine toward a more elegant direction.", createdAt: "2026-04-09" }
     ]
   },
   {
@@ -252,8 +252,8 @@ const seedWines = [
     averagePrice: "KRW 52,000",
     image: makePlaceholderImage("Kumeu River", "#d2b04c", "#fff0c5"),
     reviews: [
-      { id: "local-r3", personaId: "jun", note: "가벼운 바디 안에서 산도와 미네랄이 살아 있어 음식과 곁들이기 좋았습니다.", createdAt: "2026-04-07" },
-      { id: "local-r4", personaId: "eun", note: "오크가 과하게 드러나기보다 과실과 질감을 정리해 주는 쪽이라 마무리가 편안했습니다.", createdAt: "2026-04-10" }
+      { id: "local-r3", personaId: "jun", note: "Light body, clear acidity, and a mineral line make this easy to return to across a full meal.", createdAt: "2026-04-07" },
+      { id: "local-r4", personaId: "eun", note: "Instead of flashy oak, the wine feels composed and polished, with the finish doing most of the work.", createdAt: "2026-04-10" }
     ]
   }
 ];
@@ -357,6 +357,8 @@ const el = {
   logoutButton: document.getElementById("logoutButton"),
   authBadge: document.getElementById("authBadge"),
   authHelp: document.getElementById("authHelp"),
+  newPassword: document.getElementById("newPassword"),
+  confirmPassword: document.getElementById("confirmPassword"),
   reviewSubmitLabel: document.getElementById("reviewSubmitLabel"),
   cancelEditButton: document.getElementById("cancelEditButton"),
   deletePersonaButton: document.getElementById("deletePersonaButton")
@@ -839,13 +841,13 @@ function findMatchingAroma(category, type, candidate) {
 function addCustomAroma(category, type, groupName, rawValue) {
   const value = rawValue.trim();
   if (!value) {
-    return { ok: false, message: "새 향미를 입력해 주세요." };
+    return { ok: false, message: "Type an aroma note before adding it." };
   }
 
   const match = findMatchingAroma(category, type, value);
   if (match) {
     toggleAromaSelection(category, match, true);
-    return { ok: false, message: `비슷한 향미 '${match}'가 이미 있어서 그 항목을 바로 선택했습니다.` };
+    return { ok: false, message: `'${match}' is already available, so it was selected instead of creating a duplicate.` };
   }
 
   const typeKey = getAromaTypeKey(type);
@@ -856,7 +858,7 @@ function addCustomAroma(category, type, groupName, rawValue) {
   state.customAromas[category][typeKey][groupName].sort((a, b) => a.localeCompare(b));
   saveLocal();
   toggleAromaSelection(category, value, true);
-  return { ok: true, message: `'${value}' 향미를 새 항목으로 추가했습니다.` };
+  return { ok: true, message: `'${value}' was added to the custom aroma list and selected.` };
 }
 
 function loadLocal(key, fallback) {
@@ -1035,22 +1037,22 @@ function handleWineNameSelection() {
 function updateWineNameMeta() {
   const name = el.wineName.value.trim();
   if (!name) {
-    el.wineNameMeta.textContent = "기존 와인을 고르면 관련 정보와 리뷰 수를 바로 채워옵니다.";
+    el.wineNameMeta.textContent = "Start typing a wine name, or pick a saved wine to reuse existing identity fields.";
     return;
   }
 
   const wine = state.wines.find((item) => item.name.toLowerCase() === name.toLowerCase());
   if (!wine) {
-    el.wineNameMeta.textContent = "새 와인으로 입력 중입니다. 필요한 값만 보정해서 바로 저장하면 됩니다.";
+    el.wineNameMeta.textContent = "This looks like a new wine entry. Add the core identity fields and the new card will be created on save.";
     return;
   }
 
   const metaParts = [
-    wine.producer ? `생산자 ${wine.producer}` : "",
-    formatRegionPath(wine.region, wine.subRegion) ? `산지 ${formatRegionPath(wine.region, wine.subRegion)}` : ""
+    wine.producer ? `Producer ${wine.producer}` : "",
+    formatRegionPath(wine.region, wine.subRegion) ? `Region ${formatRegionPath(wine.region, wine.subRegion)}` : ""
   ].filter(Boolean);
 
-  el.wineNameMeta.textContent = `${wine.reviews.length}개 리뷰가 쌓인 기존 와인입니다.${metaParts.length ? ` ${metaParts.join(" · ")}.` : ""}`;
+  el.wineNameMeta.textContent = `${wine.reviews.length} saved review${wine.reviews.length === 1 ? "" : "s"} already exist for this wine.${metaParts.length ? ` ${metaParts.join(" / ")}.` : ""}`;
 }
 
 function findBestWineFromText(normalizedText) {
@@ -1558,7 +1560,7 @@ function filteredWines() {
 function renderWines() {
   const wines = filteredWines();
   if (!wines.length) {
-    el.wineGrid.innerHTML = '<div class="empty-state-rich"><strong>아직 조건에 맞는 와인이 없습니다</strong><span>검색어나 리뷰어 필터를 조금 풀어 보거나, 아래 Review Studio에서 새 리뷰를 먼저 한 병 추가해 보세요.</span><a class="review-action" href="#reviewStudio">리뷰 쓰러 가기</a></div>';
+    el.wineGrid.innerHTML = '<div class="empty-state-rich"><strong>No wines match this view yet.</strong><span>Widen the filters or add the next bottle from Review Studio below.</span><a class="review-action" href="#reviewStudio">Go to Review Studio</a></div>';
     return;
   }
 
@@ -1580,16 +1582,16 @@ function renderWineCard(wine) {
     ? `Wine-Searcher / Manual &#xAC00;&#xACA9; &#xBA54;&#xBAA8;: ${wine.averagePrice}`
     : "&#xC544;&#xC9C1; &#xD3C9;&#xADE0;&#xAC00; &#xBA54;&#xBAA8;&#xAC00; &#xC5C6;&#xC2B5;&#xB2C8;&#xB2E4;.";
   const wineActions = `<div class="button-row wine-card-actions"><button type="button" class="review-action" data-action="write-review-for-wine" data-wine-id="${wine.id}">&#xC774; &#xC640;&#xC778;&#xC5D0; &#xB9AC;&#xBDF0; &#xC4F0;&#xAE30;</button></div>`;
-  const wineAdminAction = state.isAdmin ? `<button type="button" class="review-action danger icon-action" data-action="delete-wine" data-wine-id="${wine.id}" title="등록된 와인 삭제" aria-label="등록된 와인 삭제">&#x1F5D1;</button>` : "";
+  const wineAdminAction = state.isAdmin ? `<button type="button" class="review-action danger icon-action" data-action="delete-wine" data-wine-id="${wine.id}" title="Delete this wine" aria-label="Delete this wine">&#x1F5D1;</button>` : "";
   const reviewShell = visibleReviews.length
-    ? `<div class="review-stack-title"><strong>&#xB9AC;&#xBDF0; &amp; &#xB313;&#xAE00;</strong><span>${visibleReviews.length}개 리뷰</span></div>${reviewMarkup}`
+    ? `<div class="review-stack-title"><strong>&#xB9AC;&#xBDF0; &amp; &#xB313;&#xAE00;</strong><span>${visibleReviews.length} reviews</span></div>${reviewMarkup}`
     : `<div class="review-empty review-empty-rich"><strong>&#xC544;&#xC9C1; &#xCCAB; &#xB9AC;&#xBDF0;&#xAC00; &#xC5C6;&#xC2B5;&#xB2C8;&#xB2E4;</strong><span>&#xC774; &#xC640;&#xC778;&#xC758; &#xCCAB; &#xC778;&#xC0C1;&#xC744; &#xB0A8;&#xAE30;&#xBA74; &#xB2E4;&#xC74C; &#xC0AC;&#xB78C;&#xC774; &#xBE60;&#xB974;&#xAC8C; &#xCC38;&#xACE0;&#xD560; &#xC218; &#xC788;&#xC2B5;&#xB2C8;&#xB2E4;.</span><button type="button" class="review-action" data-action="write-review-for-wine" data-wine-id="${wine.id}">&#xCCAB; &#xB9AC;&#xBDF0; &#xC4F0;&#xAE30;</button></div>`;
 
   return `<details class="wine-card wine-summary-card ${typeClass}" id="wine-${wine.id}">
     <summary class="wine-summary-row">
       <div class="wine-summary-copy">
         <strong>${wine.name}</strong>
-        <span>${[wine.producer, wine.vintage].filter(Boolean).join(" / ") || "와이너리 미입력"}</span>
+        <span>${[wine.producer, wine.vintage].filter(Boolean).join(" / ") || "Producer or vintage not added yet"}</span>
       </div>
       <div class="wine-summary-bar">
         <span class="wine-summary-pill">Reviews ${visibleReviews.length}</span>
@@ -1736,7 +1738,7 @@ function renderRecentReviews() {
 function renderReviewStructureSnapshot(review, type) {
   const fields = getStructureFields(type);
   const groups = getStructureGroups(type);
-  return `<div class="review-section-shell"><div class="review-stack-title"><strong>&#xAD6C;&#xC870; &#xD3C9;&#xAC00;</strong><span>${fields.length}개 축</span></div><div class="structure-detail-grid">${groups.map((group) => renderStructureFieldGroup(group, review.structure || {})).join("")}</div></div>`;
+  return `<div class="review-section-shell"><div class="review-stack-title"><strong>&#xAD6C;&#xC870; &#xD3C9;&#xAC00;</strong><span>${fields.length} axes</span></div><div class="structure-detail-grid">${groups.map((group) => renderStructureFieldGroup(group, review.structure || {})).join("")}</div></div>`;
 }
 
 function renderStructureFieldGroup(group, structure) {
@@ -1774,13 +1776,13 @@ function renderAromaSummary(review) {
     return "";
   }
 
-  return `<div class="review-section-shell"><div class="review-stack-title"><strong>&#xD5A5;&#xBBF8; &#xD504;&#xB85C;&#xD30C;&#xC77C;</strong><span>${groups.length}개 레이어</span></div><div class="review-detail-grid">${groups.map((group) => `<div class="review-detail-block aroma-detail-block"><h4>${translateAromaLayerLabel(group.label)}</h4><div class="selected-aromas">${group.values.map((value) => `<span class="pill">${value}</span>`).join("")}</div></div>`).join("")}</div></div>`;
+  return `<div class="review-section-shell"><div class="review-stack-title"><strong>&#xD5A5;&#xBBF8; &#xD504;&#xB85C;&#xD30C;&#xC77C;</strong><span>${groups.length} layers</span></div><div class="review-detail-grid">${groups.map((group) => `<div class="review-detail-block aroma-detail-block"><h4>${translateAromaLayerLabel(group.label)}</h4><div class="selected-aromas">${group.values.map((value) => `<span class="pill">${value}</span>`).join("")}</div></div>`).join("")}</div></div>`;
 }
 
 function translateAromaLayerLabel(label) {
-  if (label === "Primary") return "1차 향";
-  if (label === "Secondary") return "2차 향";
-  if (label === "Tertiary") return "3차 향";
+  if (label === "Primary") return "Primary";
+  if (label === "Secondary") return "Secondary";
+  if (label === "Tertiary") return "Tertiary";
   return label;
 }
 
@@ -1989,17 +1991,17 @@ function renderAromaSelector(category, type) {
 
   selectedHost.innerHTML = values.length
     ? values.map((value) => `<span class="pill">${value}</span>`).join("")
-    : '<span class="muted">아직 선택한 향미가 없습니다.</span>';
+    : '<span class="muted">No aromas selected yet.</span>';
 
   selector.innerHTML = `
     <div class="aroma-add-row">
       <select data-aroma-group="${category}">
         ${groupNames.map((groupName) => `<option value="${groupName}">${groupName}</option>`).join("")}
       </select>
-      <input type="text" data-aroma-input="${category}" placeholder="없는 향미를 직접 추가">
-      <button type="button" class="ghost-button" data-aroma-add="${category}" style="color:var(--text); border-color:var(--line); background:var(--surface-strong)">향미 추가</button>
+      <input type="text" data-aroma-input="${category}" placeholder="Add a custom aroma note">
+      <button type="button" class="ghost-button" data-aroma-add="${category}" style="color:var(--text); border-color:var(--line); background:var(--surface-strong)">Add Aroma</button>
     </div>
-    <div class="aroma-add-status" data-aroma-status="${category}">기본 향미에 없는 표현은 직접 추가해 다음 리뷰에서도 계속 쓸 수 있습니다.</div>
+    <div class="aroma-add-status" data-aroma-status="${category}">Choose from the built-in aroma notes, or add your own so future reviews can reuse it.</div>
   ` + Object.entries(groups).map(([groupName, options], index) => `
     <details class="aroma-category"${options.some((option) => values.includes(option)) || index === 0 ? " open" : ""}>
       <summary class="aroma-category-head">
@@ -2093,63 +2095,67 @@ async function handlePasswordResetRequest() {
 
   const email = el.adminEmail.value.trim();
   if (!email) {
-    el.authStatus.textContent = "비밀번호 재설정 메일을 보내려면 이메일을 먼저 입력해 주세요.";
+    el.authStatus.textContent = "Enter the email first if you want to send a password reset link.";
     return;
   }
 
-  el.authStatus.textContent = "비밀번호 재설정 메일 전송 중...";
+  el.authStatus.textContent = "Sending password reset email...";
   const redirectTo = `${window.location.origin}${window.location.pathname}`;
   const { error } = await state.supabase.auth.resetPasswordForEmail(email, { redirectTo });
   el.authStatus.textContent = error
-    ? `재설정 메일 전송 실패: ${error.message}`
-    : "비밀번호 재설정 메일을 보냈습니다. 메일을 받은 뒤 바로 링크를 눌러 새 비밀번호를 설정해 주세요.";
+    ? `Password reset email failed: ${error.message}`
+    : "Password reset email sent. Open the link from your inbox and continue the recovery flow there.";
 }
 
 async function handlePasswordRecoverySubmit(event) {
   event.preventDefault();
   const recoverySessionReady = state.recoveryMode || (sessionStorage.getItem(STORAGE_KEYS.recoveryMode) === "1" && Boolean(state.session));
   if (!state.supabase || !recoverySessionReady) {
-    el.authStatus.textContent = "재설정 링크를 다시 열어 비밀번호 변경을 진행해 주세요.";
+    el.authStatus.textContent = "Open the recovery link again before trying to change the password.";
+    return;
+  }
+  if (!el.newPassword || !el.confirmPassword) {
+    el.authStatus.textContent = "Password recovery UI is not available in this build.";
     return;
   }
 
   const password = el.newPassword.value.trim();
   const confirm = el.confirmPassword.value.trim();
   if (!password || !confirm) {
-    el.authStatus.textContent = "새 비밀번호와 확인 값을 모두 입력해 주세요.";
+    el.authStatus.textContent = "Enter the new password in both fields before continuing.";
     return;
   }
   if (password.length < 6) {
-    el.authStatus.textContent = "새 비밀번호는 6자 이상으로 입력해 주세요.";
+    el.authStatus.textContent = "Use at least 6 characters for the new password.";
     return;
   }
   if (password !== confirm) {
-    el.authStatus.textContent = "새 비밀번호와 확인 값이 서로 다릅니다.";
+    el.authStatus.textContent = "The password and confirmation do not match.";
     return;
   }
 
-  el.authStatus.textContent = "새 비밀번호 저장 중...";
+  el.authStatus.textContent = "Updating password...";
   const { error } = await state.supabase.auth.updateUser({ password });
   if (error) {
-    el.authStatus.textContent = `비밀번호 변경 실패: ${error.message}`;
+    el.authStatus.textContent = `Password update failed: ${error.message}`;
     return;
   }
 
   state.recoveryMode = false;
   state.recoveryError = "";
   sessionStorage.removeItem(STORAGE_KEYS.recoveryMode);
-  el.newPassword.value = "";
-  el.confirmPassword.value = "";
+  if (el.newPassword) el.newPassword.value = "";
+  if (el.confirmPassword) el.confirmPassword.value = "";
   updatePasswordRecoveryUi();
-  el.authStatus.textContent = "비밀번호가 변경되었습니다. 이제 새 비밀번호로 로그인하시면 됩니다.";
+  el.authStatus.textContent = "Password updated. Sign in again with the new password when you are ready.";
 }
 
 function cancelPasswordRecovery() {
   state.recoveryMode = false;
   state.recoveryError = "";
   sessionStorage.removeItem(STORAGE_KEYS.recoveryMode);
-  el.newPassword.value = "";
-  el.confirmPassword.value = "";
+  if (el.newPassword) el.newPassword.value = "";
+  if (el.confirmPassword) el.confirmPassword.value = "";
   updatePasswordRecoveryUi();
 }
 
@@ -2293,10 +2299,10 @@ function formatReviewSaveError(error) {
         author_name: "alter table comments add column if not exists author_name text;",
         body: "alter table comments add column if not exists body text;"
       };
-      const sqlHint = columnSql[column] || `-- ${table}.${column} 컬럼을 추가하는 alter table 문을 실행해 주세요.`;
-      return `Supabase 테이블에 필요한 컬럼이 아직 없습니다.\n\n빠진 컬럼: ${table}.${column}\n실행할 SQL:\n${sqlHint}\n\n참고: create table if not exists 는 기존 테이블에 새 컬럼을 추가하지 않습니다. 이미 테이블이 있으면 alter table ... add column if not exists ... 를 실행해야 합니다.`;
+      const sqlHint = columnSql[column] || `-- Add the missing ${table}.${column} column with an alter table statement.`;
+      return `Supabase is missing a column that this workspace now expects.\n\nMissing column: ${table}.${column}\nSuggested SQL:\n${sqlHint}\n\nIf the table already exists, run an alter table ... add column if not exists ... statement in the SQL editor.`;
     }
-    return `저장은 시도됐지만 Supabase 테이블 구조가 현재 페이지 버전과 어긋나 있습니다. \`supabase-schema.sql\`을 SQL Editor에서 다시 실행해 producer, sub_region, overall_score, aroma/comment 관련 컬럼을 한 번에 맞춰주세요.\n\n실제 오류: ${message}`;
+    return `Supabase returned a schema mismatch. Open \`supabase-schema.sql\` in the SQL editor and make sure columns such as producer, sub_region, overall_score, aroma, and comment fields exist.\n\nOriginal message: ${message}`;
   }
   return message || "\uC800\uC7A5 \uACFC\uC815\uC744 \uB2E4\uC2DC \uD655\uC778\uD574 \uC8FC\uC138\uC694.";
 }
@@ -2469,7 +2475,7 @@ async function handleReviewDelete(wineId, reviewId) {
     return;
   }
 
-  const ok = window.confirm(`'${wine.name}' 리뷰를 삭제할까요?`);
+  const ok = window.confirm(`'${wine.name}' ???숆강?붺춯???????????ｋ젒???`);
   if (!ok) {
     return;
   }
@@ -2578,7 +2584,7 @@ async function handlePersonaDelete() {
     return;
   }
 
-  const ok = window.confirm(`${persona.name} persona를 삭제할까요? 함께 연결된 리뷰도 같이 정리됩니다.`);
+  const ok = window.confirm(`${persona.name} persona??????????ｋ젒??? ??鶯ㅺ동???醫듽렒 ?????곕츣??????숆강?붺춯??????ル봿??????꿔꺂??????큿??癲ル슢?????`);
   if (!ok) {
     return;
   }
@@ -2603,14 +2609,14 @@ async function handlePersonaDelete() {
 async function handleImageLookup() {
   const query = buildWineLookupQuery();
   if (!query.primary) {
-    el.fetchStatus.textContent = "이미지 후보를 찾으려면 와인명이나 Producer 중 하나는 먼저 입력해 주세요.";
+    el.fetchStatus.textContent = "?????轅붽틓??? ?????밸븶?????轅붽틓??????????ル늅獄?????꿔꺂????븍갭夷?????Producer ?????棺堉?뤃管????雅?퍔瑗ⓩ뤃?? ?????⑤챷竊??????용츧????ロ뒌??";
     return;
   }
 
   state.imageCandidates = [];
   renderImageCandidates();
   setUploadFallbackVisible(false);
-  el.fetchStatus.textContent = "공식 와이너리, 수입사, 상품 페이지를 먼저 찾고 없으면 공개 이미지 소스까지 순차적으로 탐색합니다.";
+  el.fetchStatus.textContent = "?????곷쿀?????????影???? ????蹂κ텤??? ????釉뚯뺏? ????蹂κ텤?熬곎逾???????雅?퍔瑗ⓩ뤃?? ?轅붽틓???????????쇨덧?筌먦렜逾????????????轅붽틓??? ????誘⑸깹??⑤㎟?믡굦???? ??癲???????⑤뜪癲ル슢?뤺キ????????癲ル슢?????";
 
   try {
     const data = await requestWineLookup("image", query);
@@ -2619,8 +2625,8 @@ async function handleImageLookup() {
     renderImageCandidates();
 
     if (!state.imageCandidates.length) {
-      setUploadFallbackVisible(true, "자동 탐색에서 마땅한 이미지 후보를 찾지 못해 마지막 대안으로 직접 업로드를 열었습니다.");
-      el.fetchStatus.textContent = data.note || "자동 탐색으로 쓸 수 있는 이미지 후보를 찾지 못해 직접 업로드로 보완할 수 있게 했습니다.";
+      setUploadFallbackVisible(true, "???癲???????????轅붽틓??????????????轅붽틓??? ?????밸븶?????轅붽틓????? ?轅붽틓??彛?臾믪뮏????轅붽틓???????????濚밸Ŧ寃㎩쳞???轅붽틓?????????野??? ??????????");
+      el.fetchStatus.textContent = data.note || "???癲???????????????????????뀀땽 ?????轅붽틓??? ?????밸븶?????轅붽틓????? ?轅붽틓??彛?臾믪뮏????轅붽틓?????????野??癲ル슢캉??꿸괴 ???ㅼ뒧?????????????????????????낆젵.";
       return;
     }
 
@@ -2628,38 +2634,38 @@ async function handleImageLookup() {
     if (!el.wineImage.value.trim() && state.imageCandidates[0]?.image_url) {
       applyImageCandidate(state.imageCandidates[0]);
     } else {
-      el.fetchStatus.textContent = data.note || `${state.imageCandidates.length}개의 이미지 후보를 찾았습니다. 마음에 드는 이미지를 골라 적용해 주세요.`;
+      el.fetchStatus.textContent = data.note || `${state.imageCandidates.length}???ル봿?????????轅붽틓??? ?????밸븶?????轅붽틓?????????????? ?轅붽틓????????癲ル슢??????????轅붽틓???????潁????????⑤뜪???????용츧????ロ뒌??`;
     }
   } catch (error) {
-    setUploadFallbackVisible(true, "자동 탐색 중 오류가 발생해 수동 업로드 영역을 열었습니다.");
-    el.fetchStatus.textContent = `이미지 후보 조회에 실패했습니다. ${error.message || "Cloudflare Function 또는 API 설정을 확인해 주세요."}`;
+    setUploadFallbackVisible(true, "???癲?????????????⑤챷逾???ル봿?? ??ш끽維뽳쭩?좊쐪筌먲퐢???????棺堉?댆猿껎맪?????野???????⑤뜤?????????????");
+    el.fetchStatus.textContent = `?????轅붽틓??? ?????밸븶??????곗뒭??????????怨뚯댅???????????낆젵. ${error.message || "Cloudflare Function ?????API ???濚밸Ŧ??????꿔꺂??틝??????????용츧????ロ뒌??"}`;
   }
 }
 async function handlePriceLookup() {
   const query = buildWineLookupQuery();
   if (!query.primary) {
-    el.fetchStatus.textContent = "가격 조회를 하려면 와인명이나 Producer 중 하나는 먼저 입력해 주세요.";
+    el.fetchStatus.textContent = "???ル봿???????곗뒭?????ш끽踰椰??????브퀡???????꿔꺂????븍갭夷?????Producer ?????棺堉?뤃管????雅?퍔瑗ⓩ뤃?? ?????⑤챷竊??????용츧????ロ뒌??";
     return;
   }
 
   const existingWine = findClosestExistingWine();
   if (existingWine?.averagePrice && !el.winePrice.value.trim()) {
     el.winePrice.value = existingWine.averagePrice;
-    el.fetchStatus.textContent = `기존 등록 와인 '${existingWine.name}'에 저장된 가격 메모를 먼저 불러왔습니다.`;
+    el.fetchStatus.textContent = `??????????μ떜媛?걫??곸돥??????'${existingWine.name}'??????녾낮?녕댆?귦맪????ル봿?????轅붽틓???????ш끽踰椰??雅?퍔瑗ⓩ뤃?? ???怨쀫뎐??????거?醫귣쐪??????낆젵.`;
     return;
   }
 
-  el.fetchStatus.textContent = "가격 정보를 찾는 중입니다...";
+  el.fetchStatus.textContent = "???ル봿??????꿔꺂?????????轅붽틓???????μ떝?띄몭??袁㏉떋???????낆젵...";
   try {
     const data = await requestWineLookup("price", query);
     if (data.average_price) {
       el.winePrice.value = data.average_price;
-      el.fetchStatus.textContent = data.note || "가격 정보를 찾아 폼에 반영했습니다.";
+      el.fetchStatus.textContent = data.note || "???ル봿??????꿔꺂?????????轅붽틓???????????嚥싲갭큔?댁옊????ш끽維뽳쭩?????????????낆젵.";
       return;
     }
-    el.fetchStatus.textContent = "일치하는 가격 정보를 찾지 못했습니다. Wine-Searcher API 연결 상태도 함께 확인해 주세요.";
+    el.fetchStatus.textContent = "??嚥싲갭큔?딆뼍留???棺堉?댆洹ⓦ럹????ル봿??????꿔꺂?????????轅붽틓????? ?轅붽틓??彛?臾믪뮏?鶯?????? Wine-Searcher API ?????곕츣??????釉먮빱?????鶯ㅺ동???醫듽렒 ??꿔꺂??틝??????????용츧????ロ뒌??";
   } catch (error) {
-    el.fetchStatus.textContent = `가격 조회에 실패했습니다. ${error.message || "Cloudflare Function 또는 API 설정을 확인해 주세요."}`;
+    el.fetchStatus.textContent = `???ル봿???????곗뒭??????????怨뚯댅???????????낆젵. ${error.message || "Cloudflare Function ?????API ???濚밸Ŧ??????꿔꺂??틝??????????용츧????ロ뒌??"}`;
   }
 }
 
@@ -2744,6 +2750,12 @@ function clearImageField() {
   syncImagePreview();
   if (el.fetchStatus) {
     el.fetchStatus.textContent = "\uC774\uBBF8\uC9C0\uB97C \uBE44\uC6E0\uC2B5\uB2C8\uB2E4. \uB2E4\uC2DC \uC62C\uB9AC\uB824\uBA74 \uC0AC\uC9C4 \uBCF4\uAD00\uD568 \uB610\uB294 \uCE74\uBA54\uB77C \uCD2C\uC601\uC744 \uC774\uC6A9\uD558\uC138\uC694.";
+  }
+}
+
+function updatePasswordRecoveryUi() {
+  if (!el.newPassword || !el.confirmPassword) {
+    return;
   }
 }
 
@@ -2873,7 +2885,7 @@ async function handlePersonaImageUpload(event) {
 
   try {
     el.personaImageInput.value = await readFileAsDataUrl(file);
-    syncPersonaImagePreview("사진 보관함 업로드");
+    syncPersonaImagePreview("Photo library upload");
   } finally {
     event.target.value = "";
   }
@@ -2905,8 +2917,8 @@ function syncPersonaImagePreview(sourceLabel = "") {
   }
   if (el.personaImageCaption) {
     el.personaImageCaption.textContent = customImage
-      ? (sourceLabel ? `선택된 이미지 출처: ${sourceLabel}` : "이 페르소나에 적용될 프로필 이미지입니다.")
-      : "사진이 없으면 기본 이미지가 자동으로 표시됩니다. 사진 보관함에서 이미지를 선택하면 카드에 바로 반영됩니다.";
+      ? (sourceLabel ? `Selected image source: ${sourceLabel}` : "A custom persona photo is active for this profile.")
+      : "If no image is selected, the default avatar appears automatically. A library upload updates the card right away.";
   }
 }
 
@@ -3127,7 +3139,7 @@ async function handleWineDelete(wineId) {
     return;
   }
 
-  const ok = window.confirm(`'${wine.name}' 와인 항목과 연결된 리뷰를 모두 삭제할까요?`);
+  const ok = window.confirm(`'${wine.name}' ???????????읐??????곕츣??????숆강?붺춯????轅붽틓??熬곥끇釉???????????ｋ젒???`);
   if (!ok) {
     return;
   }

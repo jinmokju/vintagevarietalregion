@@ -96,8 +96,8 @@
     .persona-avatar-copy{display:grid;gap:6px}
     .persona-avatar-copy strong{font-size:.92rem}
     .persona-avatar-copy span{font-size:.82rem;color:var(--muted);line-height:1.55}
-    .persona-image-picker{position:relative;overflow:hidden}
-    .persona-image-picker input{position:absolute;inset:0;opacity:0;cursor:pointer}
+                      <label class="review-action persona-image-picker">??鶯??怨뚮옖????縕??????ャ뀕??input id="personaImageLibrary" type="file" accept="image/*"></label>
+                      <label class="review-action persona-image-picker">??鶯??怨뚮옖????縕??????ャ뀕??input id="personaImageLibrary" type="file" accept="image/*"></label>
     .persona-grid.persona-grid-summary{grid-template-columns:1fr;gap:12px}
     .persona-character{display:grid;gap:10px;padding:16px 18px;border-radius:20px;border:1px solid var(--line);background:linear-gradient(135deg,rgba(166,61,83,.1),rgba(255,255,255,.34))}
     .persona-character-hero{margin-top:14px}
@@ -187,6 +187,7 @@
     .hero-dashboard-head{display:flex;justify-content:space-between;gap:12px;align-items:flex-start}
     .hero-dashboard-head h3{font-size:1.28rem;color:var(--white)}
     .hero-dashboard-note{font-size:.78rem;color:rgba(255,241,234,.74)}
+    .hero-dashboard-note strong{color:var(--white)}
     .hero-kicker{background:rgba(255,255,255,.18);border-color:rgba(255,255,255,.14);color:var(--white)}
     .hero-metric-grid{gap:12px}
     .hero-metric{gap:8px;padding:18px;border-radius:22px;background:linear-gradient(180deg,rgba(255,255,255,.18),rgba(255,255,255,.08));border:1px solid rgba(255,255,255,.12)}
@@ -228,9 +229,13 @@
     .library-shell .search-box span{font-size:.74rem}
     .wine-grid.refined{grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:22px}
     .wine-card{padding:0;background:linear-gradient(180deg,rgba(255,255,255,.76),rgba(255,255,255,.42));box-shadow:0 24px 50px rgba(74,31,36,.08)}
-    .wine-summary-card{overflow:hidden}
-    .wine-summary-row{list-style:none;display:grid;grid-template-columns:minmax(0,1.5fr) auto auto;align-items:center;gap:14px;padding:18px 20px;cursor:pointer}
+    .wine-summary-card{overflow:hidden;transition:transform .22s ease,box-shadow .22s ease,border-color .22s ease}
+    .wine-summary-card[open],.persona-summary-card[open]{border-color:rgba(166,61,83,.2);box-shadow:0 24px 54px rgba(74,31,36,.1)}
+    .wine-summary-row{position:relative;list-style:none;display:grid;grid-template-columns:minmax(0,1.5fr) auto auto;align-items:center;gap:14px;padding:18px 52px 18px 20px;cursor:pointer;transition:background-color .18s ease}
     .wine-summary-row::-webkit-details-marker{display:none}
+    .wine-summary-row::after,.persona-summary-row::after{content:"??;position:absolute;right:20px;top:50%;transform:translateY(-50%) rotate(90deg);font-size:1.2rem;font-weight:800;color:rgba(111,99,96,.8);transition:transform .18s ease,color .18s ease}
+    .wine-summary-card[open] .wine-summary-row::after,.persona-summary-card[open] .persona-summary-row::after{transform:translateY(-50%) rotate(-90deg);color:var(--accent)}
+    .wine-summary-row:hover,.persona-summary-row:hover{background:rgba(255,255,255,.18)}
     .wine-summary-copy{display:grid;gap:4px;min-width:0}
     .wine-summary-copy strong{font-size:1rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
     .wine-summary-copy span{font-size:.82rem;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -250,12 +255,12 @@
     .wine-card-footer{display:grid;gap:12px;padding-top:14px;border-top:1px solid rgba(86,52,45,.08)}
     .wine-card-actions{justify-content:flex-start}
     @media (max-width:720px){
-      .wine-summary-row{position:relative;grid-template-columns:minmax(0,1fr);align-items:start;gap:8px;padding:14px 16px 12px}
+      .wine-summary-row{position:relative;grid-template-columns:minmax(0,1fr);align-items:start;gap:8px;padding:14px 46px 12px 16px}
       .wine-summary-copy{gap:2px}
       .wine-summary-copy{padding-right:88px}
       .wine-summary-copy strong{font-size:.94rem;white-space:nowrap}
       .wine-summary-copy span{font-size:.76rem;white-space:nowrap}
-      .wine-summary-row .wine-card-head-actions{position:absolute;top:14px;right:16px;justify-content:flex-end;align-self:start}
+      .wine-summary-row .wine-card-head-actions{position:absolute;top:14px;right:46px;justify-content:flex-end;align-self:start}
       .wine-summary-row .type-badge{max-width:78px;text-align:center;padding:6px 9px;font-size:.68rem}
       .wine-summary-bar{justify-content:flex-start;flex-wrap:nowrap;overflow-x:auto;overflow-y:hidden;padding-bottom:2px;scrollbar-width:none}
       .wine-summary-bar::-webkit-scrollbar{display:none}
@@ -289,12 +294,13 @@
     .review-status[data-tone="saving"]{border-color:rgba(166,61,83,.18);background:rgba(166,61,83,.08);color:var(--accent-ink)}
     .review-status[data-tone="success"]{border-color:rgba(75,126,92,.2);background:rgba(90,160,114,.1);color:#24543a}
     .review-status[data-tone="error"]{border-color:rgba(166,61,83,.2);background:rgba(166,61,83,.1);color:var(--accent-ink)}
+    .review-status[data-tone="idle"]{background:linear-gradient(180deg,rgba(255,255,255,.42),rgba(255,255,255,.2))}
     .review-status{margin-top:12px;padding:12px 14px;border-radius:16px;border:1px solid var(--line);background:rgba(255,255,255,.32);font-size:.9rem;line-height:1.6;color:var(--muted)}
     .review-status[data-tone="saving"]{border-color:rgba(166,61,83,.18);background:rgba(166,61,83,.08);color:var(--accent-ink)}
     .review-status[data-tone="success"]{border-color:rgba(75,126,92,.2);background:rgba(90,160,114,.1);color:#24543a}
     .review-status[data-tone="error"]{border-color:rgba(166,61,83,.2);background:rgba(166,61,83,.1);color:var(--accent-ink)}
     @media (max-width:720px){.library-toolbar{padding:14px}.wine-grid.refined{grid-template-columns:1fr}.wine-card-inner{padding:16px}.wine-image{min-height:220px}.review-section-shell{padding:12px}.library-toolbar .chip{font-size:.7rem;padding:6px 8px}.library-shell .search-box{font-size:.76rem;padding:9px 10px}.library-shell .search-box input{font-size:.78rem}.wine-card-copy h3{font-size:1.06rem}.wine-card-copy .muted{font-size:.82rem}}
-    @media (max-width:980px){.hero-grid-refined,.hero-bullet-grid,.studio-intro-grid{grid-template-columns:1fr}}
+
     @media (max-width:720px){.hero-refined{padding:22px 20px 22px}.hero-refined::before{inset:12px}.hero-top-actions{width:100%;justify-content:space-between}}
   </style>
 
@@ -319,37 +325,37 @@
         <div class="hero-copy hero-copy-refined">
           <div class="eyebrow hero-eyebrow">VVR taste archive</div>
           <p class="hero-overline">taste-first, no fluff</p>
-          <h1>왜 좋았는지부터, VVR은 결을 읽어요</h1>
-          <p class="hero-lede">취향의 결이 먼저 보이면 처음 보는 와인도 덜 막막해집니다. 최애 품종, 취향 맵, 점수와 향미 노트를 한 화면에서 가볍게 겹쳐 보세요.</p>
+          <h1>Taste first. Decide faster.</h1>
+          <p class="hero-lede">VVR helps us compare wines through structure, aroma, and review reactions before we get lost in extra detail. Build a library that is quick to scan and easy to trust during MVP testing.</p>
           <div class="hero-bullet-grid">
-            <div class="hero-bullet-card"><strong>Taste First</strong><span>점수보다 먼저 취향의 방향이 보입니다.</span></div>
-            <div class="hero-bullet-card"><strong>Note Stack</strong><span>구조, 향, 총평을 한 호흡으로 읽습니다.</span></div>
-            <div class="hero-bullet-card"><strong>Quick Match</strong><span>사람별 반응 차이를 빠르게 겹쳐봅니다.</span></div>
+            <div class="hero-bullet-card"><strong>Taste First</strong><span>See the direction of a wine before you read every note.</span></div>
+            <div class="hero-bullet-card"><strong>Note Stack</strong><span>Structure, aroma, and summary stay in one clear flow.</span></div>
+            <div class="hero-bullet-card"><strong>Quick Match</strong><span>Compare reactions across people without heavy scrolling.</span></div>
           </div>
           <div class="hero-actions hero-actions-refined">
-            <a class="primary-button" href="#atlas">취향 보기</a>
-            <a class="ghost-button" href="#library">리뷰 보기</a>
-            <a class="ghost-button" href="#reviewStudio">리뷰 쓰기</a>
-            <a class="ghost-button" href="#personaStudio">페르소나 편집</a>
+            <a class="primary-button" href="#atlas">Open Taste Atlas</a>
+            <a class="ghost-button" href="#library">Open Review Library</a>
+            <a class="ghost-button" href="#reviewStudio">Write a Review</a>
+            <a class="ghost-button" href="#personaStudio">Edit Personas</a>
           </div>
         </div>
         <aside class="glass-card hero-dashboard">
           <div class="hero-dashboard-head">
             <div>
               <div class="section-kicker hero-kicker">Live Mood</div>
-              <h3>지금 쌓인 무드</h3>
+              <h3>Current workspace snapshot</h3>
             </div>
-            <span class="hero-dashboard-note">실시간 집계</span>
+            <span class="hero-dashboard-note"><strong>Live counters</strong></span>
           </div>
           <div class="metric-grid hero-metric-grid">
-            <div class="metric hero-metric"><span>활성 페르소나</span><strong id="personaCount">8</strong><small>취향 맵 운영 중</small></div>
-            <div class="metric hero-metric"><span>리뷰된 와인</span><strong id="wineCount">0</strong><small>현재 라이브러리 기준</small></div>
-            <div class="metric hero-metric"><span>누적 리뷰</span><strong id="reviewCount">0</strong><small>점수와 총평 포함</small></div>
-            <div class="metric hero-metric"><span>커버 지역</span><strong id="regionCount">0</strong><small>산지 기준 집계</small></div>
+            <div class="metric hero-metric"><span>Personas</span><strong id="personaCount">8</strong><small>profiles with saved taste axes</small></div>
+            <div class="metric hero-metric"><span>Wine cards</span><strong id="wineCount">0</strong><small>entries currently in the library</small></div>
+            <div class="metric hero-metric"><span>Total reviews</span><strong id="reviewCount">0</strong><small>scores plus written summaries</small></div>
+            <div class="metric hero-metric"><span>Regions covered</span><strong id="regionCount">0</strong><small>deduplicated by region path</small></div>
           </div>
           <div class="hero-summary-card">
-            <strong>여기서 바로 하는 일</strong>
-            <p>취향 맵을 훑고, 같은 와인에 여러 리뷰를 쌓고, 댓글로 반응을 더하면서 라이브러리를 한 겹씩 두껍게 만듭니다.</p>
+            <strong>What this board is for</strong>
+            <p>We can map personas, leave multiple reactions on the same wine, and compare structure or aroma differences without the interface getting in the way.</p>
           </div>
         </aside>
       </div>
@@ -361,7 +367,7 @@
           <div>
             <div class="section-kicker">Taste Atlas</div>
             <h2>Persona Taste Atlas</h2>
-            <p class="muted">사람별 취향 축과 리뷰 성향을 한 번에 훑는 비교 보드입니다.</p>
+            <p class="muted">Compare each persona's taste map and review behavior on one board.</p>
           </div>
           <div class="chip-row" id="personaFilters"></div>
         </div>
@@ -373,54 +379,54 @@
           <div>
             <div class="section-kicker">Explore</div>
             <h2>Wine Review Library</h2>
-            <p class="muted">와인 카드 하나 안에서 점수, 구조, 향미, 댓글까지 이어서 읽도록 정리했습니다.</p>
+            <p class="muted">Each wine card opens into structure, aroma, comments, and overall review detail.</p>
           </div>
           <div class="chip-row" id="typeFilters"></div>
         </div>
         <div class="library-shell">
           <div class="library-toolbar">
             <div class="library-toolbar-copy">
-              <strong>필터 스택</strong>
-              <span>리뷰어와 키워드를 함께 걸면 보고 싶은 카드만 또렷하게 남습니다.</span>
+              <strong>Filter stack</strong>
+              <span>Use reviewer and wine-type filters together so the list stays easy to scan during testing.</span>
             </div>
             <div class="chip-row" id="reviewerFilters"></div>
           </div>
-          <div class="search-box" style="flex:1 1 320px"><span>검색</span><input id="searchInput" type="search" placeholder="와인명, 지역, 품종, 리뷰어"></div>
+          <div class="search-box" style="flex:1 1 320px"><span>Search</span><input id="searchInput" type="search" placeholder="Search wine name, region, varietal, or review notes"></div>
           <div class="wine-grid refined" id="wineGrid"></div>
         </div>
       </section>
 
       <section class="panel" id="adminPanel">
-        <div class="section-head"><div><div class="section-kicker">Create</div><h2>Studio Workspace</h2><p class="muted">리뷰 입력과 페르소나 관리가 섞여 보이지 않도록 두 개의 작업 흐름으로 나눴습니다.</p></div></div>
+        <div class="section-head"><div><div class="section-kicker">Create</div><h2>Studio Workspace</h2><p class="muted">Review entry and persona management stay separate, but the flow remains easy to follow from top to bottom.</p></div></div>
         <div class="auth-grid" style="margin-bottom:18px">
           <div class="auth-pane">
             <div class="row">
               <div>
-                <strong>관리자 인증</strong>
-                <div class="muted">`jinmokju@gmail.com` 계정으로 로그인하면 편집 권한이 열립니다.</div>
+                <strong>Admin access</strong>
+                <div class="muted">Sign in with an approved admin email to unlock editing.</div>
               </div>
               <span class="status-badge" id="authBadge">Admin Locked</span>
             </div>
             <form id="authForm" class="form-grid">
-              <label>관리자 이메일<input id="adminEmail" type="email" placeholder="jinmokju@gmail.com"></label>
-              <label>비밀번호<input id="adminPassword" type="password" placeholder="비밀번호"></label>
+              <label>Admin Email<input id="adminEmail" type="email" placeholder="jinmokju@gmail.com"></label>
+              <label>Password<input id="adminPassword" type="password" placeholder="Password"></label>
             </form>
             <div class="button-row">
-              <button class="primary-button" id="loginButton" type="submit" form="authForm">로그인</button>
-              <button class="ghost-button" id="signupButton" type="button" style="color:var(--text); border-color:var(--line); background:var(--surface-strong)">관리자 계정 만들기</button>
-              <button class="ghost-button" id="logoutButton" type="button" style="color:var(--text); border-color:var(--line); background:var(--surface-strong)" hidden>로그아웃</button>
+              <button class="primary-button" id="loginButton" type="submit" form="authForm">Log In</button>
+              <button class="ghost-button" id="signupButton" type="button" style="color:var(--text); border-color:var(--line); background:var(--surface-strong)">Create Admin Account</button>
+              <button class="ghost-button" id="logoutButton" type="button" style="color:var(--text); border-color:var(--line); background:var(--surface-strong)" hidden>Log Out</button>
             </div>
-            <div class="auth-status" id="authStatus">아직 로그인되지 않았습니다.</div>
-            <div class="muted" id="authHelp">로그인 전에는 공개 읽기 전용, 로그인 후에는 관리자 쓰기 권한으로 동작합니다.</div>
+            <div class="auth-status" id="authStatus">You are not signed in yet.</div>
+            <div class="muted" id="authHelp">Before sign-in this workspace is read-only. After sign-in, admin editing is enabled.</div>
           </div>
         </div>
-        <div class="studio-intro-grid"><div class="studio-intro-card"><span>01</span><strong>Wine Review Flow</strong><p>와인 정보, 이미지, 구조 평가, 향미, 총평을 한 병 단위로 정리하는 리뷰 전용 흐름입니다.</p></div><div class="studio-intro-card"><span>02</span><strong>Persona Profile Flow</strong><p>이름, 한 줄 소개, 최애 품종과 지역, 레드·화이트 취향 축을 다듬는 페르소나 관리 흐름입니다.</p></div></div><div class="admin-grid admin-grid-separated">
+        <div class="studio-intro-grid"><div class="studio-intro-card"><span>01</span><strong>Wine Review Flow</strong><p>Start with wine identity, then move through image, structure, aroma, and final summary in one direction.</p></div><div class="studio-intro-card"><span>02</span><strong>Persona Profile Flow</strong><p>Update name, one-line identity, favorite grapes, favorite regions, and taste axes without extra clutter.</p></div></div><div class="admin-grid admin-grid-separated">
           <section class="studio-shell studio-review-shell" id="reviewStudio">
             <div class="studio-shell-head">
               <div>
                 <div class="section-kicker">Review Studio</div>
                 <h3>Wine Review Builder</h3>
-                <p class="muted">와인 한 병의 정보와 이미지, 구조 평가, 향미, 총평을 순서대로 정리하는 메인 입력 영역입니다.</p>
+                <p class="muted">This is the main input area for wine identity, image, structure, aroma, and final review text.</p>
               </div>
               <div class="studio-shell-note">Review workflow</div>
             </div>
@@ -432,18 +438,18 @@
                       <div class="section-kicker">Step 1</div>
                       <h3>Wine Identity</h3>
                     </div>
-                    <div class="summary-meta">기존 와인 선택 또는 새 와인 생성 후 필요한 값만 빠르게 보정</div>
+                    <div class="summary-meta">Select an existing wine or start a new record without leaving the form.</div>
                   </div>
                   <div class="form-grid">
-                    <label>리뷰어 Persona<select id="reviewPersona"></select></label>
-                    <label>와인 타입<select id="wineType"><option>Red</option><option>White</option><option>Sparkling</option><option>Rose</option><option>Orange</option></select></label>
-                    <label>와인명<input id="wineName" list="wineNameOptions" required placeholder="기존 와인 선택 또는 새 와인 입력"><span class="aroma-add-status" id="wineNameMeta">기존에 등록된 와인을 고르면 관련 정보와 리뷰 수를 자동으로 불러옵니다.</span></label>
-                    <label>Producer<input id="wineProducer" placeholder="예: Domaine Dujac"></label>
-                    <label>Vintage<input id="wineVintage" list="wineVintageOptions" placeholder="기존 빈티지 선택 또는 직접 입력"></label>
-                    <label>Varietal<input id="wineVarietal" list="wineVarietalOptions" placeholder="타입별 품종 선택 또는 직접 입력"></label>
-                    <label>Country / Region<input id="wineRegion" list="wineRegionOptions" placeholder="예: France"></label>
-                    <label>Sub Region<input id="wineSubRegion" list="wineSubRegionOptions" placeholder="예: Bourgogne"></label>
-                    <label>평균가 (선택)<input id="winePrice" placeholder="예: KRW 62,000"></label>
+                    <label>Reviewer Persona<select id="reviewPersona"></select></label>
+                    <label>Wine Type<select id="wineType"><option>Red</option><option>White</option><option>Sparkling</option><option>Rose</option><option>Orange</option></select></label>
+                    <label>Wine Name<input id="wineName" list="wineNameOptions" required placeholder="Choose an existing wine or type a new name"><span class="aroma-add-status" id="wineNameMeta">Selecting a saved wine pulls related identity fields and keeps the review flow moving.</span></label>
+                    <label>Producer<input id="wineProducer" placeholder="e.g. Domaine Dujac"></label>
+                    <label>Vintage<input id="wineVintage" list="wineVintageOptions" placeholder="Pick an existing vintage or type your own"></label>
+                    <label>Varietal<input id="wineVarietal" list="wineVarietalOptions" placeholder="Choose by type or enter directly"></label>
+                    <label>Country / Region<input id="wineRegion" list="wineRegionOptions" placeholder="e.g. France"></label>
+                    <label>Sub Region<input id="wineSubRegion" list="wineSubRegionOptions" placeholder="e.g. Bourgogne"></label>
+                    <label>Price Note (Optional)<input id="winePrice" placeholder="e.g. KRW 62,000"></label>
                     <input id="wineImage" type="hidden">
                   </div>
                 </div>
@@ -460,19 +466,18 @@
                       <div class="section-kicker">Step 2</div>
                       <h3>Image Upload</h3>
                     </div>
-                    <div class="summary-meta">자동 탐색 없이 바로 업로드하고, 아래 미리보기에서 즉시 확인하는 흐름입니다.</div>
+                    <div class="summary-meta">Upload directly from the library or camera and verify immediately below.</div>
                   </div>
                   <div class="button-row">
                     <label class="ghost-button" style="color:var(--text); border-color:var(--line); background:var(--surface-strong); cursor:pointer">
-                      사진 보관함
-                      <input id="wineImageLibrary" type="file" accept="image/*" hidden>
+                      Choose from Library<input id="wineImageLibrary" type="file" accept="image/*" hidden>
                     </label>
                     <label class="ghost-button" style="color:var(--text); border-color:var(--line); background:var(--surface-strong); cursor:pointer">
-                      카메라 촬영
+                      Use Camera
                       <input id="wineImageCamera" type="file" accept="image/*" capture="environment" hidden>
                     </label>
                   </div>
-                  <div class="muted" id="fetchStatus">사진을 바로 올리고 아래 미리보기에서 확인한 뒤 저장하면 됩니다. 가격은 필요할 때만 직접 입력해 주세요.</div>
+                  <div class="muted" id="fetchStatus">Upload an image, confirm it in preview, and save when it looks right. Fill in price only when you want it.</div>
                 </div>
                 <div class="form-card">
                   <div class="form-card-head">
@@ -480,27 +485,27 @@
                       <div class="section-kicker">Preview</div>
                       <h3>Image Check</h3>
                     </div>
-                    <div class="summary-meta">업로드한 이미지를 바로 확인하고 잘못 올렸으면 즉시 교체</div>
+                    <div class="summary-meta">A quick visual confirmation before the card goes live.</div>
                   </div>
                   <div class="image-preview" id="imagePreviewCard" hidden>
                     <div class="image-preview-head">
-                      <strong>이미지 미리보기</strong>
-                      <button class="ghost-button" id="clearImageButton" type="button" style="color:var(--text); border-color:var(--line); background:var(--surface-strong)">이미지 비우기</button>
+                      <strong>Image Preview</strong>
+                      <button class="ghost-button" id="clearImageButton" type="button" style="color:var(--text); border-color:var(--line); background:var(--surface-strong)">Clear Image</button>
                     </div>
-                    <img id="wineImagePreview" alt="선택한 와인 이미지 미리보기">
-                    <div class="image-caption" id="imagePreviewCaption">올린 이미지는 여기서 바로 확인할 수 있습니다.</div>
+                    <img id="wineImagePreview" alt="Selected wine preview">
+                    <div class="image-caption" id="imagePreviewCaption">You can see how the uploaded image will sit inside the card before saving.</div>
                   </div>
-                  <div class="empty-state" id="imagePreviewPlaceholder">아직 올린 이미지가 없습니다. 사진 보관함이나 카메라 촬영으로 바로 추가해 보세요.</div>
+                  <div class="empty-state" id="imagePreviewPlaceholder">No image uploaded yet. Add one from your photo library or camera when you are ready.</div>
                 </div>
               </div>
               <details class="details-panel" open>
-                <summary><strong>Step 3. 구조 평가</strong><span>와인의 골격을 빠르게 잡는 구간</span></summary>
+                <summary><strong>Step 3. Structure</strong><span>Map the wine's frame quickly before writing the full note</span></summary>
                 <div class="review-section" style="margin-top:0;padding:0;border:none;background:transparent">
                   <div class="review-structure-grid" id="reviewStructureEditor"></div>
                 </div>
               </details>
               <details class="details-panel" open style="margin-top:14px">
-                <summary><strong>Step 4. 향미 프로파일</strong><span>Primary / Secondary / Tertiary를 한 번에 정리</span></summary>
+                <summary><strong>Step 4. Aroma Profile</strong><span>Primary, Secondary, and Tertiary notes in one place</span></summary>
                 <div class="review-section" style="margin-top:0;padding:0;border:none;background:transparent">
                   <div class="aroma-tab-row">
                     <button type="button" class="tab-button active" data-aroma-tab="primary">Primary</button>
@@ -508,44 +513,44 @@
                     <button type="button" class="tab-button" data-aroma-tab="tertiary">Tertiary</button>
                   </div>
                   <div class="aroma-group aroma-tab-panel active" data-aroma-panel="primary">
-                    <strong>1차향 (Primary Aromas)</strong>
+                    <strong>Primary Aromas</strong>
                     <div class="selected-aromas" id="primaryAromaSelected"></div>
                     <div class="aroma-selector" id="primaryAromaSelector"></div>
                   </div>
                   <div class="aroma-group aroma-tab-panel" data-aroma-panel="secondary">
-                    <strong>2차향 (Secondary Aromas)</strong>
+                    <strong>Secondary Aromas</strong>
                     <div class="selected-aromas" id="secondaryAromaSelected"></div>
                     <div class="aroma-selector" id="secondaryAromaSelector"></div>
                   </div>
                   <div class="aroma-group aroma-tab-panel" data-aroma-panel="tertiary">
-                    <strong>3차향 (Tertiary Aromas)</strong>
+                    <strong>Tertiary Aromas</strong>
                     <div class="selected-aromas" id="tertiaryAromaSelected"></div>
                     <div class="aroma-selector" id="tertiaryAromaSelector"></div>
                   </div>
                 </div>
               </details>
               <details class="details-panel" open style="margin-top:14px">
-                <summary><strong>Step 5. 총평 및 저장</strong><span>점수와 핵심 인상을 남기는 마지막 단계</span></summary>
+                <summary><strong>Step 5. Overall Score and Summary</strong><span>The final score plus the review line you want others to remember</span></summary>
                 <div class="review-section" style="margin-top:0;padding:0;border:none;background:transparent">
                   <div class="form-grid">
-                    <label>Overall Score<input id="overallScore" type="number" min="0" max="100" step="1" placeholder="예: 94" required></label>
+                    <label>Overall Score<input id="overallScore" type="number" min="0" max="100" step="1" placeholder="e.g. 94" required></label>
                   </div>
-                  <label style="margin-top:12px">Overall Summary<textarea id="wineReview" required placeholder="와인의 핵심 인상, 구조, 향의 조화, 추천 포인트를 요약해주세요."></textarea></label>
+                  <label style="margin-top:12px">Overall Summary<textarea id="wineReview" required placeholder="Capture the first impression, structure balance, and why this bottle matters."></textarea></label>
                 </div>
               </details>
               <div class="floating-actions" style="margin-top:16px">
                 <div class="summary-row">
                   <div class="image-preview-head">
                     <strong>Ready to Save</strong>
-                    <span class="summary-meta">자동 채우기 후 틀린 값만 보정해서 저장하면 됩니다.</span>
+                    <span class="summary-meta">Core fields are enough to save. You can always come back and refine details later.</span>
                   </div>
                   <div class="button-row">
-                    <button class="primary-button" type="submit" id="reviewSubmitLabel">리뷰 저장하기</button>
-                    <button class="ghost-button" id="cancelEditButton" type="button" style="color:var(--text); border-color:var(--line); background:var(--surface-strong)" hidden>수정 취소</button>
+                    <button class="primary-button" type="submit" id="reviewSubmitLabel">Save Review</button>
+                    <button class="ghost-button" id="cancelEditButton" type="button" style="color:var(--text); border-color:var(--line); background:var(--surface-strong)" hidden>Cancel Edit</button>
                   </div>
                 </div>
               </div>
-                <div class="review-status" id="reviewStatus" data-tone="idle">??? ???? ???? ?? ??? ?? ??????.</div>
+              <div class="review-status" id="reviewStatus" data-tone="idle">Everything you enter here updates the saved card immediately after submission.</div>
             </form>
           </section>
           <section class="studio-shell studio-persona-shell" id="personaStudio">
@@ -553,7 +558,7 @@
               <div>
                 <div class="section-kicker">Persona Studio</div>
                 <h3>Persona Profile Builder</h3>
-                <p class="muted">리뷰와 분리된 별도 관리 영역에서 페르소나 이름, 소개, 최애 품종과 취향 축을 계속 다듬는 공간입니다.</p>
+                <p class="muted">Keep persona identity, favorite grapes, favorite regions, and taste axes in one lightweight editor.</p>
               </div>
               <div class="studio-shell-note">Persona workflow</div>
             </div>
@@ -564,36 +569,36 @@
                     <div class="section-kicker">Profile</div>
                     <h3>Persona Profile Builder</h3>
                   </div>
-                  <div class="summary-meta">한 명의 취향을 계속 업데이트하는 전용 패널</div>
+                  <div class="summary-meta">Update one persona at a time without leaving the tasting context.</div>
                 </div>
                 <div class="form-grid">
-                  <label>Persona 선택<select id="tastePersona"></select></label>
-                  <label>모드<select id="tasteMode"><option value="red">Red Taste</option><option value="white">White Taste</option></select></label>
-                  <label style="grid-column:1 / -1">Persona Name<input id="personaNameInput" placeholder="표시 이름"></label>
-                  <label style="grid-column:1 / -1">한 줄 소개<input id="personaSummaryInput" placeholder="예: 산도 중심의 클래식 유럽파"></label>
+                  <label>Persona<select id="tastePersona"></select></label>
+                  <label>Mode<select id="tasteMode"><option value="red">Red Taste</option><option value="white">White Taste</option></select></label>
+                  <label style="grid-column:1 / -1">Persona Name<input id="personaNameInput" placeholder="Persona name"></label>
+                  <label style="grid-column:1 / -1">One-line Summary<input id="personaSummaryInput" placeholder="e.g. acid-driven, elegant red drinker"></label>
                   <div class="persona-avatar-builder">
                     <input id="personaImageInput" type="hidden">
                     <div class="persona-avatar-preview">
                       <img id="personaAvatarPreview" alt="Persona avatar preview">
                       <div class="persona-avatar-copy">
                         <strong>Persona Photo</strong>
-                        <span id="personaImageCaption">사진이 없으면 기본 이미지가 자동으로 표시됩니다. 사진 보관함에서 선택한 이미지는 이 페르소나 카드에만 적용됩니다.</span>
+                        <span id="personaImageCaption">If no image is chosen, the default avatar appears automatically. A library upload updates the persona card right away.</span>
                       </div>
                     </div>
                     <div class="button-row">
-                      <label class="review-action persona-image-picker">사진 보관함에서 선택<input id="personaImageLibrary" type="file" accept="image/*"></label>
-                      <button class="review-action" id="clearPersonaImageButton" type="button">기본 이미지 사용</button>
+                      <label class="review-action persona-image-picker">Choose from Library<input id="personaImageLibrary" type="file" accept="image/*"></label>
+                      <button class="review-action" id="clearPersonaImageButton" type="button">Use Default Avatar</button>
                     </div>
                   </div>
-                  <label>최애 품종 1<input id="favVarietyOne" placeholder="예: Pinot Noir"></label>
-                  <label>최애 지역 1<input id="favRegionOne" placeholder="예: Burgundy"></label>
-                  <label>최애 품종 2<input id="favVarietyTwo" placeholder="예: Syrah"></label>
-                  <label>최애 지역 2<input id="favRegionTwo" placeholder="예: Northern Rhone"></label>
+                  <label>Favorite Varietal 1<input id="favVarietyOne" placeholder="e.g. Pinot Noir"></label>
+                  <label>Favorite Region 1<input id="favRegionOne" placeholder="e.g. Burgundy"></label>
+                  <label>Favorite Varietal 2<input id="favVarietyTwo" placeholder="e.g. Syrah"></label>
+                  <label>Favorite Region 2<input id="favRegionTwo" placeholder="e.g. Northern Rhone"></label>
                 </div>
                 <div class="range" id="tasteEditor"></div>
                 <div class="button-row">
-                  <button class="primary-button" type="submit">취향 저장하기</button>
-                  <button class="ghost-button" id="deletePersonaButton" type="button" style="color:var(--text); border-color:var(--line); background:var(--surface-strong)">Persona 삭제</button>
+                  <button class="primary-button" type="submit">Save Taste Profile</button>
+                  <button class="ghost-button" id="deletePersonaButton" type="button" style="color:var(--text); border-color:var(--line); background:var(--surface-strong)">Delete Persona</button>
                 </div>
               </div>
             </form>
