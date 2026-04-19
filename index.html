@@ -21,6 +21,9 @@
     .review-track .taste-axis-head strong{font-size:.88rem}
     .aroma-group{display:grid;gap:10px}
     .aroma-selector{display:grid;gap:12px}
+    .aroma-tab-row{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px}
+    .aroma-tab-panel{display:none;gap:10px}
+    .aroma-tab-panel.active{display:grid}
     .aroma-category{display:grid;gap:8px;padding:0;border-radius:16px;border:1px solid var(--line);background:rgba(255,255,255,.18);overflow:hidden}
     .aroma-category summary{list-style:none;cursor:pointer;display:flex;align-items:center;justify-content:space-between;gap:10px;padding:12px 14px}
     .aroma-category summary::-webkit-details-marker{display:none}
@@ -499,17 +502,22 @@
               <details class="details-panel" open style="margin-top:14px">
                 <summary><strong>Step 4. 향미 프로파일</strong><span>Primary / Secondary / Tertiary를 한 번에 정리</span></summary>
                 <div class="review-section" style="margin-top:0;padding:0;border:none;background:transparent">
-                  <div class="aroma-group">
+                  <div class="aroma-tab-row">
+                    <button type="button" class="tab-button active" data-aroma-tab="primary">Primary</button>
+                    <button type="button" class="tab-button" data-aroma-tab="secondary">Secondary</button>
+                    <button type="button" class="tab-button" data-aroma-tab="tertiary">Tertiary</button>
+                  </div>
+                  <div class="aroma-group aroma-tab-panel active" data-aroma-panel="primary">
                     <strong>1차향 (Primary Aromas)</strong>
                     <div class="selected-aromas" id="primaryAromaSelected"></div>
                     <div class="aroma-selector" id="primaryAromaSelector"></div>
                   </div>
-                  <div class="aroma-group" style="margin-top:14px">
+                  <div class="aroma-group aroma-tab-panel" data-aroma-panel="secondary">
                     <strong>2차향 (Secondary Aromas)</strong>
                     <div class="selected-aromas" id="secondaryAromaSelected"></div>
                     <div class="aroma-selector" id="secondaryAromaSelector"></div>
                   </div>
-                  <div class="aroma-group" style="margin-top:14px">
+                  <div class="aroma-group aroma-tab-panel" data-aroma-panel="tertiary">
                     <strong>3차향 (Tertiary Aromas)</strong>
                     <div class="selected-aromas" id="tertiaryAromaSelected"></div>
                     <div class="aroma-selector" id="tertiaryAromaSelector"></div>

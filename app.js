@@ -72,31 +72,31 @@ const REVIEW_STRUCTURE_FIELDS = {
 
 const REVIEW_STRUCTURE_GROUPS = {
   red: [
-    ["sweetness", "body"],
     ["acidityLevel", "acidityShape"],
     ["tanninLevel", "tanninTexture"],
+    ["body", "sweetness"],
     ["finish"]
   ],
   white: [
-    ["sweetness", "body"],
     ["acidityLevel", "acidityShape"],
-    ["texture", "finish"]
+    ["texture", "finish"],
+    ["body", "sweetness"]
   ],
   rose: [
-    ["sweetness", "body"],
     ["acidityLevel", "acidityShape"],
-    ["texture", "finish"]
+    ["texture", "finish"],
+    ["body", "sweetness"]
   ],
   sparkling: [
-    ["sweetness", "body"],
     ["acidityLevel", "acidityShape"],
     ["effervescence", "mousseTexture"],
+    ["body", "sweetness"],
     ["finish"]
   ],
   orange: [
-    ["sweetness", "body"],
     ["acidityLevel", "acidityShape"],
-    ["texture", "finish"]
+    ["texture", "finish"],
+    ["body", "sweetness"]
   ]
 };
 
@@ -922,6 +922,7 @@ function bindEvents() {
   el.wineImageLibrary?.addEventListener("change", (event) => handleImageUpload(event, "\uC0AC\uC9C4 \uBCF4\uAD00\uD568 \uC5C5\uB85C\uB4DC"));
   el.wineImageCamera?.addEventListener("change", (event) => handleImageUpload(event, "\uCE74\uBA54\uB77C \uCD2C\uC601 \uC5C5\uB85C\uB4DC"));
   el.clearImageButton.addEventListener("click", clearImageField);
+  attachAromaTabs();
   el.authForm.addEventListener("submit", handleLogin);
   el.signupButton.addEventListener("click", handleSignup);
   el.logoutButton.addEventListener("click", handleLogout);
@@ -1464,8 +1465,20 @@ function renderSegments(activeCount) {
   return `<div class="taste-meter"><div class="taste-line"></div><span class="taste-marker" style="left:${scalePosition(activeCount)}%"></span></div>`;
 }
 
+function attachAromaTabs() {
+  document.querySelectorAll("[data-aroma-tab]").forEach((button) => {
+    button.addEventListener("click", () => {
+      const target = button.dataset.aromaTab;
+      document.querySelectorAll("[data-aroma-tab]").forEach((tab) => tab.classList.toggle("active", tab === button));
+      document.querySelectorAll("[data-aroma-panel]").forEach((panel) => {
+        panel.classList.toggle("active", panel.dataset.aromaPanel === target);
+      });
+    });
+  });
+}
+
 function attachTasteTabs() {
-  document.querySelectorAll(".tab-button").forEach((button) => {
+  document.querySelectorAll(".tab-button[data-tab]").forEach((button) => {
     button.addEventListener("click", () => {
       const panelId = button.dataset.tab;
       const card = button.closest(".persona-card");
